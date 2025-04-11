@@ -1,0 +1,30 @@
+
+* {
+    background-color: #333333;
+    
+    color: #DCDCDC;
+    
+    border: 1px solid #444444;
+    padding: 5px;
+    border-radius: 2px;
+    
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:0, stop:0 #222222, stop:1 #111111);
+    
+    box-shadow: 1px 1px 1px #000000;
+}
+
+QLabel#positionLabel {
+    font-size: 16px;
+}
+
+QLabel#durationLabel {
+    font-size: 16px;
+}
+
+QLabel#infoBarLabel {
+    font-size: 16px;
+}
+
+QButton {
+    font-size: 18px;
+}
