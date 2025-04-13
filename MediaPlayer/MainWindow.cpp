@@ -1,12 +1,11 @@
+#include "MainWindow.h"
+#include "View.h"
+#include "MediaPlayer.h"
 
 #include <QTime>
 #include <QFile>
 #include <QKeyEvent>
-
-#include "MainWindow.h"
-#include "Player.h"
-#include "View.h"
-#include "MediaPlayer.h"
+#include <QString>
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
@@ -99,7 +98,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     }
     break;
   case Qt::Key_P:
-    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay});
+    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mMuted});
     break;
   default:
     QMainWindow::keyPressEvent(event);

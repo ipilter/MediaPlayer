@@ -1,13 +1,14 @@
 #pragma once
 
-#include <QWidget>
+#include "Types.h"
+
+#include <QObject>
 #include <memory>
 #include <vector>
 
-#include "Types.h"
-
 class View;
-class Player;
+class VideoPlayer;
+class QLayout;
 
 class MediaPlayer : public QObject
 {
@@ -15,7 +16,7 @@ class MediaPlayer : public QObject
 
 public:
   using Playlist = std::vector<QUrl>;
-  struct Settings { bool mAutoPlay = false; };
+  struct Settings { bool mAutoPlay = false; bool mMuted = true; };
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -32,6 +33,7 @@ public:
   void stop();
   void next();
   void previous();
+  void toggleMute();
 
   void setPosition(Time position);
   void seekBackward(Time size);
@@ -46,7 +48,7 @@ private:
 
 private:
   std::shared_ptr<View> mView;
-  std::shared_ptr<Player> mPlayer;
+  std::shared_ptr<VideoPlayer> mPlayer;
 
   // video management
   Playlist mPlaylist;

@@ -1,15 +1,21 @@
-#include "Player.h"
+#include "VideoPlayer.h"
 #include "View.h"
 #include "VideoWidget.h"
 
 #include <QMediaMetaData>
+#include <QMediaPlayer>
+#include <QAudioOutput>
+#include <QUrl>
 #include <random>
 
-Player::Player(VideoWidget* videoWidget, QObject* parent)
+VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
   : QObject(parent)
 {
+  mAudioOutput = new QAudioOutput(this);
+
   mMediaPlayer = new QMediaPlayer(this);
   mMediaPlayer->setVideoOutput(videoWidget);
+  mMediaPlayer->setAudioOutput(mAudioOutput);
 
   connect(mMediaPlayer, &QMediaPlayer::positionChanged, this, [this](Time t) { emit positionChanged(t); });
   connect(mMediaPlayer, &QMediaPlayer::durationChanged, this, [this](Time d) { emit durationChanged(d); });
@@ -27,42 +33,42 @@ Player::Player(VideoWidget* videoWidget, QObject* parent)
   });
 }
 
-void Player::setVideo(const QUrl& videoUrl)
+void VideoPlayer::setVideo(const QUrl& videoUrl)
 {
   mMediaPlayer->setSource(videoUrl);
 }
 
-quint64 Player::duration() const
+Time VideoPlayer::getDuration() const
 {
   return mMediaPlayer->duration();
 }
 
-quint64 Player::position() const
+Time VideoPlayer::getPosition() const
 {
   return mMediaPlayer->position();
 }
 
-bool Player::isPlaying() const
+bool VideoPlayer::isPlaying() const
 {
   return mMediaPlayer->isPlaying();
 }
 
-void Player::play()
+void VideoPlayer::play()
 {
   mMediaPlayer->play();
 }
 
-void Player::pause()
+void VideoPlayer::pause()
 {
   mMediaPlayer->pause();
 }
 
-void Player::stop()
+void VideoPlayer::stop()
 {
   mMediaPlayer->stop();
 }
 
-void Player::seekBackward(Time size)
+void VideoPlayer::seekBackward(Time size)
 {
   if (mMediaPlayer->position() <= size)
   {
@@ -72,7 +78,7 @@ void Player::seekBackward(Time size)
   mMediaPlayer->setPosition(mMediaPlayer->position() - size);
 }
 
-void Player::seekForward(Time size)
+void VideoPlayer::seekForward(Time size)
 {
   if (mMediaPlayer->position() + size >= mMediaPlayer->duration())
   {
@@ -82,12 +88,39 @@ void Player::seekForward(Time size)
   mMediaPlayer->setPosition(mMediaPlayer->position() + size);
 }
 
-void Player::setPosition(Time position)
+float VideoPlayer::volume() const
+{
+  return mAudioOutput->volume();
+}
+
+bool VideoPlayer::isMuted() const
+{
+  return mAudioOutput->isMuted();
+}
+
+
+
+void VideoPlayer::setPosition(Time position)
 {
   mMediaPlayer->setPosition(position);
 }
 
-QMediaMetaData Player::getMetadata() const
+void VideoPlayer::setPlaybackRate(qreal rate)
+{
+  mMediaPlayer->setPlaybackRate(rate);
+}
+
+void VideoPlayer::setVolume(float volume)
+{
+  mAudioOutput->setVolume(volume);
+}
+
+void VideoPlayer::setMuted(bool muted)
+{
+  mAudioOutput->setMuted(muted);
+}
+
+QMediaMetaData VideoPlayer::getMetadata() const
 {
   return mMediaPlayer->metaData();
 }

@@ -1,20 +1,21 @@
 #include "MediaPlayer.h"
-#include "Player.h"
+#include "VideoPlayer.h"
 #include "View.h"
 
-#include <qfileinfo.h>
+#include <QFileInfo.h>
 #include <QMediaMetadata.h>
+#include <QUrl>
 
 #include <random>
 
 MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
   , mView(std::make_shared<View>())
-  , mPlayer(std::make_shared<Player>(mView->getVideoWidget()))
+  , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
 {
-  QObject::connect(mPlayer.get(), &Player::positionChanged, this, [this](Time position) {mView->setPosition(position); });
-  QObject::connect(mPlayer.get(), &Player::durationChanged, this, [this](Time duration) {mView->setDuration(duration); });
-  QObject::connect(mPlayer.get(), &Player::videoLoaded, this, &MediaPlayer::onMediaLoaded);
+  QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](Time position) {mView->setPosition(position); });
+  QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](Time duration) {mView->setDuration(duration); });
+  QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded, this, &MediaPlayer::onMediaLoaded);
 
 
   QObject::connect(mView.get(), &View::onMouseClick,           this, [this]() { mView->hide(); });
@@ -22,6 +23,9 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
   QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
+  QObject::connect(mView.get(), &View::muteButtonClicked, this, [this]() { toggleMute(); });
+
+  mPlayer->setVolume(50);
 }
 
 MediaPlayer::~MediaPlayer()
@@ -42,6 +46,9 @@ QLayout* MediaPlayer::getLayout() const
 void MediaPlayer::setSettings(const Settings& settings)
 {
   mSettings = settings;
+  
+  mPlayer->setMuted(mSettings.mMuted);
+  mView->setMuted(mSettings.mMuted);
 }
 
 const MediaPlayer::Settings& MediaPlayer::getSettings() const
@@ -112,6 +119,14 @@ void MediaPlayer::previous()
   }
 }
 
+void MediaPlayer::toggleMute()
+{
+  mSettings.mMuted = !mSettings.mMuted;
+
+  mPlayer->setMuted(mSettings.mMuted);
+  mView->setMuted(mSettings.mMuted);
+}
+
 void MediaPlayer::setPosition(Time position)
 {
   mPlayer->setPosition(position);
@@ -144,7 +159,7 @@ void MediaPlayer::mark()
   if (mIsMarking)
   {
     mIsMarking = false;
-    mSequences.back().second = mPlayer->position();
+    mSequences.back().second = mPlayer->getPosition();
     if (mSequences.back().first < mSequences.back().second)
     {
       mView->addSequence(mSequences.back());
@@ -157,7 +172,7 @@ void MediaPlayer::mark()
   }
 
   mIsMarking = true;
-  mSequences.push_back(std::make_pair(mPlayer->position(), 0)); // use static instance for invalid sequence (min > max)
+  mSequences.push_back(std::make_pair(mPlayer->getPosition(), 0)); // use static instance for invalid sequence (min > max)
 }
 
 void MediaPlayer::cancelMark()
@@ -171,7 +186,7 @@ void MediaPlayer::onMediaLoaded()
   const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
-  
+
   setPosition(0);
   if (mSettings.mAutoPlay)
   {

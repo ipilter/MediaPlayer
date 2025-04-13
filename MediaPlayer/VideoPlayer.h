@@ -2,26 +2,27 @@
 
 #include "Types.h"
 
-#include <QMediaPlayer>
 #include <QObject>
-#include <QUrl>
-#include <QString>
+#include <QMediaMetaData>
 #include <vector>
 
 class VideoWidget;
 class View;
+class QMediaPlayer;
+class QAudioOutput;
+class QUrl;
 
-class Player : public QObject
+class VideoPlayer : public QObject
 {
   Q_OBJECT
 
 public:
-  explicit Player(VideoWidget* videoWidget, QObject* parent = nullptr);
+  explicit VideoPlayer(VideoWidget* videoWidget, QObject* parent = nullptr);
 
   void setVideo(const QUrl& videoUrl);
 
-  quint64 duration() const;
-  quint64 position() const;
+  Time getDuration() const;
+  Time getPosition() const;
 
   bool isPlaying() const;
 
@@ -32,10 +33,16 @@ public:
   void seekBackward(Time size);
   void seekForward(Time size);
 
+  float volume() const;
+  bool isMuted() const;
+
   QMediaMetaData getMetadata() const;
 
 public slots:
   void setPosition(Time position);
+  void setPlaybackRate(qreal rate);
+  void setVolume(float volume);
+  void setMuted(bool muted);
 
 signals:
   void positionChanged(Time position);
@@ -45,4 +52,6 @@ signals:
 private:
   QMediaPlayer* mMediaPlayer;
   bool mIsVideoLoaded = false;
+
+  QAudioOutput* mAudioOutput = nullptr;
 };

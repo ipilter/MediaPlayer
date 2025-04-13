@@ -94,7 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="MediaPlayer.cpp" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="VideoPlayer.cpp" />
     <ClCompile Include="Slider.cpp" />
     <ClCompile Include="VideoWidget.cpp" />
     <ClCompile Include="View.cpp" />
@@ -108,7 +108,7 @@
     <QtMoc Include="Slider.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="Player.h" />
+    <QtMoc Include="VideoPlayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="default_style.qss" />

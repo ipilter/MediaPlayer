@@ -1,15 +1,11 @@
 #pragma once
+#include "ui_MainWindow.h"
+
+#include "MediaPlayer.h"
 
 #include <QtWidgets/QMainWindow>
 
-#include <QMediaPlayer>
-#include <QVideoWidget>
-#include <QString>
-
-#include "ui_MainWindow.h"
-#include "Player.h"
-
-#include "MediaPlayer.h"
+class QString;
 
 class MainWindow : public QMainWindow
 {

@@ -10,7 +10,7 @@ class QLabel;
 class QPushButton;
 class QLayout;
 
-class Player;
+class VideoPlayer;
 
 class View : public QWidget
 {
@@ -25,6 +25,8 @@ public:
 
   void addSequence(const Sequence& seqence);
 
+  void setMuted(bool muted);
+
 public slots:
   void setPosition(Time position);
   void setDuration(Time duration);
@@ -36,6 +38,7 @@ signals:
   void previousButtonClicked();
   void startStopButtonClicked();
   void nextButtonClicked();
+  void muteButtonClicked();
   void onMouseClick();
 
 private:
@@ -44,8 +47,11 @@ private:
   QPushButton* mPreviousButton;
   QPushButton* mStartStopButton;
   QPushButton* mNextButton;
+
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;
+  QPushButton* mMuteButton;
+  
   QLabel* mInfoBarLabel;
 
   QLayout* mLayout;

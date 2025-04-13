@@ -3,7 +3,6 @@
 #include "Types.h"
 
 #include <QSlider>
-#include <QStyle>
 
 class Slider : public QSlider
 {

@@ -43,7 +43,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="VideoPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Slider.cpp">
@@ -63,7 +63,7 @@
     <QtMoc Include="Slider.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="Player.h">
+    <QtMoc Include="VideoPlayer.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="View.h">

@@ -6,6 +6,7 @@
 #include <QtWidgets/QApplication>
 #include <QSettings>
 #include <QFileInfo>
+#include <QUrl>
 
 #include <fstream>
 #include <vector>
@@ -76,6 +77,7 @@ void savePreferences(const MainWindow& window)
   settings.setValue("size", window.size());
   settings.setValue("pos", window.pos());
   settings.setValue("autoPlay", window.getSettings().mAutoPlay);
+  settings.setValue("muted", window.getSettings().mMuted);
   settings.endGroup();
 }
 
@@ -85,7 +87,7 @@ void loadPreferences(MainWindow& window)
   settings.beginGroup("MainWindow");
   window.resize(settings.value("size", QSize(800, 600)).toSize());
   window.move(settings.value("pos", QPoint(100, 100)).toPoint());
-  window.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool() });
+  window.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool() });
   settings.endGroup();
 }
 

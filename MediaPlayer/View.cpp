@@ -1,7 +1,6 @@
 #include "VideoWidget.h"
 #include "View.h"
 #include "Slider.h"
-#include "Player.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -24,6 +23,7 @@ View::View(QWidget* parent)
   mPreviousButton = new QPushButton("<-|", parent);
   mStartStopButton = new QPushButton("|>", parent);
   mNextButton = new QPushButton("|->", parent);
+  mMuteButton = new QPushButton("-", parent);
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
   mDurationLabel = new QLabel("00:00:00:000", parent);
@@ -35,6 +35,7 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mNextButton);
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
+  buttonLayout->addWidget(mMuteButton);
 
   mInfoBarLabel = new QLabel("", parent);
   mInfoBarLabel->setObjectName("infoBarLabel");
@@ -57,6 +58,7 @@ View::View(QWidget* parent)
   connect(mStartStopButton, &QPushButton::clicked, this, [this]() { emit startStopButtonClicked(); });
   connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); });
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); });
+  connect(mMuteButton, &QPushButton::clicked, this, [this]() { emit muteButtonClicked(); });
 }
 
 View::~View()
@@ -77,6 +79,11 @@ QLayout* View::getLayout() const
 void View::addSequence(const Sequence& sequence)
 {
   mSlider->addSequence(sequence);
+}
+
+void View::setMuted(bool muted)
+{
+  mMuteButton->setText(muted ? "+" : "-");
 }
 
 void View::setPosition(Time position)
