@@ -1,6 +1,7 @@
 #include "MediaPlayer.h"
 #include "VideoPlayer.h"
 #include "View.h"
+#include "FFmpeg.h"
 
 #include <QFileInfo.h>
 #include <QMediaMetadata.h>
@@ -12,6 +13,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
   , mView(std::make_shared<View>())
   , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
+  , mFFmpeg(std::make_unique<FFmpeg>(QString("D:\\Tools\\ffmpeg\\ffmpeg.exe")))
 {
   QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](Time position) {mView->setPosition(position); });
   QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](Time duration) {mView->setDuration(duration); });
@@ -93,6 +95,14 @@ void MediaPlayer::next()
   const bool isPlaying = mPlayer->isPlaying();
   stop();
   mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+  
+  // todo own method instead, see onMediaLoaded
+  // todo mPlayer->getMetadata() is still the old video here, send  a lambda to the player bove and set the view inside the lambda to make it happen when the video is loaded
+  const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
+  //const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
+  const QString info(fileInfo.completeBaseName());
+  mView->setInfo(info);
+
   if (isPlaying)
   {
     play();
@@ -181,11 +191,35 @@ void MediaPlayer::cancelMark()
   mSequences.pop_back();
 }
 
+void MediaPlayer::cut(const bool reconvert)
+{
+  if (mSequences.empty())
+  {
+    return;
+  }
+
+  const auto& sequence = mSequences.back();
+  if (sequence.first >= sequence.second)
+  {
+    return;
+  }
+
+  const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
+  mFFmpeg->cut(wVideoPath, wVideoPath + "_cut.mp4", sequence.first, sequence.second, reconvert);
+  //issue a parallel command for a ffmpeg process to cut the video
+  //sequence.first, sequence.second
+
+
+  //mView->update();
+  //update sequence view as done during cut
+}
+
 void MediaPlayer::onMediaLoaded()
 { 
   const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
+
 
   setPosition(0);
   if (mSettings.mAutoPlay)

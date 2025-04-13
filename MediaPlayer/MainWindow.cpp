@@ -64,6 +64,12 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     mMediaPlayer->seekForward(size);
     break;
   }
+  case Qt::Key_C:
+  {
+    const bool wReconvert = event->modifiers() & Qt::ShiftModifier;
+    mMediaPlayer->cut(wReconvert);
+    break;
+  }
   case Qt::Key_W:
     if (event->modifiers() & Qt::ShiftModifier)
     {
