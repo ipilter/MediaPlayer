@@ -30,6 +30,18 @@ VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
       mIsVideoLoaded = true;
       emit videoLoaded();
     }
+    else if (status == QMediaPlayer::EndOfMedia)
+    {
+      emit videoEnded();
+    }
+    //  NoMedia,
+    //  LoadingMedia,
+    //  LoadedMedia,
+    //  StalledMedia,
+    //  BufferingMedia,
+    //  BufferedMedia,
+    //  EndOfMedia,
+    //  InvalidMedia
   });
 }
 

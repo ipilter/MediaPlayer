@@ -46,7 +46,8 @@ public:
   void cut(const bool reconvert);
 
 private:
-  void onMediaLoaded();
+  void onVideoLoaded();
+  void onVideoEnded();
 
 private:
   std::shared_ptr<View> mView;

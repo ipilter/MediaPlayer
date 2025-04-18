@@ -47,6 +47,7 @@ public slots:
 signals:
   void positionChanged(Time position);
   void durationChanged(Time duration);
+  void videoEnded();
   void videoLoaded();
 
 private:

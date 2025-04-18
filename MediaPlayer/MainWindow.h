@@ -17,7 +17,6 @@ public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-  void applyStylesFromFile(const QString& filePath);
   void setPlaylist(const Playlist& playlist);
   void setSettings(const MediaPlayer::Settings& settings);
   const MediaPlayer::Settings& getSettings() const;

@@ -8,6 +8,8 @@
 #include <QUrl>
 
 #include <random>
+#include <QThread>
+#include <windows.h>
 
 MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
@@ -17,8 +19,8 @@ MediaPlayer::MediaPlayer(QObject* parent)
 {
   QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](Time position) {mView->setPosition(position); });
   QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](Time duration) {mView->setDuration(duration); });
-  QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded, this, &MediaPlayer::onMediaLoaded);
-
+  QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded, this, &MediaPlayer::onVideoLoaded);
+  QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded, this, &MediaPlayer::onVideoEnded); // TODO: add settings for loop,next,stop
 
   QObject::connect(mView.get(), &View::onMouseClick,           this, [this]() { mView->hide(); });
   QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<Time>(position)); });
@@ -67,18 +69,24 @@ void MediaPlayer::play()
 {
   mPlayer->play();
   mView->setPlayButtonText("||");
+
+  SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 }
 
 void MediaPlayer::pause()
 {
   mPlayer->pause();
   mView->setPlayButtonText("|>");
+  
+  SetThreadExecutionState(ES_CONTINUOUS);
 }
 
 void MediaPlayer::stop()
 {
   mPlayer->stop();
   mView->setPlayButtonText("|>");
+
+  SetThreadExecutionState(ES_CONTINUOUS);
 }
 
 void MediaPlayer::next()
@@ -214,7 +222,7 @@ void MediaPlayer::cut(const bool reconvert)
   //update sequence view as done during cut
 }
 
-void MediaPlayer::onMediaLoaded()
+void MediaPlayer::onVideoLoaded()
 { 
   const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
@@ -226,4 +234,11 @@ void MediaPlayer::onMediaLoaded()
   {
     play();
   }
+}
+
+void MediaPlayer::onVideoEnded()
+{
+  // todo add loop|next|stop Settings
+  next();
+  play();
 }

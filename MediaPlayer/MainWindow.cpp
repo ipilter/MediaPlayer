@@ -13,10 +13,6 @@ MainWindow::MainWindow(QWidget* parent)
 {
   ui.setupUi(this);
 
-  const QString absoluteFilePath = QCoreApplication::applicationDirPath() + "/" + "default_style.qss";
-  applyStylesFromFile(absoluteFilePath);
-
-
   QWidget* wCentralWidget = centralWidget();
   if (wCentralWidget == nullptr)
   {
@@ -91,9 +87,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     break;
   case Qt::Key_F:
     {
-      static bool wIsMaximized = this->isMaximized();
-      wIsMaximized = !wIsMaximized;
-      if (wIsMaximized)
+      if (this->isMaximized())
       {
         this->showNormal();
       }
@@ -109,18 +103,6 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   default:
     QMainWindow::keyPressEvent(event);
     break;
-  }
-}
-
-void MainWindow::applyStylesFromFile(const QString& filePath)
-{
-  QFile file(filePath);
-  if (file.open(QFile::ReadOnly | QFile::Text))
-  {
-    QTextStream stream(&file);
-    QString styleSheet = stream.readAll();
-    this->setStyleSheet(styleSheet);
-    file.close();
   }
 }
 

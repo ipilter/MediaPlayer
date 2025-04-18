@@ -17,11 +17,20 @@ void savePreferences(const MainWindow& window);
 void loadPreferences(MainWindow& window);
 bool isMediaPlayerPlaylistFile(const QString& filePath);
 MediaPlayer::Playlist readFilePaths(const QString& filePath);
+QString readStyles(const QString& filePath);
 
 int main(int argc, char *argv[])
 {
-  QApplication a(argc, argv);
-  
+  QApplication wApp(argc, argv);
+
+  const QString wAbsoluteFilePath = QCoreApplication::applicationDirPath() + "/" + "default_style.qss";
+  QString wStyles = readStyles(wAbsoluteFilePath);
+  if (wStyles.isEmpty()) {
+    qDebug() << "Failed to read styles from" << wAbsoluteFilePath;
+  }
+  wApp.setStyleSheet(wStyles);
+  wApp.setStyle("Fusion");
+
   MainWindow wMainWindow;
   wMainWindow.setWindowTitle("MediaPlayer v0.0.0");
   loadPreferences(wMainWindow);
@@ -65,9 +74,10 @@ int main(int argc, char *argv[])
 
   wMainWindow.show();
 
-  const int ret = a.exec();  
+  const int wRet = wApp.exec();
   savePreferences(wMainWindow);
-  return ret;
+
+  return wRet;
 }
 
 void savePreferences(const MainWindow& window)
@@ -118,4 +128,18 @@ MediaPlayer::Playlist readFilePaths(const QString& filePath)
   std::shuffle(playlist.begin(), playlist.end(), g);
 
   return playlist;
+}
+
+QString readStyles(const QString& filePath)
+{
+  QFile file(filePath);
+  if (!file.open(QFile::ReadOnly | QFile::Text))
+  {
+    return QString();
+  }
+
+  QTextStream stream(&file);
+  const QString styleSheet = stream.readAll();
+  file.close();
+  return styleSheet;
 }
