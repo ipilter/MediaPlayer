@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Runnable.h"
 
 #include <QProcess> // TODO use cpp and use predefine

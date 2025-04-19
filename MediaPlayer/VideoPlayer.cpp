@@ -6,6 +6,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QUrl>
+
 #include <random>
 
 VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)

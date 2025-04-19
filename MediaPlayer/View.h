@@ -24,17 +24,16 @@ public:
   VideoWidget* getVideoWidget() const;
   QLayout* getLayout() const;
 
-  void addSequence(const Sequence& seqence);
-
   void setMuted(bool muted);
-  void onPlay();
-  void onPause();
-  void onStop();
 
 public slots:
   void setPosition(VTime position);
   void setDuration(VTime duration);
-  void setInfo(const QString& info);  
+  void setInfo(const QString& info);
+  void onPlay();
+  void onPause();
+  void onStop();
+  void onSequencesChanged(const Sequences& seqences);
 
 signals:
   void sliderChanged(int position);

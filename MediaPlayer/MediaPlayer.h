@@ -46,6 +46,9 @@ public:
   void cancelMark();
   void cut(const bool reconvert);
 
+signals:
+  void sequencesChanged(const Sequences& sequences);
+
 private:
   void onVideoLoaded();
   void onVideoEnded();
@@ -59,7 +62,7 @@ private:
   size_t mCurrentVideo = 0;
 
   // sequence management
-  Sequences mSequences;
+  Sequences mSequences; // TODO: store attributes, like cut state, video associated, etc.
   bool mIsMarking = false;
 
   ProcessTreeNode::Ptr mCutProcess; // TODO: make a pool of these and a manager

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QtCore/qglobal.h>
 #include <QString>
 #include <QStringList>  // TODO move to cpp
 
@@ -138,8 +137,6 @@ private:
 private:
   qint64 mTime = 0; // milliseconds
 };
-
-
 
 using Sequence = std::pair<VTime, VTime>;
 using Sequences = std::vector<Sequence>;

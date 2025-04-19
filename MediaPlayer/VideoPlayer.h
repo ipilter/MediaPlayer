@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QMediaMetaData>
+
 #include <vector>
 
 class VideoWidget;

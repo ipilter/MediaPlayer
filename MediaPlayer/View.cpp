@@ -27,6 +27,7 @@ View::View(QWidget* parent)
   mVideoWidget->setFocus();
 
   mSlider = new Slider(Qt::Horizontal, parent);
+  mSlider->setFixedHeight(50);
 
   mPreviousButton = new QPushButton(parent);
   mPlayButton = new QPushButton(parent);
@@ -37,6 +38,13 @@ View::View(QWidget* parent)
   mDurationLabel = new QLabel("00:00:00:000", parent);
   mDurationLabel->setObjectName("durationLabel");
 
+  mPreviousButton->setFixedHeight(35);
+  mPlayButton->setFixedHeight(35);
+  mNextButton->setFixedHeight(35);
+  mMuteButton->setFixedHeight(35);
+  mPositionLabel->setFixedHeight(35);
+  mDurationLabel->setFixedHeight(35);
+
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   buttonLayout->addWidget(mPreviousButton);
   buttonLayout->addWidget(mPlayButton);
@@ -45,20 +53,16 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mDurationLabel);
   buttonLayout->addWidget(mMuteButton);
 
-  mInfoBarLabel = new QLabel("", parent);
+  mInfoBarLabel = new QLabel(parent);
   mInfoBarLabel->setObjectName("infoBarLabel");
+  mInfoBarLabel->setFixedHeight(25);
   
   QVBoxLayout* rootLayout = new QVBoxLayout;
+
   rootLayout->addWidget(mVideoWidget);
   rootLayout->addWidget(mSlider);
   rootLayout->addLayout(buttonLayout);
   rootLayout->addWidget(mInfoBarLabel);
-
-  rootLayout->setStretch(0, 27);
-  rootLayout->setStretch(1, 1);
-  rootLayout->setStretch(2, 1);
-  rootLayout->setStretch(3, 1);
-
   mLayout = rootLayout;
 
   connect(mSlider, &QSlider::sliderMoved, this, [this](int position) { emit sliderChanged(position); });
@@ -89,11 +93,6 @@ QLayout* View::getLayout() const
   return mLayout;
 }
 
-void View::addSequence(const Sequence& sequence)
-{
-  mSlider->addSequence(sequence);
-}
-
 void View::setMuted(bool muted)
 {
   mMuteButton->setIcon(muted ? mPixmapTable["muted"] : mPixmapTable["unmuted"]);
@@ -112,6 +111,11 @@ void View::onPause()
 void View::onStop()
 {
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
+}
+
+void View::onSequencesChanged(const Sequences& sequences)
+{
+  mSlider->setSequences(sequences);
 }
 
 void View::setPosition(VTime position)

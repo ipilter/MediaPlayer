@@ -34,9 +34,9 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
   QObject::connect(mView.get(), &View::muteButtonClicked, this, [this]() { toggleMute(); });
 
+  QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
+
   mPlayer->setVolume(50);
-
-
 }
 
 MediaPlayer::~MediaPlayer()
@@ -47,6 +47,9 @@ void MediaPlayer::setPlaylist(const Playlist& playlist)
   mPlaylist = playlist;
   mCurrentVideo = 0;
   mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+
+  mSequences.clear();
+  emit sequencesChanged(mSequences);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
 }
 
 QLayout* MediaPlayer::getLayout() const
@@ -113,6 +116,8 @@ void MediaPlayer::next()
   stop();
   mPlayer->setVideo(mPlaylist[mCurrentVideo]);
 
+  mSequences.clear();
+  emit sequencesChanged(mSequences);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
 
   // TODO inside view
   // todo own method instead, see onMediaLoaded
@@ -142,6 +147,10 @@ void MediaPlayer::previous()
   const bool isPlaying = mPlayer->isPlaying();
   stop();
   mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+
+  mSequences.clear();
+  emit sequencesChanged(mSequences);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
+
   if (isPlaying)
   {
     play();
@@ -185,25 +194,25 @@ void MediaPlayer::startStop()
 
 void MediaPlayer::mark()
 {
-  if (mIsMarking)
+  if (!mIsMarking)
+  {
+    mIsMarking = true;
+    
+    mSequences.push_back(std::make_pair(mPlayer->getPosition(), 0));
+  }
+  else
   {
     mIsMarking = false;
+
     mSequences.back().second = mPlayer->getPosition();
-    if (mSequences.back().first < mSequences.back().second)
-    {
-      mView->addSequence(mSequences.back());
-    }
-    else
+    if (mSequences.back().second - mSequences.back().first < 5 ) 
     {
       mSequences.pop_back();
+      return;
     }
-    return;
+
+    emit sequencesChanged(mSequences);
   }
-
-  mIsMarking = true;
-  mSequences.push_back(std::make_pair(mPlayer->getPosition(), 0)); // use static instance for invalid sequence (min > max)
-
-  // emit update needed to redraw slider, current solution shady..
 }
 
 void MediaPlayer::cancelMark()
@@ -225,11 +234,6 @@ void MediaPlayer::cut(const bool reconvert)
 
   for(const auto& wSequence : mSequences)
   {
-    if (wSequence.first > wSequence.second)
-    {
-      continue;
-    }
-
     const QString wRootPath = "e:\\";
 
     const VTime wStartTime = wSequence.first;

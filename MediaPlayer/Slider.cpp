@@ -22,9 +22,10 @@ void Slider::mousePressEvent(QMouseEvent* event)
   QSlider::mousePressEvent(event);
 }
 
-void Slider::addSequence(const Sequence& sequence)
+void Slider::setSequences(const Sequences& sequences)
 {
-  mSequences.push_back(sequence);
+  mSequences.clear();
+  mSequences.insert(mSequences.end(), sequences.begin(), sequences.end());
   update();
 }
 

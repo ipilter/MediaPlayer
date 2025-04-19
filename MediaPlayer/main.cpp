@@ -1,8 +1,6 @@
 #include "MainWindow.h"
-
 #include "MediaPlayer.h"
 
-#include <QString>
 #include <QtWidgets/QApplication>
 #include <QSettings>
 #include <QFileInfo>

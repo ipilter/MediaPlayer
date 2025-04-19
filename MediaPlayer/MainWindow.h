@@ -1,6 +1,5 @@
 #pragma once
 #include "ui_MainWindow.h"
-
 #include "MediaPlayer.h"
 
 #include <QtWidgets/QMainWindow>
