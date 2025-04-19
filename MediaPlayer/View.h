@@ -45,19 +45,19 @@ signals:
   void onMouseClick();
 
 private:
+  std::map<QString, QPixmap> mPixmapTable;
+
   VideoWidget* mVideoWidget;
   Slider* mSlider;
   QPushButton* mPreviousButton;
   QPushButton* mPlayButton;
   QPushButton* mNextButton;
+  QPushButton* mMuteButton;
 
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;
-  QPushButton* mMuteButton;
-  
+
   QLabel* mInfoBarLabel;
 
   QLayout* mLayout;
-
-  std::map<QString, QPixmap> mPixmapTable;
 };

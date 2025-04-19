@@ -16,6 +16,13 @@
 View::View(QWidget* parent)
   : QWidget(parent)
 {
+  mPixmapTable.emplace("play", QPixmap(":/bitmaps/play.png"));
+  mPixmapTable.emplace("pause", QPixmap(":/bitmaps/pause.png"));
+  mPixmapTable.emplace("previous", QPixmap(":/bitmaps/previous.png"));
+  mPixmapTable.emplace("next", QPixmap(":/bitmaps/next.png"));
+  mPixmapTable.emplace("muted", QPixmap(":/bitmaps/muted.png"));
+  mPixmapTable.emplace("unmuted", QPixmap(":/bitmaps/unmuted.png"));
+
   mVideoWidget = new VideoWidget(parent);
   mVideoWidget->setFocus();
 
@@ -60,13 +67,6 @@ View::View(QWidget* parent)
   connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); });
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); });
   connect(mMuteButton, &QPushButton::clicked, this, [this]() { emit muteButtonClicked(); });
-
-  mPixmapTable.emplace("play", QPixmap(":/bitmaps/play.png"));
-  mPixmapTable.emplace("pause", QPixmap(":/bitmaps/pause.png"));
-  mPixmapTable.emplace("previous", QPixmap(":/bitmaps/previous.png"));
-  mPixmapTable.emplace("next", QPixmap(":/bitmaps/next.png"));
-  mPixmapTable.emplace("muted", QPixmap(":/bitmaps/muted.png"));
-  mPixmapTable.emplace("unmuted", QPixmap(":/bitmaps/unmuted.png"));
 
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
