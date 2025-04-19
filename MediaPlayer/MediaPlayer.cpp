@@ -21,7 +21,6 @@ MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
   , mView(std::make_shared<View>())
   , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
-  //, mFFmpeg(std::make_unique<FFmpeg>(QString("D:\\Tools\\ffmpeg\\ffmpeg.exe")))
 {
   QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) {mView->setPosition(position); });
   QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) {mView->setDuration(duration); });
@@ -207,28 +206,32 @@ void MediaPlayer::cancelMark()
 
 void MediaPlayer::cut(const bool reconvert)
 {
-  auto logStatusMessage = [this](const QString& msg) {; };  // TODO, progress bar
+  auto logStatusMessage = [this](const QString& msg) {
+    qDebug() << msg;
+    };  // TODO, progress bar
 
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
-  const QString videoName = QFileInfo(wVideoPath).completeBaseName();
+  const QString wVideoName = QFileInfo(wVideoPath).completeBaseName();
 
+  const QString wOutputRootDirectory = "e:/";
 
-  for(const auto& sequence : mSequences)
+  for(const auto& wSequence : mSequences)
   {
-    if (sequence.first > sequence.second)
+    if (wSequence.first > wSequence.second)
     {
       continue;
     }
 
     const QString wRootPath = "e:\\";
 
-    const VTime startTime = sequence.first;
-    const VTime endTime = sequence.second;
-    const QString outputRootDirectory = wRootPath + "\\" + videoName + "_cut\\";
-    const QString cutFilePath = getNewFileName(QString("%1_%2.mp4").arg(outputRootDirectory + videoName + "." + startTime.toString('-')).arg((endTime - startTime).seconds()));
+    const VTime wStartTime = wSequence.first;
+    const VTime wEndTime = wSequence.second;
+
+    const QString wCutFilePath = getNewFileName(QString("%1_%2.mp4")
+      .arg(wOutputRootDirectory + wVideoName + "." + wStartTime.toString('-')).arg((wEndTime - wStartTime).seconds()));
 
     Cutter::Ptr cutter = Cutter::create(
-      wVideoPath, cutFilePath, startTime, endTime);
+      wVideoPath, wCutFilePath, wStartTime, wEndTime);
 
     connect(cutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
 
@@ -238,19 +241,19 @@ void MediaPlayer::cut(const bool reconvert)
       [&](const QString& msg) { logStatusMessage(msg); });
     
     {
-      const QString reversedFilePath = getNewFileName(cutFilePath + "_reversed.mp4");
+      const QString reversedFilePath = getNewFileName(wCutFilePath + "_reversed.mp4");
 
-      const QString mergedFilePath = getNewFileName(outputRootDirectory + videoName + ".loop.mp4");  // TODO safer !! 
+      const QString mergedFilePath = getNewFileName(wOutputRootDirectory + wVideoName + ".loop.mp4");  // TODO safer !! 
 
       ProcessTreeNode::Ptr& pReverseProcess =
         mCutProcess->addChild(Reverser::create(
-          cutFilePath, reversedFilePath),
+          wCutFilePath, reversedFilePath),
           [&](const QString& msg) { logStatusMessage(msg); },
           [&](const QString& msg) { logStatusMessage(msg); });
 
       ProcessTreeNode::Ptr& pMergeProcess =
         pReverseProcess->addChild(Merger::create(
-          cutFilePath, reversedFilePath, mergedFilePath, 4/*ui.mLoopCountSpinBox->value()*/),
+          wCutFilePath, reversedFilePath, mergedFilePath, 4/*ui.mLoopCountSpinBox->value()*/),
           [&](const QString& msg) { logStatusMessage(msg); },
           [&](const QString& msg) { logStatusMessage(msg); }
         );

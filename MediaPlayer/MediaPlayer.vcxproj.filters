@@ -58,9 +58,6 @@
     <ClCompile Include="VideoWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FFmpeg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Slider.h">
@@ -76,9 +73,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="VideoWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="FFmpeg.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="ProcessTree.h">

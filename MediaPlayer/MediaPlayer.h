@@ -11,7 +11,6 @@
 class View;
 class VideoPlayer;
 class QLayout;
-class FFmpeg;
 
 class MediaPlayer : public QObject
 {
@@ -54,7 +53,6 @@ private:
 private:
   std::shared_ptr<View> mView;
   std::shared_ptr<VideoPlayer> mPlayer;
-  //std::unique_ptr<FFmpeg> mFFmpeg;
 
   // video management
   Playlist mPlaylist;

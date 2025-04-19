@@ -105,7 +105,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FFmpeg.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
     <ClCompile Include="Slider.cpp" />
@@ -143,7 +142,6 @@
     <ClInclude Include="Merger.h" />
     <ClInclude Include="Reverser.h" />
     <ClInclude Include="Utils.h" />
-    <QtMoc Include="FFmpeg.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
