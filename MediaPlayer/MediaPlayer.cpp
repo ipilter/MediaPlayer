@@ -35,6 +35,8 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mView.get(), &View::muteButtonClicked, this, [this]() { toggleMute(); });
 
   mPlayer->setVolume(50);
+
+
 }
 
 MediaPlayer::~MediaPlayer()
@@ -73,7 +75,8 @@ bool MediaPlayer::isPlaying() const
 void MediaPlayer::play()
 {
   mPlayer->play();
-  mView->setPlayButtonText("||");
+  
+  mView->onPlay(); // TODO: emit ??
 
   SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 }
@@ -81,7 +84,8 @@ void MediaPlayer::play()
 void MediaPlayer::pause()
 {
   mPlayer->pause();
-  mView->setPlayButtonText("|>");
+  
+  mView->onPause(); // TODO: emit ??
   
   SetThreadExecutionState(ES_CONTINUOUS);
 }
@@ -89,7 +93,7 @@ void MediaPlayer::pause()
 void MediaPlayer::stop()
 {
   mPlayer->stop();
-  mView->setPlayButtonText("|>");
+  mView->onStop(); // TODO: emit ??
 
   SetThreadExecutionState(ES_CONTINUOUS);
 }
@@ -108,7 +112,9 @@ void MediaPlayer::next()
   const bool isPlaying = mPlayer->isPlaying();
   stop();
   mPlayer->setVideo(mPlaylist[mCurrentVideo]);
-  
+
+
+  // TODO inside view
   // todo own method instead, see onMediaLoaded
   // todo mPlayer->getMetadata() is still the old video here, send  a lambda to the player bove and set the view inside the lambda to make it happen when the video is loaded
   const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
@@ -196,6 +202,8 @@ void MediaPlayer::mark()
 
   mIsMarking = true;
   mSequences.push_back(std::make_pair(mPlayer->getPosition(), 0)); // use static instance for invalid sequence (min > max)
+
+  // emit update needed to redraw slider, current solution shady..
 }
 
 void MediaPlayer::cancelMark()

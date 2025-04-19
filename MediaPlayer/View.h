@@ -5,12 +5,13 @@
 #include <QWidget>
 
 class VideoWidget;
+class VideoPlayer;
 class Slider;
+
 class QLabel;
 class QPushButton;
 class QLayout;
-
-class VideoPlayer;
+class QPixmap;
 
 class View : public QWidget
 {
@@ -26,12 +27,14 @@ public:
   void addSequence(const Sequence& seqence);
 
   void setMuted(bool muted);
+  void onPlay();
+  void onPause();
+  void onStop();
 
 public slots:
   void setPosition(VTime position);
   void setDuration(VTime duration);
-  void setInfo(const QString& info);
-  void setPlayButtonText(const QString& text);
+  void setInfo(const QString& info);  
 
 signals:
   void sliderChanged(int position);
@@ -45,7 +48,7 @@ private:
   VideoWidget* mVideoWidget;
   Slider* mSlider;
   QPushButton* mPreviousButton;
-  QPushButton* mStartStopButton;
+  QPushButton* mPlayButton;
   QPushButton* mNextButton;
 
   QLabel* mPositionLabel;
@@ -55,4 +58,6 @@ private:
   QLabel* mInfoBarLabel;
 
   QLayout* mLayout;
+
+  std::map<QString, QPixmap> mPixmapTable;
 };

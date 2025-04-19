@@ -1,1 +1,10 @@
-<RCC/>
+<RCC>
+    <qresource prefix="/">
+        <file>bitmaps/muted.png</file>
+        <file>bitmaps/next.png</file>
+        <file>bitmaps/pause.png</file>
+        <file>bitmaps/play.png</file>
+        <file>bitmaps/previous.png</file>
+        <file>bitmaps/unmuted.png</file>
+    </qresource>
+</RCC>
