@@ -13,7 +13,7 @@ public:
   FFmpeg(const QString& ffmpegPath);
 
   // non blocking call 
-  void cut(const QString& inputFile, const QString& outputFile, const Time startTime, const Time endTime, const bool reconvert);
+  void cut(const QString& inputFile, const QString& outputFile, const VTime startTime, const VTime endTime, const bool reconvert);
 
 signals:
   void progressUpdated(int percentage);
@@ -26,7 +26,7 @@ private:
   void runCommand(const QString& command);
 
   // Helper function to format time in HH:MM:SS.milliseconds
-  QString formatTime(const Time& time) const;
+  QString formatTime(const VTime& time) const;
 
   const QString mFFmpegPath;
 };

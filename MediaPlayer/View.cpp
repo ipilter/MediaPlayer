@@ -86,7 +86,7 @@ void View::setMuted(bool muted)
   mMuteButton->setText(muted ? "+" : "-");
 }
 
-void View::setPosition(Time position)
+void View::setPosition(VTime position)
 {
   mSlider->setValue(position);
 
@@ -95,7 +95,7 @@ void View::setPosition(Time position)
   mPositionLabel->setText(currentTime.toString("hh:mm:ss:zzz"));
 }
 
-void View::setDuration(Time duration)
+void View::setDuration(VTime duration)
 {
   mSlider->setRange(0, duration);
 

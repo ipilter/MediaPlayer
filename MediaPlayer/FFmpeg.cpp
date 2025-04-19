@@ -12,12 +12,12 @@ void FFmpeg::runCommand(const QString& command)
   return;
 }
 
-QString FFmpeg::formatTime(const Time& time) const
+QString FFmpeg::formatTime(const VTime& time) const
 {
   return QString();
 }
 
-void FFmpeg::cut(const QString& inputFile, const QString& outputFile, const Time startTime, const Time endTime, const bool reconvert)
+void FFmpeg::cut(const QString& inputFile, const QString& outputFile, const VTime startTime, const VTime endTime, const bool reconvert)
 {
   QString command;
   if (reconvert)

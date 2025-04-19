@@ -28,8 +28,8 @@ public:
   void setMuted(bool muted);
 
 public slots:
-  void setPosition(Time position);
-  void setDuration(Time duration);
+  void setPosition(VTime position);
+  void setDuration(VTime duration);
   void setInfo(const QString& info);
   void setPlayButtonText(const QString& text);
 

@@ -21,8 +21,8 @@ public:
 
   void setVideo(const QUrl& videoUrl);
 
-  Time getDuration() const;
-  Time getPosition() const;
+  VTime getDuration() const;
+  VTime getPosition() const;
 
   bool isPlaying() const;
 
@@ -30,8 +30,8 @@ public:
   void pause();
   void stop();
 
-  void seekBackward(Time size);
-  void seekForward(Time size);
+  void seekBackward(VTime size);
+  void seekForward(VTime size);
 
   float volume() const;
   bool isMuted() const;
@@ -39,14 +39,14 @@ public:
   QMediaMetaData getMetadata() const;
 
 public slots:
-  void setPosition(Time position);
+  void setPosition(VTime position);
   void setPlaybackRate(qreal rate);
   void setVolume(float volume);
   void setMuted(bool muted);
 
 signals:
-  void positionChanged(Time position);
-  void durationChanged(Time duration);
+  void positionChanged(VTime position);
+  void durationChanged(VTime duration);
   void videoEnded();
   void videoLoaded();
 

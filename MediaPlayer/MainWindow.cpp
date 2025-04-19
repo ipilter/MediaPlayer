@@ -34,7 +34,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     break;
   case Qt::Key_A:
   {
-    Time size = 500;
+    VTime size = 500;
     if (event->modifiers() & Qt::ShiftModifier)
     {
       size = 5000;
@@ -48,7 +48,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_D:
   {
-    Time size = 500;
+    VTime size = 500;
     if (event->modifiers() & Qt::ShiftModifier)
     {
       size = 5000;

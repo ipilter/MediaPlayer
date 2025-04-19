@@ -17,8 +17,8 @@ VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
   mMediaPlayer->setVideoOutput(videoWidget);
   mMediaPlayer->setAudioOutput(mAudioOutput);
 
-  connect(mMediaPlayer, &QMediaPlayer::positionChanged, this, [this](Time t) { emit positionChanged(t); });
-  connect(mMediaPlayer, &QMediaPlayer::durationChanged, this, [this](Time d) { emit durationChanged(d); });
+  connect(mMediaPlayer, &QMediaPlayer::positionChanged, this, [this](VTime t) { emit positionChanged(t); });
+  connect(mMediaPlayer, &QMediaPlayer::durationChanged, this, [this](VTime d) { emit durationChanged(d); });
   connect(mMediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::LoadedMedia)
     {
@@ -50,12 +50,12 @@ void VideoPlayer::setVideo(const QUrl& videoUrl)
   mMediaPlayer->setSource(videoUrl);
 }
 
-Time VideoPlayer::getDuration() const
+VTime VideoPlayer::getDuration() const
 {
   return mMediaPlayer->duration();
 }
 
-Time VideoPlayer::getPosition() const
+VTime VideoPlayer::getPosition() const
 {
   return mMediaPlayer->position();
 }
@@ -80,7 +80,7 @@ void VideoPlayer::stop()
   mMediaPlayer->stop();
 }
 
-void VideoPlayer::seekBackward(Time size)
+void VideoPlayer::seekBackward(VTime size)
 {
   if (mMediaPlayer->position() <= size)
   {
@@ -90,7 +90,7 @@ void VideoPlayer::seekBackward(Time size)
   mMediaPlayer->setPosition(mMediaPlayer->position() - size);
 }
 
-void VideoPlayer::seekForward(Time size)
+void VideoPlayer::seekForward(VTime size)
 {
   if (mMediaPlayer->position() + size >= mMediaPlayer->duration())
   {
@@ -112,7 +112,7 @@ bool VideoPlayer::isMuted() const
 
 
 
-void VideoPlayer::setPosition(Time position)
+void VideoPlayer::setPosition(VTime position)
 {
   mMediaPlayer->setPosition(position);
 }

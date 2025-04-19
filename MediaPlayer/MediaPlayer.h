@@ -36,9 +36,9 @@ public:
   void previous();
   void toggleMute();
 
-  void setPosition(Time position);
-  void seekBackward(Time size);
-  void seekForward(Time size);
+  void setPosition(VTime position);
+  void seekBackward(VTime size);
+  void seekForward(VTime size);
   void startStop();
 
   void mark();

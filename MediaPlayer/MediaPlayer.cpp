@@ -17,13 +17,13 @@ MediaPlayer::MediaPlayer(QObject* parent)
   , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
   , mFFmpeg(std::make_unique<FFmpeg>(QString("D:\\Tools\\ffmpeg\\ffmpeg.exe")))
 {
-  QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](Time position) {mView->setPosition(position); });
-  QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](Time duration) {mView->setDuration(duration); });
+  QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) {mView->setPosition(position); });
+  QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) {mView->setDuration(duration); });
   QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded, this, &MediaPlayer::onVideoLoaded);
   QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded, this, &MediaPlayer::onVideoEnded); // TODO: add settings for loop,next,stop
 
   QObject::connect(mView.get(), &View::onMouseClick,           this, [this]() { mView->hide(); });
-  QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<Time>(position)); });
+  QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
   QObject::connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
   QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
@@ -145,17 +145,17 @@ void MediaPlayer::toggleMute()
   mView->setMuted(mSettings.mMuted);
 }
 
-void MediaPlayer::setPosition(Time position)
+void MediaPlayer::setPosition(VTime position)
 {
   mPlayer->setPosition(position);
 }
 
-void MediaPlayer::seekBackward(Time size)
+void MediaPlayer::seekBackward(VTime size)
 {
   mPlayer->seekBackward(size);
 }
 
-void MediaPlayer::seekForward(Time size)
+void MediaPlayer::seekForward(VTime size)
 {
   mPlayer->seekForward(size);
 }
