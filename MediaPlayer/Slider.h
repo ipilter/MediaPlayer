@@ -11,12 +11,14 @@ class Slider : public QSlider
 public:
   explicit Slider(Qt::Orientation orientation, QWidget* parent = nullptr);
 
-  void setSequences(const Sequences& sequences);
+  void setSequences(const SequenceMap& sequences);
 
 protected:
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
 
 private:
-  Sequences mSequences;
+  const QColor& sequenceColor(const SequenceEntry& sequence) const;
+  
+  SequenceMap mSequences;
 };

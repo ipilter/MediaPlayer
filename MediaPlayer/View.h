@@ -33,7 +33,7 @@ public slots:
   void onPlay();
   void onPause();
   void onStop();
-  void onSequencesChanged(const Sequences& seqences);
+  void onSequencesChanged(const SequenceMap& seqences);
 
 signals:
   void sliderChanged(int position);

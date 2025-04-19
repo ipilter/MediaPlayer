@@ -33,6 +33,8 @@ VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
     }
     else if (status == QMediaPlayer::EndOfMedia)
     {
+      mMediaPlayer->pause();
+      mMediaPlayer->setPosition(mMediaPlayer->duration());
       emit videoEnded();
     }
     //  NoMedia,

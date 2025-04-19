@@ -22,11 +22,39 @@ void Slider::mousePressEvent(QMouseEvent* event)
   QSlider::mousePressEvent(event);
 }
 
-void Slider::setSequences(const Sequences& sequences)
+void Slider::setSequences(const SequenceMap& sequences)
 {
-  mSequences.clear();
-  mSequences.insert(mSequences.end(), sequences.begin(), sequences.end());
+  mSequences = sequences;
   update();
+}
+const QColor& Slider::sequenceColor(const SequenceEntry& sequence) const
+{
+  static const std::map<QString, const QColor> colorMap = {
+    {"invalid", 0xFF0000},
+    {"ready", 0x2B65BC},
+    {"processing", 0xB5AA48},
+    {"succeeded", 0x72D64A},
+    {"failed", 0xB52B2B}
+  };
+
+  QString colorName = "invalid";
+  switch (sequence.second)
+  {
+  case SequenceState::Ready:
+    colorName = "ready";
+    break;
+  case SequenceState::Processing:
+    colorName = "processing";
+    break;
+  case SequenceState::Succeeded:
+    colorName = "succeeded";
+    break;
+  case SequenceState::Failed:
+    colorName = "failed";
+    break;
+  }
+
+  return colorMap.at(colorName);
 }
 
 void Slider::paintEvent(QPaintEvent* event)
@@ -36,14 +64,13 @@ void Slider::paintEvent(QPaintEvent* event)
 
   const int width = this->width();
   const int height = this->height();
-  const QColor rectColor = palette().color(QPalette::Light);
 
   for (const auto& sequence : mSequences)
   {
-    const int startX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.ms()), width);
-    const int endX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.second.ms()), width);
-    const QRect rect(startX, 0, endX - startX, 10);
-
-    painter.fillRect(rect, rectColor);
+    const int startX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.first.ms()), width);
+    const int endX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.second.ms()), width);
+    const QRect rect(startX, 5, endX - startX, 7);
+    
+    painter.fillRect(rect, sequenceColor(sequence));
   }
 }

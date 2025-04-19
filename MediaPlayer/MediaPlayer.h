@@ -47,7 +47,7 @@ public:
   void cut(const bool reconvert);
 
 signals:
-  void sequencesChanged(const Sequences& sequences);
+  void sequencesChanged(const SequenceMap& sequences);
 
 private:
   void onVideoLoaded();
@@ -56,14 +56,15 @@ private:
 private:
   std::shared_ptr<View> mView;
   std::shared_ptr<VideoPlayer> mPlayer;
+  bool mPlaying = false;
 
   // video management
   Playlist mPlaylist;
   size_t mCurrentVideo = 0;
 
   // sequence management
-  Sequences mSequences; // TODO: store attributes, like cut state, video associated, etc.
-  bool mIsMarking = false;
+  SequenceMap mSequenceMap; // TODO: store attributes, like cut state, video associated, etc.
+  Sequence mEditedSequence = {0,0};
 
   ProcessTreeNode::Ptr mCutProcess; // TODO: make a pool of these and a manager
 

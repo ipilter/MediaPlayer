@@ -3,6 +3,7 @@
 #include <QString>
 #include <QStringList>  // TODO move to cpp
 
+#include <map>
 #include <vector>
 
 class VTime
@@ -139,4 +140,15 @@ private:
 };
 
 using Sequence = std::pair<VTime, VTime>;
-using Sequences = std::vector<Sequence>;
+
+enum class SequenceState
+{
+  Ready,
+  Processing,
+  Succeeded,
+  Failed
+};
+
+using SequenceMap = std::map<Sequence, SequenceState>;
+using SequenceEntry = SequenceMap::value_type;
+using SequenceVector = std::vector<Sequence>;

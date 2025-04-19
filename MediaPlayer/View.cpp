@@ -113,7 +113,7 @@ void View::onStop()
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
 }
 
-void View::onSequencesChanged(const Sequences& sequences)
+void View::onSequencesChanged(const SequenceMap& sequences)
 {
   mSlider->setSequences(sequences);
 }
