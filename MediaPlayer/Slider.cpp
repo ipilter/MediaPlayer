@@ -39,8 +39,8 @@ void Slider::paintEvent(QPaintEvent* event)
 
   for (const auto& sequence : mSequences)
   {
-    const int startX = QStyle::sliderPositionFromValue(minimum(), maximum(), sequence.first, width);
-    const int endX = QStyle::sliderPositionFromValue(minimum(), maximum(), sequence.second, width);
+    const int startX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.ms()), width);
+    const int endX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.second.ms()), width);
     const QRect rect(startX, 0, endX - startX, 10);
 
     painter.fillRect(rect, rectColor);

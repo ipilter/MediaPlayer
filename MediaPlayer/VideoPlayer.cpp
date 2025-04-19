@@ -82,22 +82,22 @@ void VideoPlayer::stop()
 
 void VideoPlayer::seekBackward(VTime size)
 {
-  if (mMediaPlayer->position() <= size)
+  if (mMediaPlayer->position() <= size.ms())
   {
     mMediaPlayer->setPosition(0);
     return;
   }
-  mMediaPlayer->setPosition(mMediaPlayer->position() - size);
+  mMediaPlayer->setPosition(mMediaPlayer->position() - size.ms());
 }
 
 void VideoPlayer::seekForward(VTime size)
 {
-  if (mMediaPlayer->position() + size >= mMediaPlayer->duration())
+  if (mMediaPlayer->position() + size.ms() >= mMediaPlayer->duration())
   {
     mMediaPlayer->setPosition(mMediaPlayer->duration());
     return;
   }
-  mMediaPlayer->setPosition(mMediaPlayer->position() + size);
+  mMediaPlayer->setPosition(mMediaPlayer->position() + size.ms());
 }
 
 float VideoPlayer::volume() const
@@ -114,7 +114,7 @@ bool VideoPlayer::isMuted() const
 
 void VideoPlayer::setPosition(VTime position)
 {
-  mMediaPlayer->setPosition(position);
+  mMediaPlayer->setPosition(position.ms());
 }
 
 void VideoPlayer::setPlaybackRate(qreal rate)

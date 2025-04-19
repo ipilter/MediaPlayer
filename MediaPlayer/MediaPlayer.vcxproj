@@ -136,6 +136,13 @@
     <QtMoc Include="VideoWidget.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="ProcessTree.h" />
+    <QtMoc Include="Runnable.h" />
+    <ClInclude Include="Cleanup.h" />
+    <ClInclude Include="Cutter.h" />
+    <ClInclude Include="Merger.h" />
+    <ClInclude Include="Reverser.h" />
+    <ClInclude Include="Utils.h" />
     <QtMoc Include="FFmpeg.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>

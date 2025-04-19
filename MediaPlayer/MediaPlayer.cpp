@@ -1,21 +1,27 @@
 #include "MediaPlayer.h"
 #include "VideoPlayer.h"
 #include "View.h"
-#include "FFmpeg.h"
+
+#include "Utils.h"
+#include "Cutter.h"
+#include "Reverser.h"
+#include "Merger.h"
+#include "Cleanup.h"
+#include "ProcessTree.h"
 
 #include <QFileInfo.h>
 #include <QMediaMetadata.h>
 #include <QUrl>
+#include <QThread>
 
 #include <random>
-#include <QThread>
 #include <windows.h>
 
 MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
   , mView(std::make_shared<View>())
   , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
-  , mFFmpeg(std::make_unique<FFmpeg>(QString("D:\\Tools\\ffmpeg\\ffmpeg.exe")))
+  //, mFFmpeg(std::make_unique<FFmpeg>(QString("D:\\Tools\\ffmpeg\\ffmpeg.exe")))
 {
   QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) {mView->setPosition(position); });
   QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) {mView->setDuration(duration); });
@@ -201,25 +207,69 @@ void MediaPlayer::cancelMark()
 
 void MediaPlayer::cut(const bool reconvert)
 {
-  if (mSequences.empty())
-  {
-    return;
-  }
-
-  const auto& sequence = mSequences.back();
-  if (sequence.first >= sequence.second)
-  {
-    return;
-  }
+  auto logStatusMessage = [this](const QString& msg) {; };  // TODO, progress bar
 
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
-  mFFmpeg->cut(wVideoPath, wVideoPath + "_cut.mp4", sequence.first, sequence.second, reconvert);
-  //issue a parallel command for a ffmpeg process to cut the video
-  //sequence.first, sequence.second
+  const QString videoName = QFileInfo(wVideoPath).completeBaseName();
 
 
-  //mView->update();
+  for(const auto& sequence : mSequences)
+  {
+    if (sequence.first > sequence.second)
+    {
+      continue;
+    }
+
+    const QString wRootPath = "e:\\";
+
+    const VTime startTime = sequence.first;
+    const VTime endTime = sequence.second;
+    const QString outputRootDirectory = wRootPath + "\\" + videoName + "_cut\\";
+    const QString cutFilePath = getNewFileName(QString("%1_%2.mp4").arg(outputRootDirectory + videoName + "." + startTime.toString('-')).arg((endTime - startTime).seconds()));
+
+    Cutter::Ptr cutter = Cutter::create(
+      wVideoPath, cutFilePath, startTime, endTime);
+
+    connect(cutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
+
+    mCutProcess = ProcessTreeNode::create(
+      std::move(cutter),
+      [&](const QString& msg) { logStatusMessage(msg); },
+      [&](const QString& msg) { logStatusMessage(msg); });
+    
+    {
+      const QString reversedFilePath = getNewFileName(cutFilePath + "_reversed.mp4");
+
+      const QString mergedFilePath = getNewFileName(outputRootDirectory + videoName + ".loop.mp4");  // TODO safer !! 
+
+      ProcessTreeNode::Ptr& pReverseProcess =
+        mCutProcess->addChild(Reverser::create(
+          cutFilePath, reversedFilePath),
+          [&](const QString& msg) { logStatusMessage(msg); },
+          [&](const QString& msg) { logStatusMessage(msg); });
+
+      ProcessTreeNode::Ptr& pMergeProcess =
+        pReverseProcess->addChild(Merger::create(
+          cutFilePath, reversedFilePath, mergedFilePath, 4/*ui.mLoopCountSpinBox->value()*/),
+          [&](const QString& msg) { logStatusMessage(msg); },
+          [&](const QString& msg) { logStatusMessage(msg); }
+        );
+
+      //pMergeProcess->addChild(Cleanup::create(cutFilePath),
+      //    [&](const QString& msg) { logStatusMessage(msg); },
+      //    [&](const QString& msg) { logStatusMessage(msg); });
+
+      //pMergeProcess->addChild(Cleanup::create(reversedFilePath),
+      //    [&](const QString& msg) { logStatusMessage(msg); },
+      //    [&](const
+     } // end of lambda
+
+    mCutProcess->start();
+
+  }
+
   //update sequence view as done during cut
+  //mView->clearSequences(); TODO update sequence color by the progress of the cut, when done the sequence is green, of failed it is red, if not on disk then gray.
 }
 
 void MediaPlayer::onVideoLoaded()

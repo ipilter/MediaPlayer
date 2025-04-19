@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Types.h"
+#include "ProcessTree.h"
 
 #include <QObject>
+
 #include <memory>
 #include <vector>
 
@@ -52,7 +54,7 @@ private:
 private:
   std::shared_ptr<View> mView;
   std::shared_ptr<VideoPlayer> mPlayer;
-  std::unique_ptr<FFmpeg> mFFmpeg;
+  //std::unique_ptr<FFmpeg> mFFmpeg;
 
   // video management
   Playlist mPlaylist;
@@ -61,6 +63,8 @@ private:
   // sequence management
   Sequences mSequences;
   bool mIsMarking = false;
+
+  ProcessTreeNode::Ptr mCutProcess; // TODO: make a pool of these and a manager
 
   // settings
   Settings mSettings;

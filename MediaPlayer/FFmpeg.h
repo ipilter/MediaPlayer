@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Types.h"
-#include <QString>
 
+#include <QString>
 #include <QObject>
 
 class FFmpeg : public QObject

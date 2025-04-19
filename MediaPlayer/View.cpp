@@ -88,19 +88,19 @@ void View::setMuted(bool muted)
 
 void View::setPosition(VTime position)
 {
-  mSlider->setValue(position);
+  mSlider->setValue(position.ms());
 
   QTime currentTime(0, 0, 0, 0);
-  currentTime = currentTime.addMSecs(position);
+  currentTime = currentTime.addMSecs(position.ms());
   mPositionLabel->setText(currentTime.toString("hh:mm:ss:zzz"));
 }
 
 void View::setDuration(VTime duration)
 {
-  mSlider->setRange(0, duration);
+  mSlider->setRange(0, duration.ms());
 
   QTime durationTime(0, 0, 0, 0);
-  durationTime = durationTime.addMSecs(duration);
+  durationTime = durationTime.addMSecs(duration.ms());
   mDurationLabel->setText(durationTime.toString("hh:mm:ss:zzz"));
 }
 

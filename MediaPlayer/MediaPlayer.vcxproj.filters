@@ -81,6 +81,12 @@
     <QtMoc Include="FFmpeg.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ProcessTree.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Runnable.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <None Include="default_style.qss">
@@ -89,6 +95,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cutter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Merger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cleanup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Reverser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
