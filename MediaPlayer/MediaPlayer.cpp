@@ -305,8 +305,6 @@ void MediaPlayer::onVideoEnded()
 
 void MediaPlayer::FastCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath)
 {
-  qDebug() << "Fast cutting from " << startTime.toString() << " to " << endTime.toString();
-  
   FastCutter::Ptr wCutter = FastCutter::create(videoPath, cutFilePath, startTime, endTime);
 
   connect(wCutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
@@ -333,14 +331,10 @@ void MediaPlayer::PreciseCut(const VTime& startTime, const VTime& endTime, const
 
   // kick in the process
   mCutProcesses.back()->start();
-
-  qDebug() << "Precise cutting " << startTime.toString() << " to " << endTime.toString();
 }
 
 void MediaPlayer::LoopCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath, const QString& outputRootDirectory, int loopCount)
 {
-  qDebug() << "Loop cutting " << startTime.toString() << " to " << endTime.toString();
-
   // cut first using precise method
   PreciseCutter::Ptr wCutter = PreciseCutter::create(videoPath, cutFilePath, startTime, endTime);
 
@@ -371,4 +365,27 @@ void MediaPlayer::LoopCut(const VTime& startTime, const VTime& endTime, const QS
 
   // kick in the process chain
   mCutProcesses.back()->start();
+}
+
+void MediaPlayer::resetSeqenceState()
+{
+  for(auto& wSequence : mSequenceMap)
+  {
+    wSequence.second = SequenceState::Ready;
+  }
+  emit sequencesChanged(mSequenceMap);
+}
+
+void MediaPlayer::popLastSequence()
+{
+  if (mSequenceMap.empty())
+  {
+    return;
+  }
+
+  auto wLastSequence = mSequenceMap.end();
+  --wLastSequence;
+
+  mSequenceMap.erase(wLastSequence);
+  emit sequencesChanged(mSequenceMap);
 }

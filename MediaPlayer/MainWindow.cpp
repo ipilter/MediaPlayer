@@ -109,6 +109,15 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   case Qt::Key_P:
     mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mMuted});
     break;
+  case Qt::Key_R:
+    mMediaPlayer->resetSeqenceState();
+    break;
+  case Qt::Key_Z:
+    if(event->modifiers() & Qt::ControlModifier)
+    {
+      mMediaPlayer->popLastSequence();
+    }
+    break;
   default:
     QMainWindow::keyPressEvent(event);
     break;

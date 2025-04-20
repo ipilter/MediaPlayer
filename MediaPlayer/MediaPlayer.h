@@ -47,6 +47,9 @@ public:
   void cancelMark();
   void cut(const CutMethod cutMethod);
 
+  void resetSeqenceState();
+  void popLastSequence();
+
   // TODO process callback(s), do better
   void logStatusMessage(const QString& msg);
 

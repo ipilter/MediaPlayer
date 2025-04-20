@@ -31,7 +31,7 @@ const QColor& Slider::sequenceColor(const SequenceEntry& sequence) const
 {
   static const std::map<QString, const QColor> colorMap = {
     {"invalid", 0xFF0000},
-    {"ready", 0x2B65BC},
+    {"ready", 0x2B659C},
     {"processing", 0xB5AA48},
     {"succeeded", 0x72D64A},
     {"failed", 0xB52B2B}
@@ -70,7 +70,7 @@ void Slider::paintEvent(QPaintEvent* event)
     const int startX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.first.ms()), width);
     const int endX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.second.ms()), width);
     const QRect rect(startX, 5, endX - startX, 7);
-    
+
     painter.fillRect(rect, sequenceColor(sequence));
   }
 }

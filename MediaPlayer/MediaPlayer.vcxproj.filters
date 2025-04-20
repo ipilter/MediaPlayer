@@ -21,9 +21,6 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
-    <Filter Include="Resource Files\styles">
-      <UniqueIdentifier>{6e471806-366a-4f3c-85ba-e4cff7f14c2e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Processes">
       <UniqueIdentifier>{52ede7f9-870b-43f0-b7ee-618558e8c273}</UniqueIdentifier>
     </Filter>
@@ -128,11 +125,6 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <None Include="default_style.qss">
-      <Filter>Resource Files\styles</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -159,5 +151,10 @@
     <Image Include="Icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="default_style.qss">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

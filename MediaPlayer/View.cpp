@@ -1,5 +1,5 @@
-#include "VideoWidget.h"
 #include "View.h"
+#include "VideoWidget.h"
 #include "Slider.h"
 
 #include <QVBoxLayout>
@@ -27,7 +27,7 @@ View::View(QWidget* parent)
   mVideoWidget->setFocus();
 
   mSlider = new Slider(Qt::Horizontal, parent);
-  mSlider->setFixedHeight(50);
+  mSlider->setObjectName("videoSlider");
 
   mPreviousButton = new QPushButton(parent);
   mPlayButton = new QPushButton(parent);
@@ -37,13 +37,6 @@ View::View(QWidget* parent)
   mPositionLabel->setObjectName("positionLabel");
   mDurationLabel = new QLabel("00:00:00:000", parent);
   mDurationLabel->setObjectName("durationLabel");
-
-  mPreviousButton->setFixedHeight(35);
-  mPlayButton->setFixedHeight(35);
-  mNextButton->setFixedHeight(35);
-  mMuteButton->setFixedHeight(35);
-  mPositionLabel->setFixedHeight(35);
-  mDurationLabel->setFixedHeight(35);
 
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   buttonLayout->addWidget(mPreviousButton);
@@ -55,7 +48,6 @@ View::View(QWidget* parent)
 
   mInfoBarLabel = new QLabel(parent);
   mInfoBarLabel->setObjectName("infoBarLabel");
-  mInfoBarLabel->setFixedHeight(25);
   
   QVBoxLayout* rootLayout = new QVBoxLayout;
 
@@ -65,12 +57,13 @@ View::View(QWidget* parent)
   rootLayout->addWidget(mInfoBarLabel);
   mLayout = rootLayout;
 
-  connect(mSlider, &QSlider::sliderMoved, this, [this](int position) { emit sliderChanged(position); });
-  connect(mPreviousButton, &QPushButton::clicked, this, [this]() { emit previousButtonClicked(); });
-  connect(mPlayButton, &QPushButton::clicked, this, [this]() { emit startStopButtonClicked(); });
-  connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); });
-  connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); });
-  connect(mMuteButton, &QPushButton::clicked, this, [this]() { emit muteButtonClicked(); });
+
+  connect(mSlider,         &QSlider::sliderMoved,      this, [this](int position) { emit sliderChanged(position); });
+  connect(mPreviousButton, &QPushButton::clicked,      this, [this]()             { emit previousButtonClicked(); });
+  connect(mPlayButton,     &QPushButton::clicked,      this, [this]()             { emit startStopButtonClicked(); });
+  connect(mNextButton,     &QPushButton::clicked,      this, [this]()             { emit nextButtonClicked(); });
+  connect(mVideoWidget,    &VideoWidget::mouseClicked, this, [this]()             { emit onMouseClick(); });
+  connect(mMuteButton,     &QPushButton::clicked,      this, [this]()             { emit muteButtonClicked(); });
 
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));

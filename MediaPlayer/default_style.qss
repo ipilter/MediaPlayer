@@ -1,25 +1,50 @@
 * {
-    background-color: #333333;
+    background-color: #262626;
     color: #AAAAAA;
-    border: 2px solid #303030;
+    border: 2px solid #363636;
     padding: 3px;
     border-radius: 2px;
-    background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-    box-shadow: 1px 1px 1px #000000;
+    box-shadow: 1px 1px 1px #DD0636;
+    icon-size: 24px;
 }
 
 QLabel#positionLabel {
-    font-size: 16px;
+    font-size: 18px;
 }
 
 QLabel#durationLabel {
-    font-size: 16px;
+    font-size: 18px;
 }
 
 QLabel#infoBarLabel {
     font-size: 16px;
+    max-height: 20px;
 }
 
-QButton {
-    font-size: 18px;
+QSlider#videoSlider {
+    background-color: #262626;
+    border: 2px solid #363636;
+    border-radius: 2px;
+    height: 50px;
+}
+QSlider::groove:horizontal {
+    background: qlineargradient(x1: 0, y1: 0.0, x2: 1, y2: 0, stop: 0 #181311, stop: 1 #262626);
+    height: 10px;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal {
+    background: rgba(175, 48, 59, 0.5);
+    border: 1px solid #AF0000;
+    border-radius: 2px;
+    width: 10px;
+    margin: -10px 0;
+}
+
+QSlider::sub-page:horizontal {
+    background: qlineargradient(x1: 0, y1: 0.0, x2: 1, y2: 0, stop: 0 #381311, stop: 1 #80100B);
+}
+
+QSlider::add-page:horizontal {
+    background: #181311;
 }
