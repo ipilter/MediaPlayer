@@ -4,6 +4,23 @@
 #include <QMediaPlayer>
 #include <QPainter>
 #include <QStyleOption>
+#include <QProxyStyle>
+#include <QStyleHintReturn>
+
+class SliderStyle : public QProxyStyle
+{
+public:
+  SliderStyle() : QProxyStyle() {}
+
+  int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override
+  {
+    if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
+    {
+      return Qt::LeftButton;
+    }
+    return QProxyStyle::styleHint(hint, option, widget, returnData);
+  }
+};
 
 Slider::Slider(Qt::Orientation orientation, QWidget* parent)
   : QSlider(orientation, parent)
@@ -31,9 +48,9 @@ const QColor& Slider::sequenceColor(const SequenceEntry& sequence) const
 {
   static const std::map<QString, const QColor> colorMap = {
     {"invalid", 0xFF0000},
-    {"ready", 0x2B659C},
+    {"ready", 0x29559C},
     {"processing", 0xB5AA48},
-    {"succeeded", 0x72D64A},
+    {"succeeded", 0x47A020},
     {"failed", 0xB52B2B}
   };
 

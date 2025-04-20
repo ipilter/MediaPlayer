@@ -60,9 +60,9 @@ private:
   void onVideoLoaded();
   void onVideoEnded();
 
-  void FastCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath);
-  void PreciseCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath);
-  void LoopCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath, const QString& outputRootDirectory, int loopCount);
+  void FastCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory);
+  void PreciseCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory);
+  void LoopCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory, int loopCount);
 
 private:
   std::shared_ptr<View> mView;
