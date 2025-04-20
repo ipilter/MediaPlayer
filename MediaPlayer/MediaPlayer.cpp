@@ -22,17 +22,17 @@ MediaPlayer::MediaPlayer(QObject* parent)
   , mView(std::make_shared<View>())
   , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
 {
-  QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) {mView->setPosition(position); });
-  QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) {mView->setDuration(duration); });
-  QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded, this, &MediaPlayer::onVideoLoaded);
-  QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded, this, &MediaPlayer::onVideoEnded); // TODO: add settings for loop,next,stop
+  QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) { mView->setPosition(position); });
+  QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) { mView->setDuration(duration); });
+  QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded,     this, &MediaPlayer::onVideoLoaded);
+  QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded); // TODO: add settings for loop,next,stop
 
   QObject::connect(mView.get(), &View::onMouseClick,           this, [this]() { mView->hide(); });
   QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
   QObject::connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
   QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
-  QObject::connect(mView.get(), &View::muteButtonClicked, this, [this]() { toggleMute(); });
+  QObject::connect(mView.get(), &View::muteButtonClicked,      this, [this]() { toggleMute(); });
 
   QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
@@ -237,7 +237,7 @@ void MediaPlayer::cancelMark()
   mEditedSequence = Sequence{ 0, 0 };
 }
 
-void MediaPlayer::cut(const bool reconvert)
+void MediaPlayer::cut(const CutMethod cutMethod)
 {
   auto logStatusMessage = [this](const QString& msg) {
     qDebug() << msg;
@@ -248,9 +248,9 @@ void MediaPlayer::cut(const bool reconvert)
 
   const QString wOutputRootDirectory = "e:/";
 
-  for(auto& wSequence : mSequenceMap)
+  for (auto& wSequence : mSequenceMap)
   {
-    if(wSequence.second != SequenceState::Ready)
+    if (wSequence.second != SequenceState::Ready)
     {
       continue;
     }
@@ -266,51 +266,54 @@ void MediaPlayer::cut(const bool reconvert)
     const QString wCutFilePath = getNewFileName(QString("%1_%2.mp4")
       .arg(wOutputRootDirectory + wVideoName + "." + wStartTime.toString('-')).arg((wEndTime - wStartTime).seconds()));
 
-    Cutter::Ptr cutter = Cutter::create(
-      wVideoPath, wCutFilePath, wStartTime, wEndTime);
-
-    connect(cutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
-
-    // TODO ony one process tree for all the cuts? create fire a forget processes here 
-    // what happens with then 2nd iteration, the process is already running and we delete the old one and create new cancelling it !
-    mCutProcess = ProcessTreeNode::create(
-      std::move(cutter),
-      [&](const QString& msg) { logStatusMessage(msg); },
-      [&](const QString& msg) { logStatusMessage(msg); });
-    
+    switch (cutMethod)
     {
-      const QString reversedFilePath = getNewFileName(wCutFilePath + "_reversed.mp4");
+    case CutMethod::Fast:
+    {
 
-      const QString mergedFilePath = getNewFileName(wOutputRootDirectory + wVideoName + ".loop.mp4");  // TODO safer !! 
+    }
+    break;
+    case CutMethod::Precise:
+    {
 
-      ProcessTreeNode::Ptr& pReverseProcess =
-        mCutProcess->addChild(Reverser::create(
-          wCutFilePath, reversedFilePath),
-          [&](const QString& msg) { logStatusMessage(msg); },
-          [&](const QString& msg) { logStatusMessage(msg); });
+    }
+    break;
+    case CutMethod::Loop:
+    {
+      Cutter::Ptr cutter = Cutter::create(
+        wVideoPath, wCutFilePath, wStartTime, wEndTime);
 
-      ProcessTreeNode::Ptr& pMergeProcess =
-        pReverseProcess->addChild(Merger::create(
-          wCutFilePath, reversedFilePath, mergedFilePath, 4/*ui.mLoopCountSpinBox->value()*/),
-          [&](const QString& msg) { logStatusMessage(msg); },
-          [&](const QString& msg) { logStatusMessage(msg); }
-        );
+      connect(cutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
 
-      //pMergeProcess->addChild(Cleanup::create(cutFilePath),
-      //    [&](const QString& msg) { logStatusMessage(msg); },
-      //    [&](const QString& msg) { logStatusMessage(msg); });
+      // TODO ony one process tree for all the cuts? create fire a forget processes here 
+      // what happens with then 2nd iteration, the process is already running and we delete the old one and create new cancelling it !
+      mCutProcess = ProcessTreeNode::create(
+        std::move(cutter),
+        [&](const QString& msg) { logStatusMessage(msg); },
+        [&](const QString& msg) { logStatusMessage(msg); });
 
-      //pMergeProcess->addChild(Cleanup::create(reversedFilePath),
-      //    [&](const QString& msg) { logStatusMessage(msg); },
-      //    [&](const
-     } // end of lambda
+      {
+        const QString reversedFilePath = getNewFileName(wCutFilePath + "_reversed.mp4");
+        const QString mergedFilePath = getNewFileName(wOutputRootDirectory + wVideoName + ".loop.mp4");  // TODO safer !! 
 
-    mCutProcess->start();
+        ProcessTreeNode::Ptr& pReverseProcess =
+          mCutProcess->addChild(Reverser::create(
+            wCutFilePath, reversedFilePath),
+            [&](const QString& msg) { logStatusMessage(msg); },
+            [&](const QString& msg) { logStatusMessage(msg); });
 
-  }
-
-  //update sequence view as done during cut
-  //mView->clearSequences(); TODO update sequence color by the progress of the cut, when done the sequence is green, of failed it is red, if not on disk then gray.
+        ProcessTreeNode::Ptr& pMergeProcess =
+          pReverseProcess->addChild(Merger::create(
+            wCutFilePath, reversedFilePath, mergedFilePath, 4/*ui.mLoopCountSpinBox->value()*/),
+            [&](const QString& msg) { logStatusMessage(msg); },
+            [&](const QString& msg) { logStatusMessage(msg); }
+          );
+      } // end of lambda
+      mCutProcess->start();
+    }
+    break;
+    }
+  } // sequence loop
 }
 
 void MediaPlayer::onVideoLoaded()

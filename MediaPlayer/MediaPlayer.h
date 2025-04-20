@@ -19,6 +19,7 @@ class MediaPlayer : public QObject
 public:
   using Playlist = std::vector<QUrl>;
   struct Settings { bool mAutoPlay = false; bool mMuted = true; };
+  enum class CutMethod { Fast, Precise, Loop };
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -44,7 +45,7 @@ public:
 
   void mark();
   void cancelMark();
-  void cut(const bool reconvert);
+  void cut(const CutMethod cutMethod);
 
 signals:
   void sequencesChanged(const SequenceMap& sequences);

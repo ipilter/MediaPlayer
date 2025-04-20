@@ -62,8 +62,17 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_C:
   {
-    const bool wReconvert = event->modifiers() & Qt::ShiftModifier;
-    mMediaPlayer->cut(wReconvert);
+    MediaPlayer::CutMethod wCutMethod = MediaPlayer::CutMethod::Fast;
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      wCutMethod = MediaPlayer::CutMethod::Precise;
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      wCutMethod = MediaPlayer::CutMethod::Loop;
+    }
+   
+    mMediaPlayer->cut(wCutMethod);
     break;
   }
   case Qt::Key_W:
