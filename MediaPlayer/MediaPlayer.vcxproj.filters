@@ -24,6 +24,30 @@
     <Filter Include="Resource Files\styles">
       <UniqueIdentifier>{6e471806-366a-4f3c-85ba-e4cff7f14c2e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Processes">
+      <UniqueIdentifier>{52ede7f9-870b-43f0-b7ee-618558e8c273}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Processes">
+      <UniqueIdentifier>{a7ed0610-a239-4d91-89b8-a3e8808c8558}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\View">
+      <UniqueIdentifier>{936eb2ea-067b-4aeb-9503-0d17988ded68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\View">
+      <UniqueIdentifier>{2ee9e46e-f324-4358-979a-2595078248b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Model">
+      <UniqueIdentifier>{df4097b3-6774-4c01-aefb-696c1030f797}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Model">
+      <UniqueIdentifier>{882858ca-b723-453a-b557-0c6396e35f18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Controller">
+      <UniqueIdentifier>{60266b00-03b5-4286-8c06-61537016b9fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Controller">
+      <UniqueIdentifier>{6d0404bd-8437-4f35-aed2-3008a7a9e0f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="MainWindow.qrc">
@@ -32,53 +56,74 @@
     <QtUic Include="MainWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="MainWindow.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <ClCompile Include="MainWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VideoPlayer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Merger.cpp">
+      <Filter>Source Files\Processes</Filter>
+    </ClCompile>
+    <ClCompile Include="PreciseCutter.cpp">
+      <Filter>Source Files\Processes</Filter>
+    </ClCompile>
+    <ClCompile Include="Reverser.cpp">
+      <Filter>Source Files\Processes</Filter>
+    </ClCompile>
+    <ClCompile Include="FastCutter.cpp">
+      <Filter>Source Files\Processes</Filter>
     </ClCompile>
     <ClCompile Include="Slider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="View.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MediaPlayer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\View</Filter>
     </ClCompile>
     <ClCompile Include="VideoWidget.cpp">
+      <Filter>Source Files\View</Filter>
+    </ClCompile>
+    <ClCompile Include="View.cpp">
+      <Filter>Source Files\View</Filter>
+    </ClCompile>
+    <ClCompile Include="MainWindow.cpp">
+      <Filter>Source Files\View</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPlayer.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="MediaPlayer.cpp">
+      <Filter>Source Files\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="VTime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Runnable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Slider.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="VideoPlayer.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="View.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="MediaPlayer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\View</Filter>
     </QtMoc>
     <QtMoc Include="VideoWidget.h">
+      <Filter>Header Files\View</Filter>
+    </QtMoc>
+    <QtMoc Include="View.h">
+      <Filter>Header Files\View</Filter>
+    </QtMoc>
+    <QtMoc Include="MainWindow.h">
+      <Filter>Header Files\View</Filter>
+    </QtMoc>
+    <QtMoc Include="VideoPlayer.h">
+      <Filter>Header Files\Model</Filter>
+    </QtMoc>
+    <QtMoc Include="MediaPlayer.h">
+      <Filter>Header Files\Controller</Filter>
+    </QtMoc>
+    <QtMoc Include="Runnable.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="ProcessTree.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="Runnable.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -94,16 +139,19 @@
     <ClInclude Include="Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cutter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Merger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Cleanup.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Processes</Filter>
     </ClInclude>
     <ClInclude Include="Reverser.h">
+      <Filter>Header Files\Processes</Filter>
+    </ClInclude>
+    <ClInclude Include="PreciseCutter.h">
+      <Filter>Header Files\Processes</Filter>
+    </ClInclude>
+    <ClInclude Include="FastCutter.h">
+      <Filter>Header Files\Processes</Filter>
+    </ClInclude>
+    <ClInclude Include="VTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

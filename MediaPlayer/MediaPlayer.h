@@ -47,12 +47,19 @@ public:
   void cancelMark();
   void cut(const CutMethod cutMethod);
 
+  // TODO process callback(s), do better
+  void logStatusMessage(const QString& msg);
+
 signals:
   void sequencesChanged(const SequenceMap& sequences);
 
 private:
   void onVideoLoaded();
   void onVideoEnded();
+
+  void FastCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath);
+  void PreciseCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath);
+  void LoopCut(const VTime& startTime, const VTime& endTime, const QString& videoPath, const QString& cutFilePath, const QString& outputRootDirectory, int loopCount);
 
 private:
   std::shared_ptr<View> mView;
@@ -64,10 +71,10 @@ private:
   size_t mCurrentVideo = 0;
 
   // sequence management
-  SequenceMap mSequenceMap; // TODO: store attributes, like cut state, video associated, etc.
+  SequenceMap mSequenceMap;
   Sequence mEditedSequence = {0,0};
 
-  ProcessTreeNode::Ptr mCutProcess; // TODO: make a pool of these and a manager
+  std::vector<ProcessTree::Ptr> mCutProcesses; // TODO: destroy finished processsed, do not accumulate them
 
   // settings
   Settings mSettings;

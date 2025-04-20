@@ -105,7 +105,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FastCutter.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
+    <ClCompile Include="Merger.cpp" />
+    <ClCompile Include="PreciseCutter.cpp" />
+    <ClCompile Include="ProcessTree.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
+    <ClCompile Include="Reverser.cpp" />
+    <ClCompile Include="Runnable.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
+    <ClCompile Include="VTime.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
     <ClCompile Include="Slider.cpp" />
     <ClCompile Include="VideoWidget.cpp" />
@@ -114,7 +131,7 @@
     <QtUic Include="MainWindow.ui" />
     <QtMoc Include="MainWindow.h" />
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Slider.h" />
@@ -135,10 +152,11 @@
     <QtMoc Include="VideoWidget.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="VTime.h" />
     <QtMoc Include="ProcessTree.h" />
     <QtMoc Include="Runnable.h" />
-    <ClInclude Include="Cleanup.h" />
-    <ClInclude Include="Cutter.h" />
+    <ClInclude Include="FastCutter.h" />
+    <ClInclude Include="PreciseCutter.h" />
     <ClInclude Include="Merger.h" />
     <ClInclude Include="Reverser.h" />
     <ClInclude Include="Utils.h" />
