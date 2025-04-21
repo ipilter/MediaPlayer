@@ -25,7 +25,7 @@ public:
 Slider::Slider(Qt::Orientation orientation, QWidget* parent)
   : QSlider(orientation, parent)
 {
-  setValue(0);
+  setStyle(new SliderStyle());
 }
 
 void Slider::mousePressEvent(QMouseEvent* event)
