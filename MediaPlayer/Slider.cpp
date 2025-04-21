@@ -47,11 +47,11 @@ void Slider::setSequences(const SequenceMap& sequences)
 const QColor& Slider::sequenceColor(const SequenceEntry& sequence) const
 {
   static const std::map<QString, const QColor> colorMap = {
-    {"invalid", 0xFF0000},
-    {"ready", 0x29559C},
-    {"processing", 0xB5AA48},
-    {"succeeded", 0x47A020},
-    {"failed", 0xB52B2B}
+    {"invalid", QColor(190, 100, 100, 60) },
+    {"ready", QColor(80, 199, 229, 116) },
+    {"processing", QColor(231, 231, 239, 116) },
+    {"succeeded", QColor(66, 130, 69, 116) },
+    {"failed", QColor(175, 0, 38, 116)}
   };
 
   QString colorName = "invalid";

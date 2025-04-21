@@ -25,5 +25,10 @@ FastCutter::FastCutter(const QString& videoPath, const QString cutFilePath, cons
 
 void FastCutter::onStarted()
 {
-  emit logMessage("end");
+  emit logMessage(QString("Fast cutter started"));
+}
+
+void FastCutter::onFinished()
+{
+  emit logMessage(QString("Fast cutter finished"));
 }

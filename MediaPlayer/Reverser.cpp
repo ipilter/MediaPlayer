@@ -12,3 +12,13 @@ Reverser::Reverser(const QString& originalFilePath, const QString& reversedFileP
 {
   mArguments << "-i" << originalFilePath << "-vf" << "reverse" << reversedFilePath << "-y";
 }
+
+void Reverser::onStarted()
+{
+  emit logMessage(QString("Reverser started"));
+}
+
+void Reverser::onFinished()
+{
+  emit logMessage(QString("Reverser finished"));
+}

@@ -27,6 +27,7 @@ Merger::Merger(const QString& videoFilePath
       ofs << "file " << reversedVideoFilePath.toStdString() << "\n";
     }
   }
+
   // simple concat by copying the files into the output file
   if (true)
   {
@@ -58,8 +59,12 @@ Merger::Merger(const QString& videoFilePath
   }
 }
 
+void Merger::onStarted()
+{
+  emit logMessage(QString("Merger started"));
+}
+
 void Merger::onFinished()
 {
-  // mConcatFilePath; todo this runable, and process stuff is not flexible.. a make running a simple function and a process the same
-  // interface to simplify usage
+  emit logMessage(QString("Merger finished"));
 }

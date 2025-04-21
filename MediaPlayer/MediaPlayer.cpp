@@ -379,8 +379,6 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const QString& videoPath
   },
     [ & ](const QString& msg)
   {
-    sequenceEntry.second = SequenceState::Succeeded;
-    emit sequencesChanged(mSequenceMap);
     logStatusMessage(msg);
   }));
 
@@ -398,8 +396,16 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const QString& videoPath
   ProcessTree::Ptr& pMergeProcess =
     pReverseProcess->addChild(Merger::create(
       wCutFilePath, reversedFilePath, mergedFilePath, loopCount),
-      [ & ](const QString& msg) { logStatusMessage(msg); },
-      [ & ](const QString& msg) { logStatusMessage(msg); }
+      [ & ](const QString& msg) 
+  {
+    logStatusMessage(msg);
+  },
+      [ & ](const QString& msg) 
+  {
+    sequenceEntry.second = SequenceState::Succeeded;
+    emit sequencesChanged(mSequenceMap);
+    logStatusMessage(msg);
+  }
     );
 
   // kick in the process chain

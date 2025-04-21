@@ -14,5 +14,6 @@ public:
 
   PreciseCutter(const QString& videoPath, const QString cutFilePath, const VTime& startTime, const VTime& endTime);
 
-  void onStarted() override;
+  virtual void onStarted() override;
+  virtual void onFinished() override;
 };

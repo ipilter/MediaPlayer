@@ -45,5 +45,10 @@ PreciseCutter::PreciseCutter(const QString& videoPath, const QString cutFilePath
 
 void PreciseCutter::onStarted()
 {
-  emit logMessage("end");
+  emit logMessage(QString("Precise cutter started"));
+}
+
+void PreciseCutter::onFinished()
+{
+  emit logMessage(QString("Precise cutter finished"));
 }
