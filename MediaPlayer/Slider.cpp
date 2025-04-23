@@ -48,9 +48,9 @@ const QColor& Slider::sequenceColor(const SequenceEntry& sequence) const
 {
   static const std::map<QString, const QColor> colorMap = {
     {"invalid", QColor(190, 100, 100, 60) },
-    {"ready", QColor(80, 199, 229, 116) },
-    {"processing", QColor(231, 231, 239, 116) },
-    {"succeeded", QColor(66, 130, 69, 116) },
+    {"ready", QColor(80, 179, 249, 116) },
+    {"processing", QColor(241, 241, 249, 116) },
+    {"succeeded", QColor(66, 180, 69, 116) },
     {"failed", QColor(175, 0, 38, 116)}
   };
 

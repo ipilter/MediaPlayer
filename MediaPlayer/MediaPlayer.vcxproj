@@ -36,12 +36,12 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>6.7.0_msvc2019_64</QtInstall>
+    <QtInstall>6.9.0_msvc2022_64</QtInstall>
     <QtModules>core;gui;multimedia;multimediawidgets;widgets;xml</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.7.0_msvc2019_64</QtInstall>
+    <QtInstall>6.9.0_msvc2022_64</QtInstall>
     <QtModules>core;gui;multimedia;multimediawidgets;widgets;xml</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
     <QtDeploy>false</QtDeploy>
@@ -105,23 +105,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FastCutter.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
-    <ClCompile Include="Merger.cpp" />
-    <ClCompile Include="PreciseCutter.cpp" />
-    <ClCompile Include="ProcessTree.cpp">
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
-    </ClCompile>
-    <ClCompile Include="Reverser.cpp" />
-    <ClCompile Include="Runnable.cpp">
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
-    </ClCompile>
     <ClCompile Include="VTime.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
     <ClCompile Include="Slider.cpp" />
@@ -153,12 +137,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VTime.h" />
-    <QtMoc Include="ProcessTree.h" />
-    <QtMoc Include="Runnable.h" />
-    <ClInclude Include="FastCutter.h" />
-    <ClInclude Include="PreciseCutter.h" />
-    <ClInclude Include="Merger.h" />
-    <ClInclude Include="Reverser.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>

@@ -21,9 +21,6 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
-    <Filter Include="Header Files\Processes">
-      <UniqueIdentifier>{52ede7f9-870b-43f0-b7ee-618558e8c273}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Processes">
       <UniqueIdentifier>{a7ed0610-a239-4d91-89b8-a3e8808c8558}</UniqueIdentifier>
     </Filter>
@@ -58,18 +55,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Merger.cpp">
-      <Filter>Source Files\Processes</Filter>
-    </ClCompile>
-    <ClCompile Include="PreciseCutter.cpp">
-      <Filter>Source Files\Processes</Filter>
-    </ClCompile>
-    <ClCompile Include="Reverser.cpp">
-      <Filter>Source Files\Processes</Filter>
-    </ClCompile>
-    <ClCompile Include="FastCutter.cpp">
-      <Filter>Source Files\Processes</Filter>
-    </ClCompile>
     <ClCompile Include="Slider.cpp">
       <Filter>Source Files\View</Filter>
     </ClCompile>
@@ -89,12 +74,6 @@
       <Filter>Source Files\Controller</Filter>
     </ClCompile>
     <ClCompile Include="VTime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Runnable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -117,12 +96,6 @@
     <QtMoc Include="MediaPlayer.h">
       <Filter>Header Files\Controller</Filter>
     </QtMoc>
-    <QtMoc Include="Runnable.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="ProcessTree.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -130,18 +103,6 @@
     </ClInclude>
     <ClInclude Include="Utils.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Merger.h">
-      <Filter>Header Files\Processes</Filter>
-    </ClInclude>
-    <ClInclude Include="Reverser.h">
-      <Filter>Header Files\Processes</Filter>
-    </ClInclude>
-    <ClInclude Include="PreciseCutter.h">
-      <Filter>Header Files\Processes</Filter>
-    </ClInclude>
-    <ClInclude Include="FastCutter.h">
-      <Filter>Header Files\Processes</Filter>
     </ClInclude>
     <ClInclude Include="VTime.h">
       <Filter>Header Files</Filter>

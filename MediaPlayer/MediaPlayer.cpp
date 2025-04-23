@@ -1,19 +1,16 @@
 #include "MediaPlayer.h"
 #include "VideoPlayer.h"
 #include "View.h"
-#include "PreciseCutter.h"
-#include "FastCutter.h"
-#include "Reverser.h"
-#include "Merger.h"
-#include "ProcessTree.h"
 #include "Utils.h"
 
 #include <QFileInfo.h>
 #include <QMediaMetadata.h>
 #include <QUrl>
 #include <QThread>
+#include <QProcess>
 
 #include <random>
+#include <fstream>
 #include <windows.h>
 
 MediaPlayer::MediaPlayer(QObject* parent)
@@ -244,10 +241,6 @@ void MediaPlayer::logStatusMessage(const QString& msg)
 
 void MediaPlayer::cut(const CutMethod cutMethod)
 {
-  const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
-
-  const QString wOutputRootDirectory = "e:\\";
-
   for (auto& wSequenceEntry : mSequenceMap)
   {
     if (wSequenceEntry.second != SequenceState::Ready)
@@ -255,19 +248,16 @@ void MediaPlayer::cut(const CutMethod cutMethod)
       continue;
     }
 
-    //wSequence.second = SequenceState::Processing;
-    //emit sequencesChanged(mSequenceMap);
-
     switch (cutMethod)
     {
       case CutMethod::Fast:
-        FastCut(wSequenceEntry, wVideoPath, wOutputRootDirectory);
+        FastCut(wSequenceEntry);
       break;
       case CutMethod::Precise:
-        PreciseCut(wSequenceEntry, wVideoPath, wOutputRootDirectory);
+        PreciseCut(wSequenceEntry);
       break;
       case CutMethod::Loop:
-        LoopCut(wSequenceEntry, wVideoPath, wOutputRootDirectory, 3);
+        LoopCut(wSequenceEntry, 3);
       break;
     }
   }
@@ -297,119 +287,202 @@ void MediaPlayer::onVideoEnded()
   }
 }
 
-void MediaPlayer::FastCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory)
+void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
 {
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
-  const QString wCutFilePath = getNewFileName(QString("%1_%2.mp4")
-    .arg(outputRootDirectory + QFileInfo(videoPath).completeBaseName() + "." + wStartTime.toString('-')).arg((wEndTime - wStartTime).seconds()));
+  const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
-  FastCutter::Ptr wCutter = FastCutter::create(videoPath, wCutFilePath, wStartTime, wEndTime);
+  const QString wPrettyFileName = prettifyFileName(QFileInfo(wVideoPath).completeBaseName());
+  const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
+  const QString wStartStr = wStartTime.toString('.');
+  const QString wCutFilePath = QString("%1.%2.mp4").arg(mOutputRootDirectory + wPrettyFileName + "." + wStartStr, wLengthStr);
+  
+  mProcesses.push_back(std::make_unique<QProcess>(this));
 
-  connect(wCutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
-
-  mCutProcesses.push_back(ProcessTree::create(
-    std::move(wCutter),
-    [ & ](const QString& msg)
-  {
+  connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
     sequenceEntry.second = SequenceState::Processing;
     emit sequencesChanged(mSequenceMap);
-    logStatusMessage(msg);
-  },
-    [ & ](const QString& msg)
-  {
-    sequenceEntry.second = SequenceState::Succeeded;
-    emit sequencesChanged(mSequenceMap);
-    logStatusMessage(msg);
-  }));
+    logStatusMessage("Fast cut started");
+  });
 
-  // kick in the process
-  mCutProcesses.back()->start();
+  connect(mProcesses.back().get(), &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
+    sequenceEntry.second = exitCode == 0 ? SequenceState::Succeeded : SequenceState::Failed;
+    emit sequencesChanged(mSequenceMap);
+    logStatusMessage(QString("Fast cut ") + (exitCode == 0 ? "succeeded" : "failed"));
+  });
+
+  mProcesses.back()->start(mFFMpegPath, {
+    "-ss", wStartTime.toString(),
+    "-i", wVideoPath,
+    "-t", (wEndTime - wStartTime).toString(),
+    "-async", "1",
+    "-vcodec", "copy",
+    "-acodec", "copy",
+    "-avoid_negative_ts", "1",
+    wCutFilePath, "-y"});
 }
 
-void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory)
+void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
 {
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
-  const QString wCutFilePath = getNewFileName(QString("%1_%2.mp4")
-    .arg(outputRootDirectory + QFileInfo(videoPath).completeBaseName() + "." + wStartTime.toString('-')).arg((wEndTime - wStartTime).seconds()));
+  const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
-  PreciseCutter::Ptr wCutter = PreciseCutter::create(videoPath, wCutFilePath, wStartTime, wEndTime);
+  const QString wPrettyFileName = prettifyFileName(QFileInfo(wVideoPath).completeBaseName());
+  const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
+  const QString wStartStr = wStartTime.toString('.');
+  const QString wCutFilePath = QString("%1.%2.mp4").arg(mOutputRootDirectory + wPrettyFileName + "." + wStartStr, wLengthStr);
 
-  connect(wCutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
-
-  mCutProcesses.push_back(ProcessTree::create(
-    std::move(wCutter),
-    [ & ](const QString& msg)
-  {
+  mProcesses.push_back(std::make_unique<QProcess>(this));
+  
+  connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
     sequenceEntry.second = SequenceState::Processing;
     emit sequencesChanged(mSequenceMap);
-    logStatusMessage(msg);
-  },
-    [ & ](const QString& msg)
-  {
-    sequenceEntry.second = SequenceState::Succeeded;
+    logStatusMessage("Precise cut started");
+  });
+  
+  connect(mProcesses.back().get(), &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
+    sequenceEntry.second = exitCode == 0 ? SequenceState::Succeeded : SequenceState::Failed;
     emit sequencesChanged(mSequenceMap);
-    logStatusMessage(msg);
-  }));
-
-  // kick in the process
-  mCutProcesses.back()->start();
-}
-
-void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory, int loopCount)
-{
-  const VTime wStartTime = sequenceEntry.first.first;
-  const VTime wEndTime = sequenceEntry.first.second;
-  const QString wCutFilePath = getNewFileName(QString("%1_%2.mp4")
-    .arg(outputRootDirectory + QFileInfo(videoPath).completeBaseName() + "." + wStartTime.toString('-')).arg((wEndTime - wStartTime).seconds()));
-
-  // cut first using precise method
-  PreciseCutter::Ptr wCutter = PreciseCutter::create(videoPath, wCutFilePath, wStartTime, wEndTime);
-
-  connect(wCutter.get(), SIGNAL(Runnable::logMessageEvent), this, SLOT(MainWindow::onLogMessageEvent));
-
-  mCutProcesses.push_back(ProcessTree::create(
-    std::move(wCutter),
-    [ & ](const QString& msg)
+    logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
+  });
+  
+  const VTime wPreloadTime(1000);
+  if (wStartTime >= wPreloadTime)
   {
-    sequenceEntry.second = SequenceState::Processing;
-    emit sequencesChanged(mSequenceMap);
-    logStatusMessage(msg);
-  },
-    [ & ](const QString& msg)
-  {
-    logStatusMessage(msg);
-  }));
-
-  // reverse the video into an intermediate file _reversed.mp4
-  const QString reversedFilePath = getNewFileName(wCutFilePath + "_reversed.mp4");
-  const QString mergedFilePath = getNewFileName(outputRootDirectory + QFileInfo(videoPath).completeBaseName() + ".loop.mp4");  // TODO safer !! 
-
-  ProcessTree::Ptr& pReverseProcess =
-    mCutProcesses.back()->addChild(Reverser::create(
-      wCutFilePath, reversedFilePath),
-      [ & ](const QString& msg) { logStatusMessage(msg); },
-      [ & ](const QString& msg) { logStatusMessage(msg); });
-
-  // merge the cut and the reversed video into a new file N times
-  ProcessTree::Ptr& pMergeProcess =
-    pReverseProcess->addChild(Merger::create(
-      wCutFilePath, reversedFilePath, mergedFilePath, loopCount),
-      [ & ](const QString& msg) 
-  {
-    logStatusMessage(msg);
-  },
-      [ & ](const QString& msg) 
-  {
-    sequenceEntry.second = SequenceState::Succeeded;
-    emit sequencesChanged(mSequenceMap);
-    logStatusMessage(msg);
+    mProcesses.back()->start(mFFMpegPath, {
+      "-ss", (wStartTime - wPreloadTime).toString(),
+      "-i", wVideoPath,
+      "-ss", wPreloadTime.toString(),
+      "-t", (wEndTime - wStartTime).toString(),
+      "-c:v", "libx264",
+      "-c:a", "aac",
+      wCutFilePath, "-y" });
   }
-    );
+  else
+  {
+    mProcesses.back()->start(mFFMpegPath, {
+      "-i", wVideoPath,
+      "-ss", wStartTime.toString(),
+      "-t", (wEndTime - wStartTime).toString(),
+      "-c:v", "libx264",
+      "-c:a", "aac",
+      wCutFilePath, "-y" });
+  }
+}
 
-  // kick in the process chain
-  mCutProcesses.back()->start();
+void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
+{
+  const VTime wStartTime = sequenceEntry.first.first;
+  const VTime wEndTime = sequenceEntry.first.second;
+
+  const QString wPrettyFileName = prettifyFileName(QFileInfo(mPlaylist[mCurrentVideo].toLocalFile()).completeBaseName());
+  const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
+  const QString wStartStr = wStartTime.toString('.');
+  const QString wLoopFilePath = QString("%1.loop.mp4").arg(mOutputRootDirectory + wPrettyFileName + "." + wStartStr);
+
+  // TODO: ugly nested process definitions down there. As these are dependent, we need to wait for the first one to finish before starting the second one
+  // so the whole dependency scheduling is done in the previous process onfinished callback... in theory this is ok, but must have better implementation
+  const QString wCutFilePath = QFileInfo(wLoopFilePath).absolutePath() + QFileInfo(wLoopFilePath).completeBaseName() + "_cut.mp4";
+
+  mProcesses.push_back(std::make_unique<QProcess>(this));
+
+  connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
+    sequenceEntry.second = SequenceState::Processing;
+    emit sequencesChanged(mSequenceMap);
+    logStatusMessage("Precise cut started");
+  });
+
+  connect(mProcesses.back().get(), &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
+    logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
+    if (exitCode != 0)
+    {
+      sequenceEntry.second = SequenceState::Failed;
+      emit sequencesChanged(mSequenceMap);
+      return;
+    }
+
+    const QString wReversedFilePath = QFileInfo(wCutFilePath).absolutePath() + QFileInfo(wCutFilePath).completeBaseName() + "_reversed.mp4";
+
+    // Execute reverser process
+    mProcesses.push_back(std::make_unique<QProcess>(this));
+
+    connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
+      logStatusMessage("Reverser started");
+    });
+
+    connect(mProcesses.back().get(), &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, wReversedFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
+      logStatusMessage(QString("Reverser ") + (exitCode == 0 ? "succeeded" : "failed"));
+      if (exitCode != 0)
+      {
+        sequenceEntry.second = SequenceState::Failed;
+        emit sequencesChanged(mSequenceMap);
+        return;
+      }
+
+      // Merge the files
+      // Create concat list file
+      const QString wConcatFilePath = uniqueFileName(mOutputRootDirectory + "concat.txt");
+      {
+        std::ofstream ofs(wConcatFilePath.toStdString());
+        for (unsigned n = 0; n < loopCount; ++n)
+        {
+          ofs << "file " << (wCutFilePath.toStdString()) << "\n";
+          ofs << "file " << (wReversedFilePath.toStdString()) << "\n";
+        }
+      }
+
+      // Execute merger process
+      mProcesses.push_back(std::make_unique<QProcess>(this));
+      connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
+        logStatusMessage("Merger started");
+      });
+
+      connect(mProcesses.back().get(), &QProcess::finished, this, [&, wConcatFilePath, wCutFilePath, wReversedFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
+        sequenceEntry.second = exitCode == 0 ? SequenceState::Succeeded : SequenceState::Failed;
+        emit sequencesChanged(mSequenceMap);
+        logStatusMessage(QString("Merger ") + (exitCode == 0 ? "succeeded" : "failed"));
+
+        QFile::remove(wConcatFilePath);
+        QFile::remove(wCutFilePath);
+        QFile::remove(wReversedFilePath);
+      });
+
+      QStringList wArguments;
+      wArguments << "-f" << "concat" << "-safe" << "0" << "-i" << wConcatFilePath << "-c" << "copy" << wLoopFilePath << "-y";
+      mProcesses.back()->start(mFFMpegPath, wArguments);
+    });
+
+    mProcesses.back()->start(mFFMpegPath, {
+      "-i", wCutFilePath,
+      "-vf", "reverse",
+      wReversedFilePath, "-y" });
+  });
+
+  // Exectute cut process
+  const VTime wPreloadTime(1000);
+  if (wStartTime >= wPreloadTime)
+  {
+    mProcesses.back()->start(mFFMpegPath, {
+      "-ss", (wStartTime - wPreloadTime).toString(),
+      "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+      "-ss", wPreloadTime.toString(),
+      "-t", (wEndTime - wStartTime).toString(),
+      "-c:v", "libx264",
+      "-c:a", "aac",
+      wCutFilePath, "-y" });
+  }
+  else
+  {
+    mProcesses.back()->start(mFFMpegPath, {
+      "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+      "-ss", wStartTime.toString(),
+      "-t", (wEndTime - wStartTime).toString(),
+      "-c:v", "libx264",
+      "-c:a", "aac",
+      wCutFilePath, "-y" });
+  }
 }
 
 void MediaPlayer::resetSeqenceState()

@@ -15,9 +15,6 @@ public:
          , const QString& mergedFilePath
          , const unsigned loopCount);
 
-  virtual void onStarted() override;
-  virtual void onFinished() override;
-
 private:
   QString mConcatFilePath;
 };

@@ -10,33 +10,46 @@
 #include <QKeyEvent>
 #include <QApplication>
 #include <QPixmap>
+#include <QPlainTextEdit>
 
 #include <random>
 
 View::View(QWidget* parent)
   : QWidget(parent)
 {
-  mPixmapTable.emplace("play", QPixmap(":/bitmaps/play.png"));
-  mPixmapTable.emplace("pause", QPixmap(":/bitmaps/pause.png"));
+  mPixmapTable.emplace("play",     QPixmap(":/bitmaps/play.png"));
+  mPixmapTable.emplace("pause",    QPixmap(":/bitmaps/pause.png"));
   mPixmapTable.emplace("previous", QPixmap(":/bitmaps/previous.png"));
-  mPixmapTable.emplace("next", QPixmap(":/bitmaps/next.png"));
-  mPixmapTable.emplace("muted", QPixmap(":/bitmaps/muted.png"));
-  mPixmapTable.emplace("unmuted", QPixmap(":/bitmaps/unmuted.png"));
+  mPixmapTable.emplace("next",     QPixmap(":/bitmaps/next.png"));
+  mPixmapTable.emplace("muted",    QPixmap(":/bitmaps/muted.png"));
+  mPixmapTable.emplace("unmuted",  QPixmap(":/bitmaps/unmuted.png"));
 
   mVideoWidget = new VideoWidget(parent);
-  mVideoWidget->setFocus();
+  mVideoWidget->setObjectName("videoWidget");
 
   mSlider = new Slider(Qt::Horizontal, parent);
   mSlider->setObjectName("videoSlider");
 
   mPreviousButton = new QPushButton(parent);
+  mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
+
   mPlayButton = new QPushButton(parent);
+  mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
+
   mNextButton = new QPushButton(parent);
+  mNextButton->setIcon(QIcon(mPixmapTable["next"]));
+
   mMuteButton = new QPushButton(parent);
+  mMuteButton->setIcon(QIcon(mPixmapTable["muted"]));
+
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
+
   mDurationLabel = new QLabel("00:00:00:000", parent);
   mDurationLabel->setObjectName("durationLabel");
+
+  mInfoBar = new QPlainTextEdit(parent);
+  mInfoBar->setObjectName("infoBar");
 
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   buttonLayout->addWidget(mPreviousButton);
@@ -45,30 +58,20 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
   buttonLayout->addWidget(mMuteButton);
-
-  mInfoBarLabel = new QLabel(parent);
-  mInfoBarLabel->setObjectName("infoBarLabel");
   
-  QVBoxLayout* rootLayout = new QVBoxLayout;
-
+  QVBoxLayout* rootLayout = new QVBoxLayout(parent);
   rootLayout->addWidget(mVideoWidget);
   rootLayout->addWidget(mSlider);
   rootLayout->addLayout(buttonLayout);
-  rootLayout->addWidget(mInfoBarLabel);
+  rootLayout->addWidget(mInfoBar);
   mLayout = rootLayout;
 
-
   connect(mSlider,         &QSlider::sliderMoved,      this, [this](int position) { emit sliderChanged(position); });
-  connect(mPreviousButton, &QPushButton::clicked,      this, [this]()             { emit previousButtonClicked(); });
+  connect(mPreviousButton, &QPushButton::clicked,      this, [this]()             { emit previousButtonClicked(); mPlayButton->setFocus(); });
   connect(mPlayButton,     &QPushButton::clicked,      this, [this]()             { emit startStopButtonClicked(); });
-  connect(mNextButton,     &QPushButton::clicked,      this, [this]()             { emit nextButtonClicked(); });
-  connect(mVideoWidget,    &VideoWidget::mouseClicked, this, [this]()             { emit onMouseClick(); });
-  connect(mMuteButton,     &QPushButton::clicked,      this, [this]()             { emit muteButtonClicked(); });
-
-  mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
-  mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
-  mNextButton->setIcon(QIcon(mPixmapTable["next"]));
-  mMuteButton->setIcon(QIcon(mPixmapTable["muted"]));
+  connect(mNextButton,     &QPushButton::clicked,      this, [this]()             { emit nextButtonClicked(); mPlayButton->setFocus(); });
+  connect(mVideoWidget,    &VideoWidget::mouseClicked, this, [this]()             { emit onMouseClick(); mPlayButton->setFocus(); });
+  connect(mMuteButton,     &QPushButton::clicked,      this, [this]()             { emit muteButtonClicked(); mPlayButton->setFocus(); });
 }
 
 View::~View()
@@ -131,5 +134,6 @@ void View::setDuration(VTime duration)
 
 void View::setInfo(const QString& info)
 {
-  mInfoBarLabel->setText(info);
+  mInfoBar->appendPlainText(info);
+  mInfoBar->moveCursor(QTextCursor::End);
 }

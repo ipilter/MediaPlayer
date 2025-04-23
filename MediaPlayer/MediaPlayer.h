@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "ProcessTree.h"
+#include "Process.h"
 
 #include <QObject>
 
@@ -11,6 +11,8 @@
 class View;
 class VideoPlayer;
 class QLayout;
+class QProcess;
+class QString;
 
 class MediaPlayer : public QObject
 {
@@ -47,10 +49,10 @@ public:
   void cancelMark();
   void cut(const CutMethod cutMethod);
 
+  // TODO better sequence management
   void resetSeqenceState();
   void popLastSequence();
 
-  // TODO process callback(s), do better
   void logStatusMessage(const QString& msg);
 
 signals:
@@ -60,9 +62,9 @@ private:
   void onVideoLoaded();
   void onVideoEnded();
 
-  void FastCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory);
-  void PreciseCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory);
-  void LoopCut(SequenceEntry& sequenceEntry, const QString& videoPath, const QString& outputRootDirectory, int loopCount);
+  void FastCut(SequenceEntry& sequenceEntry);
+  void PreciseCut(SequenceEntry& sequenceEntry);
+  void LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount);
 
 private:
   std::shared_ptr<View> mView;
@@ -77,7 +79,12 @@ private:
   SequenceMap mSequenceMap;
   Sequence mEditedSequence = {0,0};
 
-  std::vector<ProcessTree::Ptr> mCutProcesses; // TODO: destroy finished processsed, do not accumulate them
+  using ProcessPtr = std::unique_ptr<QProcess>;
+  std::vector<ProcessPtr> mProcesses; // TODO: destroy finished processsed, do not accumulate them
+  
+  const QString mFFMpegPath = "d:\\Tools\\ffmpeg\\ffmpeg.exe"; // TODO: settings
+  const QString mOutputRootDirectory = "e:\\";  // TODO: settings
+
 
   // settings
   Settings mSettings;

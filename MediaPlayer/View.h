@@ -12,6 +12,7 @@ class QLabel;
 class QPushButton;
 class QLayout;
 class QPixmap;
+class QPlainTextEdit;
 
 class View : public QWidget
 {
@@ -56,7 +57,7 @@ private:
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;
 
-  QLabel* mInfoBarLabel;
+  QPlainTextEdit* mInfoBar;
 
   QLayout* mLayout;
 };

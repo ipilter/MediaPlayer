@@ -13,7 +13,4 @@ public:
   static Ptr create(const QString& videoPath, const QString cutFilePath, const VTime& startTime, const VTime& endTime);
 
   FastCutter(const QString& videoPath, const QString cutFilePath, const VTime& startTime, const VTime& endTime);
-
-  virtual void onStarted() override;
-  virtual void onFinished() override;
 };

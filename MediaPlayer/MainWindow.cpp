@@ -48,10 +48,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_D:
   {
-    VTime size = 500;
+    VTime size = 1000;
     if (event->modifiers() & Qt::ShiftModifier)
     {
-      size = 5000;
+      size = 10000;
     }
     else if (event->modifiers() & Qt::ControlModifier)
     {
@@ -76,6 +76,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     break;
   }
   case Qt::Key_W:
+  {
     if (event->modifiers() & Qt::ShiftModifier)
     {
       mMediaPlayer->cancelMark();
@@ -85,6 +86,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       mMediaPlayer->mark();
     }
     break;
+  }
   case Qt::Key_N:
     mMediaPlayer->next();
     break;
