@@ -21,9 +21,6 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
-    <Filter Include="Source Files\Processes">
-      <UniqueIdentifier>{a7ed0610-a239-4d91-89b8-a3e8808c8558}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\View">
       <UniqueIdentifier>{936eb2ea-067b-4aeb-9503-0d17988ded68}</UniqueIdentifier>
     </Filter>
