@@ -34,30 +34,30 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     break;
   case Qt::Key_A:
   {
-    VTime size = 500;
+    MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
     if (event->modifiers() & Qt::ShiftModifier)
     {
-      size = 5000;
+      step = MediaPlayer::SeekStep::Big;
     }
     else if (event->modifiers() & Qt::ControlModifier)
     {
-      size = 50;
+      step = MediaPlayer::SeekStep::Small;
     }
-    mMediaPlayer->seekBackward(size);
+    mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, step);
     break;
   }
   case Qt::Key_D:
   {
-    VTime size = 1000;
+    MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
     if (event->modifiers() & Qt::ShiftModifier)
     {
-      size = 10000;
+      step = MediaPlayer::SeekStep::Big;
     }
     else if (event->modifiers() & Qt::ControlModifier)
     {
-      size = 50;
+      step = MediaPlayer::SeekStep::Small;
     }
-    mMediaPlayer->seekForward(size);
+    mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, step);
     break;
   }
   case Qt::Key_C:
@@ -71,7 +71,6 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     {
       wCutMethod = MediaPlayer::CutMethod::Loop;
     }
-   
     mMediaPlayer->cut(wCutMethod);
     break;
   }

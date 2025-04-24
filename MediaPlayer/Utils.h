@@ -9,7 +9,7 @@ inline QString prettifyFileName(QString fileName)
 {
   fileName.replace(QRegularExpression("[^A-Za-z]"), ".");
   fileName.replace(QRegularExpression("\\.{2,}"), ".");
-  return fileName;
+  return fileName.toLower();
 }
 
 inline QString uniqueFileName(const QString& fileName)

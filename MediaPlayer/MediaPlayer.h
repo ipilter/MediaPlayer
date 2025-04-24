@@ -22,6 +22,8 @@ public:
   using Playlist = std::vector<QUrl>;
   struct Settings { bool mAutoPlay = false; bool mMuted = true; };
   enum class CutMethod { Fast, Precise, Loop };
+  enum class SeekStep { Normal, Small, Big };
+  enum class SeekDirection { Forward, Backward };
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -40,9 +42,8 @@ public:
   void previous();
   void toggleMute();
 
-  void setPosition(VTime position);
-  void seekBackward(VTime size);
-  void seekForward(VTime size);
+  void setPosition(const VTime& position);
+  void seek(SeekDirection direction, SeekStep step);
   void startStop();
 
   void mark();
@@ -84,7 +85,6 @@ private:
   
   const QString mFFMpegPath = "d:\\Tools\\ffmpeg\\ffmpeg.exe"; // TODO: settings
   const QString mOutputRootDirectory = "e:\\";  // TODO: settings
-
 
   // settings
   Settings mSettings;

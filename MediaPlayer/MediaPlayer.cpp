@@ -21,7 +21,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) { mView->setPosition(position); });
   QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) { mView->setDuration(duration); });
   QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded,     this, &MediaPlayer::onVideoLoaded);
-  QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded); // TODO: add settings for loop,next,stop
+  QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded);
 
   QObject::connect(mView.get(), &View::onMouseClick,           this, [this]() { mView->hide(); });
   QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
@@ -33,6 +33,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
   mPlayer->setVolume(50);
+  //mPlayer->setPlaybackRate(0.5f);
 
   mEditedSequence = Sequence{ 0, 0 };
 }
@@ -178,19 +179,35 @@ void MediaPlayer::toggleMute()
   mView->setMuted(mSettings.mMuted);
 }
 
-void MediaPlayer::setPosition(VTime position)
+void MediaPlayer::setPosition(const VTime& position)
 {
   mPlayer->setPosition(position);
 }
 
-void MediaPlayer::seekBackward(VTime size)
+void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekStep step)
 {
-  mPlayer->seekBackward(size);
-}
+  VTime stepSize;
+  switch (step)
+  {
+    case SeekStep::Small:
+    stepSize = 50;  // TODO use settings
+    break;
+    case SeekStep::Big:
+    stepSize = 5000;
+    break;
+    default:
+    stepSize = 500;
+    break;
+  }
 
-void MediaPlayer::seekForward(VTime size)
-{
-  mPlayer->seekForward(size);
+  if (direction == SeekDirection::Forward)
+  {
+    mPlayer->seekForward(stepSize);
+  }
+  else
+  {
+    mPlayer->seekBackward(stepSize);
+  }
 }
 
 void MediaPlayer::startStop()
@@ -293,13 +310,9 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
   const VTime wEndTime = sequenceEntry.first.second;
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
-  const QString wPrettyFileName = prettifyFileName(QFileInfo(wVideoPath).completeBaseName());
-  const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
-  const QString wStartStr = wStartTime.toString('.');
-  const QString wCutFilePath = QString("%1.%2.mp4").arg(mOutputRootDirectory + wPrettyFileName + "." + wStartStr, wLengthStr);
+  const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   
   mProcesses.push_back(std::make_unique<QProcess>(this));
-
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
     sequenceEntry.second = SequenceState::Processing;
     emit sequencesChanged(mSequenceMap);
@@ -329,13 +342,9 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   const VTime wEndTime = sequenceEntry.first.second;
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
-  const QString wPrettyFileName = prettifyFileName(QFileInfo(wVideoPath).completeBaseName());
-  const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
-  const QString wStartStr = wStartTime.toString('.');
-  const QString wCutFilePath = QString("%1.%2.mp4").arg(mOutputRootDirectory + wPrettyFileName + "." + wStartStr, wLengthStr);
+  const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
 
-  mProcesses.push_back(std::make_unique<QProcess>(this));
-  
+  mProcesses.push_back(std::make_unique<QProcess>(this));  
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
     sequenceEntry.second = SequenceState::Processing;
     emit sequencesChanged(mSequenceMap);
@@ -380,14 +389,13 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
   const QString wPrettyFileName = prettifyFileName(QFileInfo(mPlaylist[mCurrentVideo].toLocalFile()).completeBaseName());
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
-  const QString wLoopFilePath = QString("%1.loop.mp4").arg(mOutputRootDirectory + wPrettyFileName + "." + wStartStr);
+  const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + "loop.mp4";
 
   // TODO: ugly nested process definitions down there. As these are dependent, we need to wait for the first one to finish before starting the second one
   // so the whole dependency scheduling is done in the previous process onfinished callback... in theory this is ok, but must have better implementation
   const QString wCutFilePath = QFileInfo(wLoopFilePath).absolutePath() + QFileInfo(wLoopFilePath).completeBaseName() + "_cut.mp4";
 
   mProcesses.push_back(std::make_unique<QProcess>(this));
-
   connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
     sequenceEntry.second = SequenceState::Processing;
     emit sequencesChanged(mSequenceMap);
@@ -407,7 +415,6 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
 
     // Execute reverser process
     mProcesses.push_back(std::make_unique<QProcess>(this));
-
     connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
       logStatusMessage("Reverser started");
     });
