@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QFileInfo>
 #include <QUrl>
+#include <QMessageBox>
 
 #include <fstream>
 #include <vector>
@@ -21,63 +22,83 @@ int main(int argc, char *argv[])
 {
   QApplication wApp(argc, argv);
 
-  const QString wAbsoluteFilePath = QCoreApplication::applicationDirPath() + "/" + "default_style.qss";
-  QString wStyles = readStyles(wAbsoluteFilePath);
-  if (wStyles.isEmpty()) {
-    qDebug() << "Failed to read styles from" << wAbsoluteFilePath;
+  try
+  {
+    if (argc < 2 || !QFile::exists(argv[1]))
+    {
+      if (argc > 1)
+        throw std::runtime_error("File not found: " + QString(argv[1]).toStdString());
+      else
+        throw std::runtime_error("Usage: MediaPlayer <playlist.txt>|<video.mp4>");
+    }
+
+    const auto filePath = argv[1];
+
+    {
+      const QString wAbsoluteFilePath = QCoreApplication::applicationDirPath() + "/" + "default_style.qss";
+      QString wStyles = readStyles(wAbsoluteFilePath);
+      if (wStyles.isEmpty()) {
+        qDebug() << "Failed to read styles from" << wAbsoluteFilePath;
+      }
+      wApp.setStyleSheet(wStyles);
+    }
+
+    MainWindow wMainWindow;
+    wMainWindow.setWindowTitle("MediaPlayer v0.0.0");
+    loadPreferences(wMainWindow);
+
+    // handle scenario when a multiple files is passed - win open ipc stuff
+    // when more than one file is selected windows launches the app for each file !
+    // 
+    // 
+    //std::ofstream outputFile("e:/args.txt");
+    //if (outputFile.is_open()) {
+    //  for (int i = 0; i < argc; i++) {
+    //    outputFile << argv[i] << std::endl;
+    //  }
+    //  outputFile.close();
+    //} else {
+    //  qDebug() << "Failed to open output file.";
+    //}
+    //return 1;
+
+    if (isMediaPlayerPlaylistFile(filePath))
+    {
+      wMainWindow.setPlaylist(readFilePaths(filePath));
+    }
+    else
+    {
+      MainWindow::Playlist playlist;
+      playlist.push_back(QUrl::fromLocalFile(filePath));
+      wMainWindow.setPlaylist(playlist);
+    }
+
+    wMainWindow.show();
+
+    const int wRet = wApp.exec();
+    savePreferences(wMainWindow);
+
+    return wRet;
   }
-  wApp.setStyleSheet(wStyles);
-  wApp.setStyle("Fusion");
-
-  MainWindow wMainWindow;
-  wMainWindow.setWindowTitle("MediaPlayer v0.0.0");
-  loadPreferences(wMainWindow);
-
-  if (argc < 1) {
-    qDebug() << "Usage: MediaPlayer <playlist.txt>|<video.mp4>";
+  catch (const std::exception& e)
+  {
+    QMessageBox::critical(nullptr, "Error", QString("Error: \"%1\"").arg(e.what()));
+    qDebug() << "exception: " << e.what();
+    return 1;
+  }
+  catch (...)
+  {
+    QMessageBox::critical(nullptr, "Error", QString("Error: unknown"));
+    qDebug() << "exception: unknown";
     return 1;
   }
 
-  const auto filePath = argv[1];
-  if (!QFile::exists(filePath)) {
-    qDebug() << "File does not exist.";
-    return 1;
-  }
+  return 0;
+} // main
 
-  // handle scenario when a multiple files is passed - win open ipc stuff
-  // how windows handles when I issue Open on multiple selected files, seems a first selected file is passed !! 
-  // 
-  // 
-  //std::ofstream outputFile("e:/args.txt");
-  //if (outputFile.is_open()) {
-  //  for (int i = 0; i < argc; i++) {
-  //    outputFile << argv[i] << std::endl;
-  //  }
-  //  outputFile.close();
-  //} else {
-  //  qDebug() << "Failed to open output file.";
-  //}
-  //return 1;
 
-  if (isMediaPlayerPlaylistFile(filePath))
-  {
-     wMainWindow.setPlaylist(readFilePaths(filePath));
-  }
-  else
-  {
-    MainWindow::Playlist playlist;
-    playlist.push_back(QUrl::fromLocalFile(filePath));
-    wMainWindow.setPlaylist(playlist);
-  }
-
-  wMainWindow.show();
-
-  const int wRet = wApp.exec();
-  savePreferences(wMainWindow);
-
-  return wRet;
-}
-
+////////////////
+// Implementation of helper functions
 void savePreferences(const MainWindow& window)
 {
   QSettings settings("IstuSoft", "MediaPlayer");
