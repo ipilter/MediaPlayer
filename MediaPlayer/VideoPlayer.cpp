@@ -50,6 +50,11 @@ VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
 
 void VideoPlayer::setVideo(const QUrl& videoUrl)
 {
+  if(isPlaying())
+  {
+    mMediaPlayer->stop();
+  }
+  mIsVideoLoaded = false;
   mMediaPlayer->setSource(videoUrl);
 }
 

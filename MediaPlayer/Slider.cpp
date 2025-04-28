@@ -6,88 +6,151 @@
 #include <QStyleOption>
 #include <QProxyStyle>
 #include <QStyleHintReturn>
+#include <QRect>
+#include <QMargins>
 
+// Custom style for the slider
 class SliderStyle : public QProxyStyle
 {
 public:
   SliderStyle() : QProxyStyle() {}
 
-  int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override
+  int styleHint(StyleHint wHint, const QStyleOption* wOption, const QWidget* wWidget, QStyleHintReturn* wReturnData) const override
   {
-    if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
+    if (wHint == QStyle::SH_Slider_AbsoluteSetButtons)
     {
       return Qt::LeftButton;
     }
-    return QProxyStyle::styleHint(hint, option, widget, returnData);
+    return QProxyStyle::styleHint(wHint, wOption, wWidget, wReturnData);
   }
 };
 
-Slider::Slider(Qt::Orientation orientation, QWidget* parent)
-  : QSlider(orientation, parent)
+// Slider class implementation
+Slider::Slider(Qt::Orientation wOrientation, QWidget* wParent)
+  : QSlider(wOrientation, wParent)
 {
   setStyle(new SliderStyle());
 }
 
-void Slider::mousePressEvent(QMouseEvent* event)
+void Slider::mousePressEvent(QMouseEvent* wEvent)
 {
-  if (event->button() == Qt::LeftButton)
+  bool wHandled = false;
+
+  if (wEvent->button() == Qt::LeftButton)
   {
-    const int value = QStyle::sliderValueFromPosition(minimum(), maximum(), event->pos().x(), width());
-    setValue(value);
-    emit sliderMoved(value);
+    for (auto& wSequence : mSequences)
+    {
+      wSequence.second.mSelected = false;
+    }
+
+    const QPoint clickPos = wEvent->pos();
+    for (auto& wSequence : mSequences)
+    {
+      if (sequenceRect(wSequence).contains(clickPos))
+      {
+        qDebug() << clickPos << " clicked on " << wSequence.first.first.toString() << " - " << wSequence.first.second.toString();
+        wSequence.second.mSelected = true;
+        update();
+        wHandled = true;
+      }
+    }
+
+    if (!wHandled)
+    {
+      const int value = QStyle::sliderValueFromPosition(minimum(), maximum(), wEvent->pos().x(), width());
+      setValue(value);
+      emit sliderMoved(value);
+    }
   }
-  QSlider::mousePressEvent(event);
+
+  if (!wHandled)
+  {
+    QSlider::mousePressEvent(wEvent);
+  }
+  else
+  {
+    wEvent->accept();
+  }
 }
 
-void Slider::setSequences(const SequenceMap& sequences)
+void Slider::paintEvent(QPaintEvent* wEvent)
 {
-  mSequences = sequences;
+  QSlider::paintEvent(wEvent);
+
+  QPainter wPainter(this);  
+  for (const auto& wSequence : mSequences)
+  {
+    wPainter.fillRect(sequenceRect(wSequence), sequenceColor(wSequence));
+  }
+}
+
+void Slider::setSequences(const SequenceMap& wSequence)
+{
+  mSequences.clear();
+  for (auto& wSequence : wSequence)
+  {
+    mSequences[wSequence.first] = SequenceState{ wSequence.second.mState, wSequence.second.mSelected, wSequence.second.mIsEditing };
+  }
   update();
 }
-const QColor& Slider::sequenceColor(const SequenceEntry& sequence) const
+
+
+const QColor& Slider::sequenceColor(const SequenceEntry& wSequence) const
 {
   static const std::map<QString, const QColor> colorMap = {
-    {"invalid", QColor(190, 100, 100, 60) },
-    {"ready", QColor(80, 179, 249, 116) },
-    {"processing", QColor(241, 241, 249, 116) },
-    {"succeeded", QColor(66, 180, 69, 116) },
-    {"failed", QColor(175, 0, 38, 116)}
+    {"invalid",    QColor(190, 100, 100, 210) },
+    {"ready",      QColor(80, 179, 249, 156)  },
+    {"processing", QColor(241, 241, 249, 156) },
+    {"succeeded",  QColor(66, 180, 69, 156)   },
+    {"failed",     QColor(175, 0, 38, 156)    },
+    {"selected",   QColor(215, 255, 055, 156) },
+    {"editing",    QColor(155, 200, 210, 156) }
   };
 
   QString colorName = "invalid";
-  switch (sequence.second)
-  {
-  case SequenceState::Ready:
-    colorName = "ready";
-    break;
-  case SequenceState::Processing:
-    colorName = "processing";
-    break;
-  case SequenceState::Succeeded:
-    colorName = "succeeded";
-    break;
-  case SequenceState::Failed:
-    colorName = "failed";
-    break;
-  }
 
+  // if editing or selected
+  if (wSequence.second.mIsEditing)
+  {
+    colorName = "editing";
+  }
+  else if (wSequence.second.mSelected)
+  {
+    colorName = "selected";
+  }
+  else
+  {
+    // if alredy done, color by cut operation state
+    switch (wSequence.second.mState)
+    {
+      case OperationState::Ready:
+      colorName = "ready";
+      break;
+      case OperationState::Processing:
+      colorName = "processing";
+      break;
+      case OperationState::Succeeded:
+      colorName = "succeeded";
+      break;
+      case OperationState::Failed:
+      colorName = "failed";
+      break;
+    }
+  }
   return colorMap.at(colorName);
 }
 
-void Slider::paintEvent(QPaintEvent* event)
+const QRect Slider::sequenceRect(const SequenceEntry& wSequence) const
 {
-  QSlider::paintEvent(event);
-  QPainter painter(this);
+  int wStartX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(wSequence.first.first.ms()), width());
+  int wEndX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(wSequence.first.second.ms()), width());
 
-  const int width = this->width();
-  const int height = this->height();
-
-  for (const auto& sequence : mSequences)
+  int wLength = wEndX - wStartX;
+  if (wLength < mSequenceRectMinLength)
   {
-    const int startX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.first.ms()), width);
-    const int endX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(sequence.first.second.ms()), width);
-    const QRect rect(startX, 5, endX - startX, 7);
-
-    painter.fillRect(rect, sequenceColor(sequence));
+    wEndX += mSequenceRectMinLength - wLength;
+    wLength = wEndX - wStartX;
   }
+
+  return QRect(wStartX, mSequenceRectBottom, wLength, mSequenceRectTop);
 }

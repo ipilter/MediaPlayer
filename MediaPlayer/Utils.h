@@ -5,6 +5,8 @@
 #include <QString>
 #include <QRegularExpression>
 
+#include <random>
+
 inline QString prettifyFileName(QString fileName)
 {
   fileName.replace(QRegularExpression("[^A-Za-z]"), ".");
@@ -23,3 +25,11 @@ inline QString uniqueFileName(const QString& fileName)
 
   return wFileName;
 }
+
+inline int Random(int min, int max)
+{
+  static std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(min, max);
+  return dis(gen);
+};

@@ -7,12 +7,19 @@
 
 using Sequence = std::pair<VTime, VTime>;
 
-enum class SequenceState
+enum class OperationState
 {
   Ready,
   Processing,
   Succeeded,
   Failed
+};
+
+struct SequenceState
+{
+  OperationState mState = OperationState::Ready;
+  bool mSelected = false;
+  bool mIsEditing = false;
 };
 
 using SequenceMap = std::map<Sequence, SequenceState>;

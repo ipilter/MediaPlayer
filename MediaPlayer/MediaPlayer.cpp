@@ -126,14 +126,6 @@ void MediaPlayer::next()
 
     mSequenceMap.clear();
     emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
-
-    // TODO inside view
-    // todo own method instead, see onMediaLoaded
-    // todo mPlayer->getMetadata() is still the old video here, send  a lambda to the player bove and set the view inside the lambda to make it happen when the video is loaded
-    const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
-    //const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
-    const QString info(fileInfo.completeBaseName());
-    mView->setInfo(info);
   }
 
   if (isPlaying)
@@ -239,7 +231,7 @@ void MediaPlayer::mark()
       return;
     }
 
-    mSequenceMap[mEditedSequence] = SequenceState::Ready;
+    mSequenceMap[mEditedSequence].mState = OperationState::Ready;
     
     mEditedSequence = Sequence{ 0, 0 };
     emit sequencesChanged(mSequenceMap);
@@ -260,7 +252,7 @@ void MediaPlayer::cut(const CutMethod cutMethod)
 {
   for (auto& wSequenceEntry : mSequenceMap)
   {
-    if (wSequenceEntry.second != SequenceState::Ready)
+    if (wSequenceEntry.second.mState != OperationState::Ready)
     {
       continue;
     }
@@ -287,10 +279,14 @@ void MediaPlayer::onVideoLoaded()
   mView->setInfo(info);
 
   setPosition(0);
-  //pause(); // TODO: settings to show first frame on open
+
   if (mSettings.mAutoPlay)
   {
     play();
+  }
+  else if (mSettings.mShowFirstFrame)
+  {
+    pause();
   }
 }
 
@@ -301,6 +297,10 @@ void MediaPlayer::onVideoEnded()
   if (isPlaying())
   {
     play();
+  }
+  else if (mSettings.mShowFirstFrame)
+  {
+    pause();
   }
 }
 
@@ -314,13 +314,13 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
   
   mProcesses.push_back(std::make_unique<QProcess>(this));
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
-    sequenceEntry.second = SequenceState::Processing;
+    sequenceEntry.second.mState = OperationState::Processing;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage("Fast cut started");
   });
 
   connect(mProcesses.back().get(), &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
-    sequenceEntry.second = exitCode == 0 ? SequenceState::Succeeded : SequenceState::Failed;
+    sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage(QString("Fast cut ") + (exitCode == 0 ? "succeeded" : "failed"));
   });
@@ -346,13 +346,13 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
 
   mProcesses.push_back(std::make_unique<QProcess>(this));  
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
-    sequenceEntry.second = SequenceState::Processing;
+    sequenceEntry.second.mState = OperationState::Processing;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage("Precise cut started");
   });
   
   connect(mProcesses.back().get(), &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
-    sequenceEntry.second = exitCode == 0 ? SequenceState::Succeeded : SequenceState::Failed;
+    sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
   });
@@ -397,16 +397,16 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
 
   mProcesses.push_back(std::make_unique<QProcess>(this));
   connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
-    sequenceEntry.second = SequenceState::Processing;
+    sequenceEntry.second.mState = OperationState::Processing;
     emit sequencesChanged(mSequenceMap);
-    logStatusMessage("Precise cut started");
+    logStatusMessage("Loop cut started");
   });
 
   connect(mProcesses.back().get(), &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
-    logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
+    logStatusMessage(QString("Loop cut ") + (exitCode == 0 ? "succeeded" : "failed"));
     if (exitCode != 0)
     {
-      sequenceEntry.second = SequenceState::Failed;
+      sequenceEntry.second.mState = OperationState::Failed;
       emit sequencesChanged(mSequenceMap);
       return;
     }
@@ -423,7 +423,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
       logStatusMessage(QString("Reverser ") + (exitCode == 0 ? "succeeded" : "failed"));
       if (exitCode != 0)
       {
-        sequenceEntry.second = SequenceState::Failed;
+        sequenceEntry.second.mState = OperationState::Failed;
         emit sequencesChanged(mSequenceMap);
         return;
       }
@@ -447,7 +447,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
       });
 
       connect(mProcesses.back().get(), &QProcess::finished, this, [&, wConcatFilePath, wCutFilePath, wReversedFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
-        sequenceEntry.second = exitCode == 0 ? SequenceState::Succeeded : SequenceState::Failed;
+        sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
         emit sequencesChanged(mSequenceMap);
         logStatusMessage(QString("Merger ") + (exitCode == 0 ? "succeeded" : "failed"));
 
@@ -464,6 +464,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
     mProcesses.back()->start(mFFMpegPath, {
       "-i", wCutFilePath,
       "-vf", "reverse",
+      "-af", "areverse",
       wReversedFilePath, "-y" });
   });
 
@@ -496,7 +497,7 @@ void MediaPlayer::resetSeqenceState()
 {
   for(auto& wSequence : mSequenceMap)
   {
-    wSequence.second = SequenceState::Ready;
+    wSequence.second.mState = OperationState::Ready;
   }
   emit sequencesChanged(mSequenceMap);
 }

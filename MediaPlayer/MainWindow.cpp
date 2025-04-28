@@ -108,7 +108,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     }
     break;
   case Qt::Key_P:
-    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mMuted});
+    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mMuted, mMediaPlayer->getSettings().mShowFirstFrame });
     break;
   case Qt::Key_R:
     mMediaPlayer->resetSeqenceState();
