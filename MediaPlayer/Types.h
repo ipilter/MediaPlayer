@@ -2,6 +2,9 @@
 
 #include "VTime.h"
 
+#include <QPoint>
+#include <QSize>
+
 #include <map>
 #include <vector>
 
@@ -25,3 +28,9 @@ struct SequenceState
 using SequenceMap = std::map<Sequence, SequenceState>;
 using SequenceEntry = SequenceMap::value_type;
 using SequenceVector = std::vector<Sequence>;
+
+struct Placement
+{
+  QPoint mPosition;
+  QSize mSize;
+};

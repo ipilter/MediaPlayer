@@ -103,8 +103,8 @@ void savePreferences(const MainWindow& window)
 {
   QSettings settings("IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
-  settings.setValue("size", window.size());
-  settings.setValue("pos", window.pos());
+  settings.setValue("size", window.getPlacement().mSize);
+  settings.setValue("pos", window.getPlacement().mPosition);
   settings.setValue("autoPlay", window.getSettings().mAutoPlay);
   settings.setValue("muted", window.getSettings().mMuted);
   settings.setValue("firstFrame", window.getSettings().mShowFirstFrame);

@@ -21,11 +21,20 @@ public:
   void setSettings(const MediaPlayer::Settings& settings);
   const MediaPlayer::Settings& getSettings() const;
 
+  const Placement& getPlacement() const;
+
 private:
-  void keyPressEvent(QKeyEvent* event);
+  virtual void keyPressEvent(QKeyEvent* event);
+  virtual void resizeEvent(QResizeEvent *event);
+  virtual void moveEvent(QMoveEvent *event);
+  virtual void closeEvent(QCloseEvent *event);
 
 private:
   Ui::MainWindowClass ui;
 
   std::shared_ptr<MediaPlayer> mMediaPlayer;
+
+  // last size and position of the window when not maximized
+  // used to restore the window position and size
+  Placement mPlacement;
 };

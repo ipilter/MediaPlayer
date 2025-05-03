@@ -30,7 +30,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Escape:
-    QApplication::quit();
+    close();
     break;
   case Qt::Key_A:
   {
@@ -125,6 +125,30 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
 }
 
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+  if (!isMaximized())
+  {
+    mPlacement.mSize = event->size();
+  }  
+  QMainWindow::resizeEvent(event);
+}
+
+void MainWindow::moveEvent(QMoveEvent* event)
+{
+  if (!isMaximized())
+  {
+    mPlacement.mPosition = event->pos();
+  }
+  QMainWindow::moveEvent(event);
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+  QMainWindow::closeEvent(event);
+  QApplication::quit();
+}
+
 void MainWindow::setPlaylist(const Playlist& playlist)
 {
   mMediaPlayer->setPlaylist(playlist);
@@ -138,4 +162,9 @@ void MainWindow::setSettings(const MediaPlayer::Settings& settings)
 const MediaPlayer::Settings& MainWindow::getSettings() const
 {
   return mMediaPlayer->getSettings();
+}
+
+const Placement& MainWindow::getPlacement() const
+{
+  return mPlacement;
 }
