@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QPixmap>
 #include <QPlainTextEdit>
+#include <QSpinBox>
 
 #include <random>
 
@@ -48,8 +49,20 @@ View::View(QWidget* parent)
   mDurationLabel = new QLabel("00:00:00:000", parent);
   mDurationLabel->setObjectName("durationLabel");
 
+  mLoopCountSpinBox = new QSpinBox(parent);
+  mLoopCountSpinBox->setObjectName("loopCountSpinBox");
+  mLoopCountSpinBox->setRange(1, 1000);
+  mLoopCountSpinBox->setValue(7);
+  mLoopCountSpinBox->setSingleStep(1);
+  mLoopCountSpinBox->setPrefix("Loop count: ");
+  mLoopCountSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+
   mInfoBar = new QPlainTextEdit(parent);
   mInfoBar->setObjectName("infoBar");
+  mInfoBar->setReadOnly(true);
+  mInfoBar->setMaximumHeight(45);
+  mInfoBar->setLineWrapMode(QPlainTextEdit::NoWrap);
+  mInfoBar->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   buttonLayout->addWidget(mPreviousButton);
@@ -58,7 +71,8 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
   buttonLayout->addWidget(mMuteButton);
-  
+  buttonLayout->addWidget(mLoopCountSpinBox);
+
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
   rootLayout->addWidget(mVideoWidget);
   rootLayout->addWidget(mSlider);
@@ -72,6 +86,7 @@ View::View(QWidget* parent)
   connect(mNextButton,     &QPushButton::clicked,      this, [this]()             { emit nextButtonClicked(); mPlayButton->setFocus(); });
   connect(mVideoWidget,    &VideoWidget::mouseClicked, this, [this]()             { emit onMouseClick(); mPlayButton->setFocus(); });
   connect(mMuteButton,     &QPushButton::clicked,      this, [this]()             { emit muteButtonClicked(); mPlayButton->setFocus(); });
+  connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mLoopCountSpinBox->setValue(value); mPlayButton->setFocus(); });
 }
 
 View::~View()
@@ -92,6 +107,23 @@ QLayout* View::getLayout() const
 void View::setMuted(bool muted)
 {
   mMuteButton->setIcon(muted ? mPixmapTable["muted"] : mPixmapTable["unmuted"]);
+}
+
+void View::setMarking(bool marking)  
+{  
+  if (marking)  
+  {  
+    mPositionLabel->setStyleSheet("QLabel { font-style: italic;}");
+  }  
+  else  
+  {  
+    mPositionLabel->setStyleSheet("QLabel { font-style: normal; }");
+  }
+}
+
+unsigned View::getLoopCount() const
+{
+  return mLoopCountSpinBox->value();
 }
 
 void View::onPlay()
@@ -134,6 +166,7 @@ void View::setDuration(VTime duration)
 
 void View::setInfo(const QString& info)
 {
-  mInfoBar->appendPlainText(info);
+  const QString wCurrentTimeStr = QTime::currentTime().toString("hh:mm:ss:zzz");
+  mInfoBar->appendPlainText(wCurrentTimeStr + " - " + info);
   mInfoBar->moveCursor(QTextCursor::End);
 }

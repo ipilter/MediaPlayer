@@ -13,6 +13,7 @@ class QPushButton;
 class QLayout;
 class QPixmap;
 class QPlainTextEdit;
+class QSpinBox;
 
 class View : public QWidget
 {
@@ -26,6 +27,8 @@ public:
   QLayout* getLayout() const;
 
   void setMuted(bool muted);
+  void setMarking(bool marking);
+  unsigned getLoopCount() const;
 
 public slots:
   void setPosition(VTime position);
@@ -56,6 +59,7 @@ private:
 
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;
+  QSpinBox* mLoopCountSpinBox;
 
   QPlainTextEdit* mInfoBar;
 

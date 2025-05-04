@@ -101,10 +101,12 @@ int main(int argc, char *argv[])
 // Implementation of helper functions
 void savePreferences(const MainWindow& window)
 {
+  const auto& wPlacement = window.getPlacement();
+
   QSettings settings("IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
-  settings.setValue("size", window.getPlacement().mSize);
-  settings.setValue("pos", window.getPlacement().mPosition);
+  settings.setValue("size", wPlacement.mSize);
+  settings.setValue("pos", wPlacement.mPosition - QPoint(0, 31)); // TODO: what is this??, we move the window in loadPreferences with this value, but when the window gets the event, the y value is bigger than this by 31 pixels!!
   settings.setValue("autoPlay", window.getSettings().mAutoPlay);
   settings.setValue("muted", window.getSettings().mMuted);
   settings.setValue("firstFrame", window.getSettings().mShowFirstFrame);
@@ -115,8 +117,12 @@ void loadPreferences(MainWindow& window)
 {
   QSettings settings("IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
-  window.resize(settings.value("size", QSize(800, 600)).toSize());
-  window.move(settings.value("pos", QPoint(100, 100)).toPoint());
+
+  auto wSize = settings.value("size", QSize(800, 600)).toSize();
+  auto wPosition = settings.value("pos", QPoint(100, 100)).toPoint();
+
+  window.resize(wSize);
+  window.move(wPosition);
   window.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool(), settings.value("firstFrame", false).toBool() });
   settings.endGroup();
 }

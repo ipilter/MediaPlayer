@@ -46,8 +46,7 @@ public:
   void seek(SeekDirection direction, SeekStep step);
   void startStop();
 
-  void mark();
-  void cancelMark();
+  void mark(const bool cancel);
   void cut(const CutMethod cutMethod);
 
   // TODO better sequence management
@@ -65,7 +64,7 @@ private:
 
   void FastCut(SequenceEntry& sequenceEntry);
   void PreciseCut(SequenceEntry& sequenceEntry);
-  void LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount);
+  void LoopCut(SequenceEntry& sequenceEntry);
 
 private:
   std::shared_ptr<View> mView;

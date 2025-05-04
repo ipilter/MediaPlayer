@@ -214,15 +214,26 @@ void MediaPlayer::startStop()
   }
 }
 
-void MediaPlayer::mark()
+void MediaPlayer::mark(const bool cancel)
 {
+  if (cancel)
+  {
+    mEditedSequence = Sequence{ 0, 0 };
+    mView->setMarking(false);
+    return;
+  }
+
   if (mEditedSequence == Sequence{0, 0})
   {
     mEditedSequence.first = mPlayer->getPosition();
     mEditedSequence.second = 1; // to alloqw sequences start with 0..
+
+    mView->setMarking(true);
   }
   else
   {
+    mView->setMarking(false);
+
     mEditedSequence.second = mPlayer->getPosition();
 
     if (mEditedSequence.second - mEditedSequence.first < 1 ) 
@@ -232,15 +243,10 @@ void MediaPlayer::mark()
     }
 
     mSequenceMap[mEditedSequence].mState = OperationState::Ready;
-    
+
     mEditedSequence = Sequence{ 0, 0 };
     emit sequencesChanged(mSequenceMap);
   }
-}
-
-void MediaPlayer::cancelMark()
-{
-  mEditedSequence = Sequence{ 0, 0 };
 }
 
 void MediaPlayer::logStatusMessage(const QString& msg)
@@ -266,7 +272,7 @@ void MediaPlayer::cut(const CutMethod cutMethod)
         PreciseCut(wSequenceEntry);
       break;
       case CutMethod::Loop:
-        LoopCut(wSequenceEntry, 3);
+        LoopCut(wSequenceEntry);
       break;
     }
   }
@@ -381,7 +387,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   }
 }
 
-void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
+void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
 {
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
@@ -390,6 +396,8 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry, const quint32 loopCount)
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
   const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + "loop.mp4";
+
+  const unsigned loopCount = mView->getLoopCount();
 
   // TODO: ugly nested process definitions down there. As these are dependent, we need to wait for the first one to finish before starting the second one
   // so the whole dependency scheduling is done in the previous process onfinished callback... in theory this is ok, but must have better implementation

@@ -1,24 +1,13 @@
 * {
     background-color: #262626;
     color: #AAAAAA;
-    border: 2px solid #363636;
-    padding: 3px;
+    border: 3px solid #363636;
+    padding: 5px;
     border-radius: 2px;
     box-shadow: 1px 1px 1px #DD0636;
     icon-size: 24px;
-}
-
-QLabel#positionLabel {
-    font-size: 18px;
-}
-
-QLabel#durationLabel {
-    font-size: 18px;
-}
-
-QPlainTextEdit#infoBar {
-    font-size: 16px;
-    max-height: 60px;
+    font-size: 22px;
+    font-family: "Courier New";
 }
 
 QSlider#videoSlider {
@@ -49,3 +38,7 @@ QSlider::sub-page:horizontal {
 QSlider::add-page:horizontal {
     background: #181311;
 }
+
+QPlainTextEdit#infoBar {  
+ background-color: #262626;
+}  

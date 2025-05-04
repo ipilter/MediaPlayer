@@ -76,14 +76,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_W:
   {
-    if (event->modifiers() & Qt::ShiftModifier)
-    {
-      mMediaPlayer->cancelMark();
-    }
-    else
-    {
-      mMediaPlayer->mark();
-    }
+    mMediaPlayer->mark((event->modifiers() & Qt::ShiftModifier) ? true : false);
     break;
   }
   case Qt::Key_N:
