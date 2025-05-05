@@ -16,6 +16,7 @@
 void savePreferences(const MainWindow& iMainWindow);
 void loadPreferences(MainWindow& iMainWindow);
 MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath);
+MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath);
 QString readStyles(const QString& iFilePath);
 
 int main(int argc, char *argv[])
@@ -75,17 +76,7 @@ int main(int argc, char *argv[])
       }
       else if (wInputInfo.isDir())
       {
-        MainWindow::Playlist playlist;
-        for (const auto& wFile : QDir(wInputPath).entryList(QDir::Files))
-        {
-          playlist.push_back(QUrl::fromLocalFile(wInputPath + "/" + wFile));
-        }
-        
-        std::random_device rd;
-        std::mt19937 g(rd());
-        std::shuffle(playlist.begin(), playlist.end(), g);
-
-        wMainWindow.setPlaylist(playlist);
+        wMainWindow.setPlaylist(readDirectory(wInputPath));
         wMainWindow.setWindowTitle(QString("Playing directory: %1").arg(wInputInfo.completeBaseName()));
       }
       else // TODO: validate if know file type...
@@ -153,38 +144,52 @@ void loadPreferences(MainWindow& iMainWindow)
 
 MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
 {
-  MediaPlayer::Playlist playlist;
-  std::ifstream file(iFilePath.toStdString());
-  if (file.is_open()) {
-    std::string line;
-    while (std::getline(file, line)) {
-      if (!line.empty()) {
-        if (line.front() == '"' && line.back() == '"') {
-          line = line.substr(1, line.size() - 2);
+  MediaPlayer::Playlist wPlaylist;
+  std::ifstream wFile(iFilePath.toStdString());
+  if (wFile.is_open()) {
+    std::string wLine;
+    while (std::getline(wFile, wLine)) {
+      if (!wLine.empty()) {
+        if (wLine.front() == '"' && wLine.back() == '"') {
+          wLine = wLine.substr(1, wLine.size() - 2);
         }
-        playlist.push_back(QUrl::fromLocalFile(QString::fromStdString(line)));
+        wPlaylist.push_back(QUrl::fromLocalFile(QString::fromStdString(wLine)));
       }
     }
-    file.close();
+    wFile.close();
   }
   
   std::random_device rd;
   std::mt19937 g(rd());
-  std::shuffle(playlist.begin(), playlist.end(), g);
+  std::shuffle(wPlaylist.begin(), wPlaylist.end(), g);
 
-  return playlist;
+  return wPlaylist;
+}
+
+MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath)
+{
+  MainWindow::Playlist wPlaylist;
+  for (const auto& wFile : QDir(iDirectoryPath).entryList(QDir::Files))
+  {
+    wPlaylist.push_back(QUrl::fromLocalFile(iDirectoryPath + "/" + wFile));
+  }
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(wPlaylist.begin(), wPlaylist.end(), g);
+  return wPlaylist;
 }
 
 QString readStyles(const QString& iFilePath)
 {
-  QFile file(iFilePath);
-  if (!file.open(QFile::ReadOnly | QFile::Text))
+  QFile wFile(iFilePath);
+  if (!wFile.open(QFile::ReadOnly | QFile::Text))
   {
     return QString();
   }
 
-  QTextStream stream(&file);
-  const QString styleSheet = stream.readAll();
-  file.close();
-  return styleSheet;
+  QTextStream wStream(&wFile);
+  const QString wStyleSheet = wStream.readAll();
+  wFile.close();
+  return wStyleSheet;
 }
