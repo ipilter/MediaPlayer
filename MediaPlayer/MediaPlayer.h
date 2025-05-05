@@ -23,7 +23,7 @@ public:
   struct Settings { bool mAutoPlay = false; bool mMuted = true; bool mShowFirstFrame = false; };
   enum class CutMethod { Fast, Precise, Loop };
   enum class SeekStep { Normal, Small, Big };
-  enum class SeekDirection { Forward, Backward };
+  enum class SeekDirection { Forward, Backward, Random };
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -43,7 +43,7 @@ public:
   void toggleMute();
 
   void setPosition(const VTime& position);
-  void seek(SeekDirection direction, SeekStep step);
+  void seek(SeekDirection direction, SeekStep step = SeekStep::Normal);
   void startStop();
 
   void mark(const bool cancel);
@@ -77,7 +77,7 @@ private:
 
   // sequence management
   SequenceMap mSequenceMap;
-  Sequence mEditedSequence = {0,0};
+  Sequence mEditedSequence = {VTime(0),VTime(0)};
 
   using ProcessPtr = std::unique_ptr<QProcess>;
   std::vector<ProcessPtr> mProcesses; // TODO: destroy finished processsed, do not accumulate them

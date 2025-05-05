@@ -108,7 +108,7 @@ void MediaPlayer::next()
 
   if (mPlaylist.size() == 1)
   {
-    setPosition(0);
+    setPosition(VTime(0));
   }
   else
   {
@@ -140,7 +140,7 @@ void MediaPlayer::previous()
 
   if (mPlaylist.size() == 1)
   {
-    setPosition(0);
+    setPosition(VTime(0));
   }
   else
   {
@@ -182,13 +182,13 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   switch (step)
   {
     case SeekStep::Small:
-    stepSize = 50;  // TODO use settings
+    stepSize = VTime(50);  // TODO use settings
     break;
     case SeekStep::Big:
-    stepSize = 5000;
+    stepSize = VTime(5000);
     break;
     default:
-    stepSize = 500;
+    stepSize = VTime(500);
     break;
   }
 
@@ -196,9 +196,18 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   {
     mPlayer->seekForward(stepSize);
   }
-  else
+  else if (direction == SeekDirection::Backward)
   {
     mPlayer->seekBackward(stepSize);
+  }
+  else if (direction == SeekDirection::Random)
+  {
+    const VTime wNewPosition(Random(5000, mPlayer->getDuration().ms() - 5000));
+    mPlayer->setPosition(wNewPosition);
+  }
+  else
+  {
+    throw std::runtime_error("Invalid seek direction");
   }
 }
 
@@ -218,15 +227,15 @@ void MediaPlayer::mark(const bool cancel)
 {
   if (cancel)
   {
-    mEditedSequence = Sequence{ 0, 0 };
+    mEditedSequence = Sequence{ VTime(0), VTime(0) };
     mView->setMarking(false);
     return;
   }
 
-  if (mEditedSequence == Sequence{0, 0})
+  if (mEditedSequence == Sequence{ VTime(0), VTime(0) })
   {
     mEditedSequence.first = mPlayer->getPosition();
-    mEditedSequence.second = 1; // to alloqw sequences start with 0..
+    mEditedSequence.second = VTime(1); // to allow sequences start with 0..
 
     mView->setMarking(true);
   }
@@ -236,15 +245,15 @@ void MediaPlayer::mark(const bool cancel)
 
     mEditedSequence.second = mPlayer->getPosition();
 
-    if (mEditedSequence.second - mEditedSequence.first < 1 ) 
+    if (mEditedSequence.second - mEditedSequence.first < VTime(1))
     {
-      mEditedSequence = Sequence{ 0, 0 };
+      mEditedSequence = Sequence{ VTime(0), VTime(0) };
       return;
     }
 
     mSequenceMap[mEditedSequence].mState = OperationState::Ready;
 
-    mEditedSequence = Sequence{ 0, 0 };
+    mEditedSequence = Sequence{ VTime(0), VTime(0) };
     emit sequencesChanged(mSequenceMap);
   }
 }
@@ -284,7 +293,7 @@ void MediaPlayer::onVideoLoaded()
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
 
-  setPosition(0);
+  setPosition(VTime(0));
 
   if (mSettings.mAutoPlay)
   {
@@ -457,7 +466,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       connect(mProcesses.back().get(), &QProcess::finished, this, [&, wConcatFilePath, wCutFilePath, wReversedFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
         sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
         emit sequencesChanged(mSequenceMap);
-        logStatusMessage(QString("Merger ") + (exitCode == 0 ? "succeeded" : "failed"));
+        logStatusMessage(QString("Loop cut ") + (exitCode == 0 ? "succeeded" : "failed"));
 
         QFile::remove(wConcatFilePath);
         QFile::remove(wCutFilePath);

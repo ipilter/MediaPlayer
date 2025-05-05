@@ -18,8 +18,8 @@ VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
   mMediaPlayer->setVideoOutput(videoWidget);
   mMediaPlayer->setAudioOutput(mAudioOutput);
 
-  connect(mMediaPlayer, &QMediaPlayer::positionChanged, this, [this](VTime t) { emit positionChanged(t); });
-  connect(mMediaPlayer, &QMediaPlayer::durationChanged, this, [this](VTime d) { emit durationChanged(d); });
+  connect(mMediaPlayer, &QMediaPlayer::positionChanged, this, [this](qint64 t) { emit positionChanged(VTime(t)); });
+  connect(mMediaPlayer, &QMediaPlayer::durationChanged, this, [this](qint64 d) { emit durationChanged(VTime(d)); });
   connect(mMediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::LoadedMedia)
     {
@@ -60,12 +60,12 @@ void VideoPlayer::setVideo(const QUrl& videoUrl)
 
 VTime VideoPlayer::getDuration() const
 {
-  return mMediaPlayer->duration();
+  return VTime(mMediaPlayer->duration());
 }
 
 VTime VideoPlayer::getPosition() const
 {
-  return mMediaPlayer->position();
+  return VTime(mMediaPlayer->position());
 }
 
 bool VideoPlayer::isPlaying() const

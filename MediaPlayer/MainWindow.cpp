@@ -85,6 +85,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   case Qt::Key_B:
     mMediaPlayer->previous();
     break;
+  case Qt::Key_V:
+    mMediaPlayer->seek(MediaPlayer::SeekDirection::Random);
+    break;
   case Qt::Key_Space:
     mMediaPlayer->startStop();
     break;
@@ -104,7 +107,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mMuted, mMediaPlayer->getSettings().mShowFirstFrame });
     break;
   case Qt::Key_R:
-    mMediaPlayer->resetSeqenceState();
+    if(event->modifiers() & Qt::ControlModifier)
+    {
+      mMediaPlayer->resetSeqenceState();
+    }
     break;
   case Qt::Key_Z:
     if(event->modifiers() & Qt::ControlModifier)

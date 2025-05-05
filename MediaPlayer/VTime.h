@@ -5,8 +5,8 @@
 class VTime
 {
 public:
-  VTime(const QString& time);
-  VTime(qint64 milliseconds = 0);
+  explicit VTime(const QString& time);
+  explicit VTime(qint64 milliseconds = 0);
   VTime(qint64 hour, qint64 minute, qint64 seconds, qint64 milliseconds = 0);
   VTime(const VTime& time);
   ~VTime();

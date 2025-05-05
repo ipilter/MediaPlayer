@@ -12,8 +12,8 @@
 #include <QPixmap>
 #include <QPlainTextEdit>
 #include <QSpinBox>
-
-#include <random>
+#include <QTextBlock>
+#include <QScrollBar>
 
 View::View(QWidget* parent)
   : QWidget(parent)
@@ -45,17 +45,21 @@ View::View(QWidget* parent)
 
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
+  mPositionLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
 
   mDurationLabel = new QLabel("00:00:00:000", parent);
   mDurationLabel->setObjectName("durationLabel");
+  mDurationLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
 
   mLoopCountSpinBox = new QSpinBox(parent);
   mLoopCountSpinBox->setObjectName("loopCountSpinBox");
-  mLoopCountSpinBox->setRange(1, 1000);
+  mLoopCountSpinBox->setRange(1, 999);
   mLoopCountSpinBox->setValue(7);
   mLoopCountSpinBox->setSingleStep(1);
-  mLoopCountSpinBox->setPrefix("Loop count: ");
+  mLoopCountSpinBox->setPrefix("Loops: ");
   mLoopCountSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  mLoopCountSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+  mLoopCountSpinBox->setMinimumWidth(140);
 
   mInfoBar = new QPlainTextEdit(parent);
   mInfoBar->setObjectName("infoBar");
@@ -109,15 +113,17 @@ void View::setMuted(bool muted)
   mMuteButton->setIcon(muted ? mPixmapTable["muted"] : mPixmapTable["unmuted"]);
 }
 
-void View::setMarking(bool marking)  
-{  
-  if (marking)  
-  {  
-    mPositionLabel->setStyleSheet("QLabel { font-style: italic;}");
-  }  
-  else  
-  {  
-    mPositionLabel->setStyleSheet("QLabel { font-style: normal; }");
+void View::setMarking(bool marking)
+{
+  // todo, change the view to show the current sequence begin and length instead of the video pos and duration
+  // colors are hardcoded for now, should be in a config file
+  if (marking)
+  {
+    mPositionLabel->setStyleSheet("QLabel { color: #5078FF; }");
+  }
+  else
+  {
+    mPositionLabel->setStyleSheet("QLabel { color: #AAAAAA; }");
   }
 }
 
@@ -167,6 +173,6 @@ void View::setDuration(VTime duration)
 void View::setInfo(const QString& info)
 {
   const QString wCurrentTimeStr = QTime::currentTime().toString("hh:mm:ss:zzz");
-  mInfoBar->appendPlainText(wCurrentTimeStr + " - " + info);
-  mInfoBar->moveCursor(QTextCursor::End);
+   mInfoBar->appendPlainText(wCurrentTimeStr + " - " + info);
+   mInfoBar->verticalScrollBar()->setValue(mInfoBar->verticalScrollBar()->maximum()-1);
 }

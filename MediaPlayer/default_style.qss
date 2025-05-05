@@ -6,7 +6,7 @@
     border-radius: 2px;
     box-shadow: 1px 1px 1px #DD0636;
     icon-size: 24px;
-    font-size: 22px;
+    font-size: 18px;
     font-family: "Courier New";
 }
 
