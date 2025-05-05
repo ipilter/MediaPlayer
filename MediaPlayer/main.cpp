@@ -6,17 +6,17 @@
 #include <QFileInfo>
 #include <QUrl>
 #include <QMessageBox>
+#include <QDir>
 
 #include <fstream>
 #include <vector>
 #include <random>
 #include <algorithm>
 
-void savePreferences(const MainWindow& window);
-void loadPreferences(MainWindow& window);
-bool isMediaPlayerPlaylistFile(const QString& filePath);
-MediaPlayer::Playlist readFilePaths(const QString& filePath);
-QString readStyles(const QString& filePath);
+void savePreferences(const MainWindow& iMainWindow);
+void loadPreferences(MainWindow& iMainWindow);
+MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath);
+QString readStyles(const QString& iFilePath);
 
 int main(int argc, char *argv[])
 {
@@ -27,24 +27,27 @@ int main(int argc, char *argv[])
     if (argc < 2 || !QFile::exists(argv[1]))
     {
       if (argc > 1)
+      {
         throw std::runtime_error("File not found: " + QString(argv[1]).toStdString());
+      }
       else
-        throw std::runtime_error("Usage: MediaPlayer <playlist.txt>|<video.mp4>");
+      {
+        throw std::runtime_error("Usage: MediaPlayer <playlist.mpl>|<video.mp4>|<directory>");
+      }
     }
-
-    const auto filePath = argv[1];
 
     {
       const QString wAbsoluteFilePath = QCoreApplication::applicationDirPath() + "/" + "default_style.qss";
-      QString wStyles = readStyles(wAbsoluteFilePath);
-      if (wStyles.isEmpty()) {
-        qDebug() << "Failed to read styles from" << wAbsoluteFilePath;
+      if (!QFile::exists(wAbsoluteFilePath))
+      {
+        throw std::runtime_error(QString("Cannot open style sheet file: \"%1\"").arg(wAbsoluteFilePath).toStdString());
       }
+
+      const QString wStyles = readStyles(wAbsoluteFilePath);
       wApp.setStyleSheet(wStyles);
     }
 
     MainWindow wMainWindow;
-    wMainWindow.setWindowTitle("MediaPlayer v0.0.0");
     loadPreferences(wMainWindow);
 
     // handle scenario when a multiple files is passed - win open ipc stuff
@@ -62,15 +65,36 @@ int main(int argc, char *argv[])
     //}
     //return 1;
 
-    if (isMediaPlayerPlaylistFile(filePath))
+    const QString wInputPath = argv[1];
     {
-      wMainWindow.setPlaylist(readFilePaths(filePath));
-    }
-    else
-    {
-      MainWindow::Playlist playlist;
-      playlist.push_back(QUrl::fromLocalFile(filePath));
-      wMainWindow.setPlaylist(playlist);
+      const QFileInfo wInputInfo(wInputPath);
+      if (wInputInfo.suffix().toLower() == "mpl")
+      {
+        wMainWindow.setPlaylist(readPlaylistFile(wInputPath));
+        wMainWindow.setWindowTitle(QString("Playing playlist: \"%1\"").arg(wInputInfo.completeBaseName()));
+      }
+      else if (wInputInfo.isDir())
+      {
+        MainWindow::Playlist playlist;
+        for (const auto& wFile : QDir(wInputPath).entryList(QDir::Files))
+        {
+          playlist.push_back(QUrl::fromLocalFile(wInputPath + "/" + wFile));
+        }
+        
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(playlist.begin(), playlist.end(), g);
+
+        wMainWindow.setPlaylist(playlist);
+        wMainWindow.setWindowTitle(QString("Playing directory: %1").arg(wInputInfo.completeBaseName()));
+      }
+      else // TODO: validate if know file type...
+      {
+        MainWindow::Playlist playlist;
+        playlist.push_back(QUrl::fromLocalFile(wInputPath));
+        wMainWindow.setPlaylist(playlist);
+        wMainWindow.setWindowTitle(QString("Playing: %1").arg(wInputInfo.fileName()));
+      }
     }
 
     wMainWindow.show();
@@ -99,21 +123,21 @@ int main(int argc, char *argv[])
 
 ////////////////
 // Implementation of helper functions
-void savePreferences(const MainWindow& window)
+void savePreferences(const MainWindow& iMainWindow)
 {
-  const auto& wPlacement = window.getPlacement();
+  const auto& wPlacement = iMainWindow.getPlacement();
 
   QSettings settings("IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
   settings.setValue("size", wPlacement.mSize);
   settings.setValue("pos", wPlacement.mPosition - QPoint(0, 31)); // TODO: what is this??, we move the window in loadPreferences with this value, but when the window gets the event, the y value is bigger than this by 31 pixels!!
-  settings.setValue("autoPlay", window.getSettings().mAutoPlay);
-  settings.setValue("muted", window.getSettings().mMuted);
-  settings.setValue("firstFrame", window.getSettings().mShowFirstFrame);
+  settings.setValue("autoPlay", iMainWindow.getSettings().mAutoPlay);
+  settings.setValue("muted", iMainWindow.getSettings().mMuted);
+  settings.setValue("firstFrame", iMainWindow.getSettings().mShowFirstFrame);
   settings.endGroup();
 }
 
-void loadPreferences(MainWindow& window)
+void loadPreferences(MainWindow& iMainWindow)
 {
   QSettings settings("IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
@@ -121,21 +145,16 @@ void loadPreferences(MainWindow& window)
   auto wSize = settings.value("size", QSize(800, 600)).toSize();
   auto wPosition = settings.value("pos", QPoint(100, 100)).toPoint();
 
-  window.resize(wSize);
-  window.move(wPosition);
-  window.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool(), settings.value("firstFrame", false).toBool() });
+  iMainWindow.resize(wSize);
+  iMainWindow.move(wPosition);
+  iMainWindow.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool(), settings.value("firstFrame", false).toBool() });
   settings.endGroup();
 }
 
-bool isMediaPlayerPlaylistFile(const QString& filePath)
-{
-  return QFileInfo(filePath).suffix().toLower() == "mpl";
-}
-
-MediaPlayer::Playlist readFilePaths(const QString& filePath)
+MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
 {
   MediaPlayer::Playlist playlist;
-  std::ifstream file(filePath.toStdString());
+  std::ifstream file(iFilePath.toStdString());
   if (file.is_open()) {
     std::string line;
     while (std::getline(file, line)) {
@@ -156,9 +175,9 @@ MediaPlayer::Playlist readFilePaths(const QString& filePath)
   return playlist;
 }
 
-QString readStyles(const QString& filePath)
+QString readStyles(const QString& iFilePath)
 {
-  QFile file(filePath);
+  QFile file(iFilePath);
   if (!file.open(QFile::ReadOnly | QFile::Text))
   {
     return QString();
