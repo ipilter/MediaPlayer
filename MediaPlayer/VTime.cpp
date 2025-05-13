@@ -127,3 +127,8 @@ qint64 VTime::getMilliseconds(qint64 hour, qint64 minute, qint64 seconds, qint64
 {
   return hour * 3600000 + minute * 60000 + seconds * 1000 + milliseconds;
 }
+
+VTime::operator QString() const
+{
+  return toString();
+}

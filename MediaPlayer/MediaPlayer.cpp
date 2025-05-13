@@ -202,8 +202,8 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   }
   else if (direction == SeekDirection::Random)
   {
-    const VTime wNewPosition(Random(5000, mPlayer->getDuration().ms() - 5000));
-    mPlayer->setPosition(wNewPosition);
+    const VTime wNewDelta(static_cast<quint64>((mPlayer->getDuration() - mPlayer->getPosition()).ms() / 6.0f));
+    mPlayer->setPosition(mPlayer->getPosition() + wNewDelta);
   }
   else
   {
@@ -420,7 +420,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   });
 
   connect(mProcesses.back().get(), &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
-    logStatusMessage(QString("Loop cut ") + (exitCode == 0 ? "succeeded" : "failed"));
+    logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
     if (exitCode != 0)
     {
       sequenceEntry.second.mState = OperationState::Failed;

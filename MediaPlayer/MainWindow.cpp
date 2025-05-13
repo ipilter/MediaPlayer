@@ -83,11 +83,11 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     mMediaPlayer->next();
     break;
   case Qt::Key_B:
-    mMediaPlayer->previous();
+  mMediaPlayer->seek(MediaPlayer::SeekDirection::Random);
     break;
   case Qt::Key_V:
-    mMediaPlayer->seek(MediaPlayer::SeekDirection::Random);
-    break;
+  mMediaPlayer->previous();
+  break;
   case Qt::Key_Space:
     mMediaPlayer->startStop();
     break;
