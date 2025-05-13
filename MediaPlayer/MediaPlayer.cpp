@@ -202,7 +202,7 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   }
   else if (direction == SeekDirection::Random)
   {
-    const VTime wNewDelta(static_cast<quint64>((mPlayer->getDuration() - mPlayer->getPosition()).ms() / 6.0f));
+    const VTime wNewDelta(static_cast<quint64>((mPlayer->getDuration() - mPlayer->getPosition()).ms() / 4.0f));
     mPlayer->setPosition(mPlayer->getPosition() + wNewDelta);
   }
   else
