@@ -48,7 +48,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::Start);
       return;
     }
-    mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, step);
+    mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, step);
     break;
   }
   case Qt::Key_D:

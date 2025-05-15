@@ -68,9 +68,12 @@ void Slider::mousePressEvent(QMouseEvent* wEvent)
       wSelectedSequence->second.mSelected = true;
       emit sequenceSelected(&wSelectedSequence->first);
       wHandled = true;
-
-      update();
     }
+    update();
+
+    // TODO: clicking on the Sequence area should not set the value of the slider
+    const QRect wSequenceArea(0, mSequenceRectBottom, size().width(), mSequenceRectTop);
+    wHandled = wSequenceArea.contains(wClickPos);
 
     if (!wHandled)
     {
