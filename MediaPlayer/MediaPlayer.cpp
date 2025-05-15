@@ -29,13 +29,16 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
   QObject::connect(mView.get(), &View::muteButtonClicked,      this, [this]() { toggleMute(); });
-
+  QObject::connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
+    wSequence == nullptr ? 
+      mView->setDurationLabel(mPlayer->getDuration()) 
+      : mView->setDurationLabel(wSequence->second - wSequence->first, true); // TODO solve the coloring of the label in a better way
+    mSelectedSequence = wSequence; });
+  
   QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
   mPlayer->setVolume(50);
   //mPlayer->setPlaybackRate(0.5f);
-
-  mEditedSequence = Sequence{ 0, 0 };
 }
 
 MediaPlayer::~MediaPlayer()
@@ -125,6 +128,7 @@ void MediaPlayer::next()
     mPlayer->setVideo(mPlaylist[mCurrentVideo]);
 
     mSequenceMap.clear();
+    mSelectedSequence = nullptr;
     emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
   }
 
@@ -211,6 +215,24 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   }
 }
 
+void MediaPlayer::snapToSelection(MediaPlayer::SnapPosition position)
+{
+  if (mSelectedSequence == nullptr)
+  {
+    return;
+  }
+
+  switch (position)
+  {
+    case SnapPosition::Start:
+    mPlayer->setPosition(mSelectedSequence->first);
+    break;
+    case SnapPosition::End:
+    mPlayer->setPosition(mSelectedSequence->second);
+    break;
+  }
+}
+
 void MediaPlayer::startStop()
 {
   if (isPlaying())
@@ -223,9 +245,9 @@ void MediaPlayer::startStop()
   }
 }
 
-void MediaPlayer::mark(const bool cancel)
+void MediaPlayer::mark(const bool isCancel)
 {
-  if (cancel)
+  if (isCancel)
   {
     mEditedSequence = Sequence{ VTime(0), VTime(0) };
     mView->setMarking(false);
@@ -235,7 +257,7 @@ void MediaPlayer::mark(const bool cancel)
   if (mEditedSequence == Sequence{ VTime(0), VTime(0) })
   {
     mEditedSequence.first = mPlayer->getPosition();
-    mEditedSequence.second = VTime(1); // to allow sequences start with 0..
+    mEditedSequence.second = VTime(1); // dummy value, just to allow sequences start with 0
 
     mView->setMarking(true);
   }
@@ -519,16 +541,13 @@ void MediaPlayer::resetSeqenceState()
   emit sequencesChanged(mSequenceMap);
 }
 
-void MediaPlayer::popLastSequence()
+void MediaPlayer::deleteSequence()
 {
-  if (mSequenceMap.empty())
+  if (mSequenceMap.empty() || mSelectedSequence == nullptr)
   {
     return;
   }
 
-  auto wLastSequence = mSequenceMap.end();
-  --wLastSequence;
-
-  mSequenceMap.erase(wLastSequence);
+  mSequenceMap.erase(*mSelectedSequence);
   emit sequencesChanged(mSequenceMap);
 }

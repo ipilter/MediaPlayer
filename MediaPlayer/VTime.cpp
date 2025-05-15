@@ -112,10 +112,6 @@ QString VTime::toString(const QChar sep) const
   const qint64 s = (mTime - h * 3600000 - m * 60000) / 1000;
   const qint64 ms = mTime - h * 3600000 - m * 60000 - s * 1000;
 
-  //ugly + below as:
-  //QString s1 = QString("%1%2%3").arg("0").arg("1").arg('2');  // 012
-  //QString s2 = QString("%1%3%2").arg("0").arg("1").arg('2');  // 02  !! bug or limitation?
-
   QString ss = QString("%0").arg(h, 2, 10, QChar('0')) + QString(sep) +
     QString("%0").arg(m, 2, 10, QChar('0')) + QString(sep) +
     QString("%0").arg(s, 2, 10, QChar('0')) + QString('.') +

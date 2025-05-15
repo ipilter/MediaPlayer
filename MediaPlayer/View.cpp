@@ -84,12 +84,13 @@ View::View(QWidget* parent)
   rootLayout->addWidget(mInfoBar);
   mLayout = rootLayout;
 
-  connect(mSlider,         &QSlider::sliderMoved,      this, [this](int position) { emit sliderChanged(position); });
-  connect(mPreviousButton, &QPushButton::clicked,      this, [this]()             { emit previousButtonClicked(); mPlayButton->setFocus(); });
-  connect(mPlayButton,     &QPushButton::clicked,      this, [this]()             { emit startStopButtonClicked(); });
-  connect(mNextButton,     &QPushButton::clicked,      this, [this]()             { emit nextButtonClicked(); mPlayButton->setFocus(); });
-  connect(mVideoWidget,    &VideoWidget::mouseClicked, this, [this]()             { emit onMouseClick(); mPlayButton->setFocus(); });
-  connect(mMuteButton,     &QPushButton::clicked,      this, [this]()             { emit muteButtonClicked(); mPlayButton->setFocus(); });
+  connect(mSlider, &QSlider::sliderMoved, this, [ this ](int position) { emit sliderChanged(position); });
+  connect(mSlider, &Slider::sequenceSelected, this, [ this ](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
+  connect(mPreviousButton, &QPushButton::clicked, this, [ this ]() { emit previousButtonClicked(); mPlayButton->setFocus(); });
+  connect(mPlayButton, &QPushButton::clicked, this, [ this ]() { emit startStopButtonClicked(); });
+  connect(mNextButton, &QPushButton::clicked, this, [ this ]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
+  connect(mVideoWidget, &VideoWidget::mouseClicked, this, [ this ]() { emit onMouseClick(); mPlayButton->setFocus(); });
+  connect(mMuteButton, &QPushButton::clicked, this, [ this ]() { emit muteButtonClicked(); mPlayButton->setFocus(); });
   connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mLoopCountSpinBox->setValue(value); mPlayButton->setFocus(); });
 }
 
@@ -165,9 +166,20 @@ void View::setDuration(VTime duration)
 {
   mSlider->setRange(0, duration.ms());
 
-  QTime durationTime(0, 0, 0, 0);
-  durationTime = durationTime.addMSecs(duration.ms());
-  mDurationLabel->setText(durationTime.toString("hh:mm:ss:zzz"));
+  setDurationLabel(duration);
+}
+
+void View::setDurationLabel(VTime duration, const bool isSequenceDuration)
+{
+  mDurationLabel->setText(duration.toString());
+  if (isSequenceDuration)
+  {
+    mDurationLabel->setStyleSheet("QLabel { color: #B3A021; }");
+  }
+  else
+  {
+    mDurationLabel->setStyleSheet("QLabel { color: #AAAAAA; }");
+  }
 }
 
 void View::setInfo(const QString& info)

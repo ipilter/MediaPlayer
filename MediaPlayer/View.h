@@ -33,6 +33,7 @@ public:
 public slots:
   void setPosition(VTime position);
   void setDuration(VTime duration);
+  void setDurationLabel(VTime duration, const bool isSequenceDuration = false);
   void setInfo(const QString& info);
   void onPlay();
   void onPause();
@@ -45,6 +46,8 @@ signals:
   void startStopButtonClicked();
   void nextButtonClicked();
   void muteButtonClicked();
+  void sequenceSelected(const Sequence* wSequence);
+
   void onMouseClick();
 
 private:

@@ -24,6 +24,7 @@ public:
   enum class CutMethod { Fast, Precise, Loop };
   enum class SeekStep { Normal, Small, Big };
   enum class SeekDirection { Forward, Backward, Random };
+  enum class SnapPosition { Start, End };
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -44,14 +45,15 @@ public:
 
   void setPosition(const VTime& position);
   void seek(SeekDirection direction, SeekStep step = SeekStep::Normal);
+  void snapToSelection(SnapPosition position);
   void startStop();
 
-  void mark(const bool cancel);
+  void mark(const bool isCancel = false);
   void cut(const CutMethod cutMethod);
 
   // TODO better sequence management
   void resetSeqenceState();
-  void popLastSequence();
+  void deleteSequence();
 
   void logStatusMessage(const QString& msg);
 
@@ -77,7 +79,8 @@ private:
 
   // sequence management
   SequenceMap mSequenceMap;
-  Sequence mEditedSequence = {VTime(0),VTime(0)};
+  Sequence mEditedSequence = Sequence{ VTime(0), VTime(0) };
+  Sequence const * mSelectedSequence = nullptr;
 
   using ProcessPtr = std::unique_ptr<QProcess>;
   std::vector<ProcessPtr> mProcesses; // TODO: destroy finished processsed, do not accumulate them
