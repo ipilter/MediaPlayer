@@ -26,10 +26,13 @@ inline QString uniqueFileName(const QString& fileName)
   return wFileName;
 }
 
-inline int Random(int min, int max)
+template <typename T>
+inline T Random(const T min, const T max)
 {
+  static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "T must be an integral or floating point type");
+
   static std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(min, max);
-  return dis(gen);
+  return static_cast<T>(dis(gen));
 };

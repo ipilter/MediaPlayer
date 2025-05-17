@@ -126,13 +126,14 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     }
     else if (event->modifiers() & Qt::ShiftModifier)
     {
+      mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, MediaPlayer::SeekStep::Random);
     }
     else if (event->modifiers() & Qt::AltModifier)
     {
     }
     else
     {
-      mMediaPlayer->seek(MediaPlayer::SeekDirection::Random);
+      mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, MediaPlayer::SeekStep::Random);
     }
     break;
   case Qt::Key_Z:

@@ -22,8 +22,8 @@ public:
   using Playlist = std::vector<QUrl>;
   struct Settings { bool mAutoPlay = false; bool mMuted = true; bool mShowFirstFrame = false; int mCursorTimeout = 1000; };
   enum class CutMethod { Fast, Precise, Loop };
-  enum class SeekStep { Normal, Small, Big };
-  enum class SeekDirection { Forward, Backward, Random };
+  enum class SeekStep { Normal, Small, Big, Random };
+  enum class SeekDirection { Forward, Backward };
   enum class SnapPosition { Start, End };
 
   MediaPlayer(QObject* parent = nullptr);
@@ -44,7 +44,7 @@ public:
   void toggleMute();
 
   void setPosition(const VTime& position);
-  void seek(SeekDirection direction, SeekStep step = SeekStep::Normal);
+  void seek(SeekDirection direction, SeekStep step);
   void snapToSelection(SnapPosition position);
   void startStop();
 

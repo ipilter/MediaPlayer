@@ -183,32 +183,51 @@ void MediaPlayer::setPosition(const VTime& position)
 
 void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekStep step)
 {
-  VTime stepSize;
+  VTime wStepSize;
   switch (step)
   {
     case SeekStep::Small:
-    stepSize = VTime(50);  // TODO use settings
-    break;
+      wStepSize = VTime(50);  // TODO use settings
+      break;
     case SeekStep::Big:
-    stepSize = VTime(5000);
-    break;
-    default:
-    stepSize = VTime(500);
-    break;
+      wStepSize = VTime(5000);
+      break;
+    case SeekStep::Normal:
+      wStepSize = VTime(500);
+      break;
+    case SeekStep::Random:
+    {
+      const VTime wDuration = mPlayer->getDuration();
+      const VTime wPosition = mPlayer->getPosition();
+      const VTime wRemaining = mPlayer->getDuration() - mPlayer->getPosition();
+
+      VTime wSeekWindow = VTime(static_cast<qint64>(wDuration.ms() / 3.0f));
+      if (direction == SeekDirection::Forward)
+      {
+        if (wPosition + wSeekWindow >= wDuration)
+        {
+          wSeekWindow = wRemaining;
+        }
+      }
+      else if(direction == SeekDirection::Backward)
+      {
+        if (wPosition - wSeekWindow < VTime(0))
+        {
+          wSeekWindow = wPosition;
+        }
+      }
+
+      wStepSize = VTime(Random(qint64(0), wSeekWindow.ms()));
+    }
   }
 
   if (direction == SeekDirection::Forward)
   {
-    mPlayer->seekForward(stepSize);
+    mPlayer->seekForward(wStepSize);
   }
   else if (direction == SeekDirection::Backward)
   {
-    mPlayer->seekBackward(stepSize);
-  }
-  else if (direction == SeekDirection::Random)
-  {
-    const VTime wNewDelta(static_cast<quint64>((mPlayer->getDuration() - mPlayer->getPosition()).ms() / 4.0f));
-    mPlayer->setPosition(mPlayer->getPosition() + wNewDelta);
+    mPlayer->seekBackward(wStepSize);
   }
   else
   {
