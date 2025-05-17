@@ -20,7 +20,7 @@ class MediaPlayer : public QObject
 
 public:
   using Playlist = std::vector<QUrl>;
-  struct Settings { bool mAutoPlay = false; bool mMuted = true; bool mShowFirstFrame = false; };
+  struct Settings { bool mAutoPlay = false; bool mMuted = true; bool mShowFirstFrame = false; int mCursorTimeout = 1000; };
   enum class CutMethod { Fast, Precise, Loop };
   enum class SeekStep { Normal, Small, Big };
   enum class SeekDirection { Forward, Backward, Random };

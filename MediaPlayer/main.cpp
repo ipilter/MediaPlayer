@@ -9,7 +9,6 @@
 #include <QDir>
 
 #include <fstream>
-#include <vector>
 #include <random>
 #include <algorithm>
 
@@ -51,21 +50,6 @@ int main(int argc, char *argv[])
     MainWindow wMainWindow;
     loadPreferences(wMainWindow);
 
-    // handle scenario when a multiple files is passed - win open ipc stuff
-    // when more than one file is selected windows launches the app for each file !
-    // 
-    // 
-    //std::ofstream outputFile("e:/args.txt");
-    //if (outputFile.is_open()) {
-    //  for (int i = 0; i < argc; i++) {
-    //    outputFile << argv[i] << std::endl;
-    //  }
-    //  outputFile.close();
-    //} else {
-    //  qDebug() << "Failed to open output file.";
-    //}
-    //return 1;
-
     const QString wInputPath = argv[1];
     {
       const QFileInfo wInputInfo(wInputPath);
@@ -89,7 +73,6 @@ int main(int argc, char *argv[])
     }
 
     wMainWindow.show();
-
     const int wRet = wApp.exec();
     savePreferences(wMainWindow);
 
@@ -125,6 +108,7 @@ void savePreferences(const MainWindow& iMainWindow)
   settings.setValue("autoPlay", iMainWindow.getSettings().mAutoPlay);
   settings.setValue("muted", iMainWindow.getSettings().mMuted);
   settings.setValue("firstFrame", iMainWindow.getSettings().mShowFirstFrame);
+  settings.setValue("cursorTimeout", iMainWindow.getSettings().mCursorTimeout);
   settings.endGroup();
 }
 
@@ -138,7 +122,7 @@ void loadPreferences(MainWindow& iMainWindow)
 
   iMainWindow.resize(wSize);
   iMainWindow.move(wPosition);
-  iMainWindow.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool(), settings.value("firstFrame", false).toBool() });
+  iMainWindow.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool(), settings.value("firstFrame", false).toBool(), settings.value("cursorTimeout", 500).toInt() });
   settings.endGroup();
 }
 
@@ -159,9 +143,9 @@ MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
     wFile.close();
   }
   
-  std::random_device rd;
-  std::mt19937 g(rd());
-  std::shuffle(wPlaylist.begin(), wPlaylist.end(), g);
+  std::random_device wRndDevice;
+  std::mt19937 wRndGenerator(wRndDevice());
+  std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
 
   return wPlaylist;
 }
@@ -174,9 +158,9 @@ MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath)
     wPlaylist.push_back(QUrl::fromLocalFile(iDirectoryPath + "/" + wFile));
   }
 
-  std::random_device rd;
-  std::mt19937 g(rd());
-  std::shuffle(wPlaylist.begin(), wPlaylist.end(), g);
+  std::random_device wRndDevice;
+  std::mt19937 wRndGenerator(wRndDevice());
+  std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
   return wPlaylist;
 }
 

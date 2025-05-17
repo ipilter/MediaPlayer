@@ -49,9 +49,6 @@
     </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Slider.cpp">
       <Filter>Source Files\View</Filter>
     </ClCompile>
@@ -73,6 +70,12 @@
     <ClCompile Include="VTime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CursorHider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Slider.h">
@@ -92,6 +95,9 @@
     </QtMoc>
     <QtMoc Include="MediaPlayer.h">
       <Filter>Header Files\Controller</Filter>
+    </QtMoc>
+    <QtMoc Include="CursorHider.h">
+      <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

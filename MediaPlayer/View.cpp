@@ -1,6 +1,7 @@
 #include "View.h"
 #include "VideoWidget.h"
 #include "Slider.h"
+#include "CursorHider.h"
 
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -92,10 +93,13 @@ View::View(QWidget* parent)
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [ this ]() { emit onMouseClick(); mPlayButton->setFocus(); });
   connect(mMuteButton, &QPushButton::clicked, this, [ this ]() { emit muteButtonClicked(); mPlayButton->setFocus(); });
   connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mLoopCountSpinBox->setValue(value); mPlayButton->setFocus(); });
+
+  mCursorHider.reset(new CursorHider(mVideoWidget));
 }
 
 View::~View()
 {
+  mCursorHider.release();
   delete mVideoWidget;
 }
 
@@ -126,6 +130,11 @@ void View::setMarking(bool marking)
   {
     mPositionLabel->setStyleSheet("QLabel { color: #AAAAAA; }");
   }
+}
+
+void View::setCursorTimeout(int timeoutMs)
+{
+  mCursorHider->setTimeout(timeoutMs);
 }
 
 unsigned View::getLoopCount() const

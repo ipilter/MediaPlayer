@@ -14,6 +14,7 @@ class QLayout;
 class QPixmap;
 class QPlainTextEdit;
 class QSpinBox;
+class CursorHider;
 
 class View : public QWidget
 {
@@ -28,6 +29,7 @@ public:
 
   void setMuted(bool muted);
   void setMarking(bool marking);
+  void setCursorTimeout(int timeoutMs);
   unsigned getLoopCount() const;
 
 public slots:
@@ -67,4 +69,6 @@ private:
   QPlainTextEdit* mInfoBar;
 
   QLayout* mLayout;
+
+  std::unique_ptr<CursorHider> mCursorHider;
 };

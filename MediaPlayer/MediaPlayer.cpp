@@ -65,6 +65,7 @@ void MediaPlayer::setSettings(const Settings& settings)
   
   mPlayer->setMuted(mSettings.mMuted);
   mView->setMuted(mSettings.mMuted);
+  mView->setCursorTimeout(mSettings.mCursorTimeout);
 }
 
 const MediaPlayer::Settings& MediaPlayer::getSettings() const

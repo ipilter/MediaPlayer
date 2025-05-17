@@ -105,6 +105,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CursorHider.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
     <ClCompile Include="VTime.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
@@ -115,7 +116,12 @@
     <QtUic Include="MainWindow.ui" />
     <QtMoc Include="MainWindow.h" />
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Main.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Slider.h" />
@@ -136,6 +142,7 @@
     <QtMoc Include="VideoWidget.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="CursorHider.h" />
     <ClInclude Include="VTime.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Types.h" />
