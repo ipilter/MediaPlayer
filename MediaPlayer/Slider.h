@@ -53,5 +53,5 @@ private:
 
   const int mSequenceRectBottom = 2;
   const int mSequenceRectTop = 10;
-  const int mSequenceRectMinLength = 3;
+  const int mSequenceRectMinLength = 4; // NOTE: even values, see wClickArea in paintEvent
 };

@@ -73,7 +73,11 @@ void Slider::mousePressEvent(QMouseEvent* wEvent)
 
     // TODO: clicking on the Sequence area should not set the value of the slider
     const QRect wSequenceArea(0, mSequenceRectBottom, size().width(), mSequenceRectTop);
-    wHandled = wSequenceArea.contains(wClickPos);
+
+    // Click area for the click to make it easier to select small sequences
+    const QRect wClickArea(wClickPos.x() - (mSequenceRectMinLength / 2), wClickPos.y(), mSequenceRectMinLength, wClickPos.y());
+    // Check if the click is within the sequence area, is do so, do not move the slider
+    wHandled = wSequenceArea.intersects(wClickArea);
 
     if (!wHandled)
     {

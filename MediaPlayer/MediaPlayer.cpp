@@ -356,8 +356,7 @@ void MediaPlayer::cut(const CutMethod cutMethod)
   if (mSelectedSequence != nullptr)
   {
     auto wSequenceEntryIt = mSequenceMap.find(*mSelectedSequence);
-    auto& wSequenceEntry = *wSequenceEntryIt;
-    if (wSequenceEntry.second.mState != OperationState::Ready)
+    if (wSequenceEntryIt == mSequenceMap.end() || wSequenceEntryIt->second.mState != OperationState::Ready)
     {
       return;
     }
@@ -365,13 +364,13 @@ void MediaPlayer::cut(const CutMethod cutMethod)
     switch (cutMethod)
     {
       case CutMethod::Fast:
-        FastCut(wSequenceEntry);
+        FastCut(*wSequenceEntryIt);
         break;
       case CutMethod::Precise:
-        PreciseCut(wSequenceEntry);
+        PreciseCut(*wSequenceEntryIt);
         break;
       case CutMethod::Loop:
-        LoopCut(wSequenceEntry);
+        LoopCut(*wSequenceEntryIt);
         break;
     }
   }
@@ -641,22 +640,22 @@ void MediaPlayer::deleteSequence()
     return;
   }
 
-  auto it = mSequenceMap.find(*mSelectedSequence);
-  if (it == mSequenceMap.end())
+  auto wSequenceEntryIt = mSequenceMap.find(*mSelectedSequence);
+  if (wSequenceEntryIt == mSequenceMap.end())
   {
     return;
   }
 
-  if (QFile::exists(it->second.mFilePath))
+  if (QFile::exists(wSequenceEntryIt->second.mFilePath))
   {
     try
     {
-      QFile::remove(it->second.mFilePath);
-      logStatusMessage(QString("%1 successfully deleted").arg(it->second.mFilePath));
+      QFile::remove(wSequenceEntryIt->second.mFilePath);
+      logStatusMessage(QString("%1 successfully deleted").arg(wSequenceEntryIt->second.mFilePath));
     }
     catch (const std::exception& e)
     {
-      logStatusMessage(QString("Deleting file %1: failed! Error: %2").arg(it->second.mFilePath).arg(e.what()));
+      logStatusMessage(QString("Deleting file %1: failed! Error: %2").arg(wSequenceEntryIt->second.mFilePath).arg(e.what()));
     }
   }
 
