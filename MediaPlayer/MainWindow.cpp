@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "View.h"
 #include "MediaPlayer.h"
+#include "Settings.h"
 
 #include <QTime>
 #include <QFile>
@@ -72,19 +73,19 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_C:
   {
-    MediaPlayer::CutMethod wCutMethod = MediaPlayer::CutMethod::Fast;
-    if (event->modifiers() & Qt::ShiftModifier)
+    if(event->modifiers() & Qt::ControlModifier)
     {
-      wCutMethod = MediaPlayer::CutMethod::Precise;
+    }
+    else if (event->modifiers() & Qt::ShiftModifier)
+    {
     }
     else if (event->modifiers() & Qt::AltModifier)
     {
     }
-    else if (event->modifiers() & Qt::ControlModifier)
+    else
     {
-      wCutMethod = MediaPlayer::CutMethod::Loop;
+      mMediaPlayer->next();
     }
-    mMediaPlayer->cut(wCutMethod);
     break;
   }
   case Qt::Key_W:
@@ -106,21 +107,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     break;
   }
   case Qt::Key_X:
-    if(event->modifiers() & Qt::ControlModifier)
-    {
-    }
-    else if (event->modifiers() & Qt::ShiftModifier)
-    {
-    }
-    else if (event->modifiers() & Qt::AltModifier)
-    {
-    }
-    else
-    {
-      mMediaPlayer->next();
-    }
-    break;
-  case Qt::Key_S:
+  {
     if(event->modifiers() & Qt::ControlModifier)
     {
     }
@@ -136,7 +123,13 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, MediaPlayer::SeekStep::Random);
     }
     break;
+  }
+  case Qt::Key_S:
+  {
+    break;
+  }
   case Qt::Key_Z:
+  {
     if(event->modifiers() & Qt::ControlModifier)
     {
     }
@@ -151,10 +144,14 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       mMediaPlayer->previous();
     }
     break;
+  }
   case Qt::Key_Space:
+  {
     mMediaPlayer->startStop();
     break;
+  }
   case Qt::Key_F:
+  {
     if (this->isMaximized())
     {
       this->showNormal();
@@ -164,10 +161,14 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       this->showMaximized();
     }
     break;
+  }
   case Qt::Key_P:
-    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mMuted, mMediaPlayer->getSettings().mShowFirstFrame });
+  {
+    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mAudioMode, mMediaPlayer->getSettings().mShowFirstFrame });
     break;
+  }
   case Qt::Key_R:
+  {
     if(event->modifiers() & Qt::ControlModifier)
     {
       mMediaPlayer->resetSeqenceState();
@@ -183,12 +184,34 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       mMediaPlayer->previous();
     }
     break;
+  }
+  case Qt::Key_V:
+  {
+    MediaPlayer::CutMethod wCutMethod = MediaPlayer::CutMethod::Fast;
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      wCutMethod = MediaPlayer::CutMethod::Precise;
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      wCutMethod = MediaPlayer::CutMethod::Loop;
+    }
+    mMediaPlayer->cut(wCutMethod);
+    break;
+  }
   case Qt::Key::Key_Delete:
+  {
     mMediaPlayer->deleteSequence();
     break;
+  }
   default:
+  {
     QMainWindow::keyPressEvent(event);
     break;
+  }
   }
 }
 
@@ -221,12 +244,12 @@ void MainWindow::setPlaylist(const Playlist& playlist)
   mMediaPlayer->setPlaylist(playlist);
 }
 
-void MainWindow::setSettings(const MediaPlayer::Settings& settings)
+void MainWindow::setSettings(const Settings& settings)
 {
   mMediaPlayer->setSettings(settings);
 }
 
-const MediaPlayer::Settings& MainWindow::getSettings() const
+const Settings& MainWindow::getSettings() const
 {
   return mMediaPlayer->getSettings();
 }

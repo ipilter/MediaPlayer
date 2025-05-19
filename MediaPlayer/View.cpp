@@ -23,8 +23,9 @@ View::View(QWidget* parent)
   mPixmapTable.emplace("pause",    QPixmap(":/bitmaps/pause.png"));
   mPixmapTable.emplace("previous", QPixmap(":/bitmaps/previous.png"));
   mPixmapTable.emplace("next",     QPixmap(":/bitmaps/next.png"));
-  mPixmapTable.emplace("muted",    QPixmap(":/bitmaps/muted.png"));
-  mPixmapTable.emplace("unmuted",  QPixmap(":/bitmaps/unmuted.png"));
+  mPixmapTable.emplace("mutedAudio",    QPixmap(":/bitmaps/mutedAudio.png"));
+  mPixmapTable.emplace("videoAudio",  QPixmap(":/bitmaps/videoAudio.png"));
+  mPixmapTable.emplace("musicAudio",  QPixmap(":/bitmaps/musicAudio.png"));  
 
   mVideoWidget = new VideoWidget(parent);
   mVideoWidget->setObjectName("videoWidget");
@@ -41,8 +42,8 @@ View::View(QWidget* parent)
   mNextButton = new QPushButton(parent);
   mNextButton->setIcon(QIcon(mPixmapTable["next"]));
 
-  mMuteButton = new QPushButton(parent);
-  mMuteButton->setIcon(QIcon(mPixmapTable["muted"]));
+  mAudioButton = new QPushButton(parent);
+  mAudioButton->setIcon(QIcon(mPixmapTable["muted"]));
 
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
@@ -75,7 +76,7 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mNextButton);
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
-  buttonLayout->addWidget(mMuteButton);
+  buttonLayout->addWidget(mAudioButton);
   buttonLayout->addWidget(mLoopCountSpinBox);
 
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
@@ -87,11 +88,12 @@ View::View(QWidget* parent)
 
   connect(mSlider, &QSlider::sliderMoved, this, [ this ](int position) { emit sliderChanged(position); });
   connect(mSlider, &Slider::sequenceSelected, this, [ this ](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
+  connect(mSlider, &Slider::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) { emit sequenceDoubleClicked(wSequence); });
   connect(mPreviousButton, &QPushButton::clicked, this, [ this ]() { emit previousButtonClicked(); mPlayButton->setFocus(); });
   connect(mPlayButton, &QPushButton::clicked, this, [ this ]() { emit startStopButtonClicked(); });
   connect(mNextButton, &QPushButton::clicked, this, [ this ]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [ this ]() { emit onMouseClick(); mPlayButton->setFocus(); });
-  connect(mMuteButton, &QPushButton::clicked, this, [ this ]() { emit muteButtonClicked(); mPlayButton->setFocus(); });
+  connect(mAudioButton, &QPushButton::clicked, this, [ this ]() { emit audioButtonClicked(); mPlayButton->setFocus(); });
   connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mLoopCountSpinBox->setValue(value); mPlayButton->setFocus(); });
 
   mCursorHider.reset(new CursorHider(mVideoWidget));
@@ -113,9 +115,20 @@ QLayout* View::getLayout() const
   return mLayout;
 }
 
-void View::setMuted(bool muted)
+void View::toggleAudio(const Settings::AudioMode iAudioMode)
 {
-  mMuteButton->setIcon(muted ? mPixmapTable["muted"] : mPixmapTable["unmuted"]);
+  switch (iAudioMode)
+  {
+    case Settings::AudioMode::Muted:
+    mAudioButton->setIcon(QIcon(mPixmapTable["mutedAudio"]));
+    break;
+    case Settings::AudioMode::Video:
+    mAudioButton->setIcon(QIcon(mPixmapTable["videoAudio"]));
+    break;
+    case Settings::AudioMode::Music:
+    mAudioButton->setIcon(QIcon(mPixmapTable["musicAudio"]));
+    break;
+  }
 }
 
 void View::setMarking(bool marking)

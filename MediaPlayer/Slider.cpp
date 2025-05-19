@@ -93,6 +93,28 @@ void Slider::mousePressEvent(QMouseEvent* wEvent)
   }
 }
 
+void Slider::mouseDoubleClickEvent(QMouseEvent* wEvent)
+{
+  if (wEvent->button() == Qt::LeftButton)
+  {
+    const QPoint wClickPos = wEvent->pos();
+    OrderedSequenceEntries wIntersectingSequence;
+    for (auto& wSequenceEntry : mSequences)
+    {
+      if (sequenceRect(wSequenceEntry).contains(wClickPos))
+      {
+        qDebug() << wClickPos << " double clicked on " << wSequenceEntry.first.first.toString() << " - " << wSequenceEntry.first.second.toString();
+        wIntersectingSequence.insert(&wSequenceEntry);
+      }
+    }
+    if (!wIntersectingSequence.empty())
+    {
+      SequenceEntry* wSelectedSequence = *wIntersectingSequence.begin();
+      emit sequenceDoubleClicked(&wSelectedSequence->first);
+    }
+  }
+}
+
 void Slider::paintEvent(QPaintEvent* wEvent)
 {
   QSlider::paintEvent(wEvent);

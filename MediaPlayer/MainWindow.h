@@ -6,6 +6,7 @@
 #include <QtWidgets/QMainWindow>
 
 class QString;
+struct Settings;
 
 class MainWindow : public QMainWindow
 {
@@ -18,8 +19,8 @@ public:
   ~MainWindow();
 
   void setPlaylist(const Playlist& playlist);
-  void setSettings(const MediaPlayer::Settings& settings);
-  const MediaPlayer::Settings& getSettings() const;
+  void setSettings(const Settings& settings);
+  const Settings& getSettings() const;
 
   const Placement& getPlacement() const;
 

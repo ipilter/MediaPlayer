@@ -14,37 +14,42 @@ VideoPlayer::VideoPlayer(VideoWidget* videoWidget, QObject* parent)
 {
   mAudioOutput = new QAudioOutput(this);
 
-  mMediaPlayer = new QMediaPlayer(this);
-  mMediaPlayer->setVideoOutput(videoWidget);
-  mMediaPlayer->setAudioOutput(mAudioOutput);
+  mVideoPlayer.reset(new QMediaPlayer(this));
+  mVideoPlayer->setVideoOutput(videoWidget);
+  mVideoPlayer->setAudioOutput(mAudioOutput);
 
-  connect(mMediaPlayer, &QMediaPlayer::positionChanged, this, [this](qint64 t) { emit positionChanged(VTime(t)); });
-  connect(mMediaPlayer, &QMediaPlayer::durationChanged, this, [this](qint64 d) { emit durationChanged(VTime(d)); });
-  connect(mMediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
-    if (status == QMediaPlayer::LoadedMedia)
+  connect(mVideoPlayer.get(), &QMediaPlayer::positionChanged, this, [this](qint64 t) { emit positionChanged(VTime(t)); });
+  connect(mVideoPlayer.get(), &QMediaPlayer::durationChanged, this, [this](qint64 d) { emit durationChanged(VTime(d)); });
+  connect(mVideoPlayer.get(), &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
+    switch (status)
     {
-      if (mIsVideoLoaded)
+      case QMediaPlayer::NoMedia:
+      case QMediaPlayer::LoadingMedia:
+      case QMediaPlayer::StalledMedia:
+      case QMediaPlayer::BufferingMedia:
+      case QMediaPlayer::BufferedMedia:
+      case QMediaPlayer::InvalidMedia:
+        break;
+      case QMediaPlayer::EndOfMedia:
       {
-        return;
+        mVideoPlayer->pause();
+        mVideoPlayer->setPosition(mVideoPlayer->duration());
+        emit videoEnded();
+        break;
       }
-
-      mIsVideoLoaded = true;
-      emit videoLoaded();
+      case QMediaPlayer::LoadedMedia:
+      {
+        if (mIsVideoLoaded)
+        {
+          return;
+        }
+        mIsVideoLoaded = true;
+        emit videoLoaded();
+        break;
+      }
+      default:
+        break;
     }
-    else if (status == QMediaPlayer::EndOfMedia)
-    {
-      mMediaPlayer->pause();
-      mMediaPlayer->setPosition(mMediaPlayer->duration());
-      emit videoEnded();
-    }
-    //  NoMedia,
-    //  LoadingMedia,
-    //  LoadedMedia,
-    //  StalledMedia,
-    //  BufferingMedia,
-    //  BufferedMedia,
-    //  EndOfMedia,
-    //  InvalidMedia
   });
 }
 
@@ -52,60 +57,60 @@ void VideoPlayer::setVideo(const QUrl& videoUrl)
 {
   if(isPlaying())
   {
-    mMediaPlayer->stop();
+    mVideoPlayer->stop();
   }
   mIsVideoLoaded = false;
-  mMediaPlayer->setSource(videoUrl);
+  mVideoPlayer->setSource(videoUrl);
 }
 
 VTime VideoPlayer::getDuration() const
 {
-  return VTime(mMediaPlayer->duration());
+  return VTime(mVideoPlayer->duration());
 }
 
 VTime VideoPlayer::getPosition() const
 {
-  return VTime(mMediaPlayer->position());
+  return VTime(mVideoPlayer->position());
 }
 
 bool VideoPlayer::isPlaying() const
 {
-  return mMediaPlayer->isPlaying();
+  return mVideoPlayer->isPlaying();
 }
 
 void VideoPlayer::play()
 {
-  mMediaPlayer->play();
+  mVideoPlayer->play();
 }
 
 void VideoPlayer::pause()
 {
-  mMediaPlayer->pause();
+  mVideoPlayer->pause();
 }
 
 void VideoPlayer::stop()
 {
-  mMediaPlayer->stop();
+  mVideoPlayer->stop();
 }
 
 void VideoPlayer::seekBackward(VTime size)
 {
-  if (mMediaPlayer->position() <= size.ms())
+  if (mVideoPlayer->position() <= size.ms())
   {
-    mMediaPlayer->setPosition(0);
+    mVideoPlayer->setPosition(0);
     return;
   }
-  mMediaPlayer->setPosition(mMediaPlayer->position() - size.ms());
+  mVideoPlayer->setPosition(mVideoPlayer->position() - size.ms());
 }
 
 void VideoPlayer::seekForward(VTime size)
 {
-  if (mMediaPlayer->position() + size.ms() >= mMediaPlayer->duration())
+  if (mVideoPlayer->position() + size.ms() >= mVideoPlayer->duration())
   {
-    mMediaPlayer->setPosition(mMediaPlayer->duration());
+    mVideoPlayer->setPosition(mVideoPlayer->duration());
     return;
   }
-  mMediaPlayer->setPosition(mMediaPlayer->position() + size.ms());
+  mVideoPlayer->setPosition(mVideoPlayer->position() + size.ms());
 }
 
 float VideoPlayer::volume() const
@@ -118,16 +123,14 @@ bool VideoPlayer::isMuted() const
   return mAudioOutput->isMuted();
 }
 
-
-
 void VideoPlayer::setPosition(VTime position)
 {
-  mMediaPlayer->setPosition(position.ms());
+  mVideoPlayer->setPosition(position.ms());
 }
 
 void VideoPlayer::setPlaybackRate(qreal rate)
 {
-  mMediaPlayer->setPlaybackRate(rate);
+  mVideoPlayer->setPlaybackRate(rate);
 }
 
 void VideoPlayer::setVolume(float volume)
@@ -142,5 +145,5 @@ void VideoPlayer::setMuted(bool muted)
 
 QMediaMetaData VideoPlayer::getMetadata() const
 {
-  return mMediaPlayer->metaData();
+  return mVideoPlayer->metaData();
 }

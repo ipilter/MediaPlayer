@@ -28,12 +28,17 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
   QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
-  QObject::connect(mView.get(), &View::muteButtonClicked,      this, [this]() { toggleMute(); });
+  QObject::connect(mView.get(), &View::audioButtonClicked,      this, [this]() { toggleAudio(); });
   QObject::connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
       : mView->setDurationLabel(wSequence->second - wSequence->first, true); // TODO solve the coloring of the label in a better way
     mSelectedSequence = wSequence; });
+
+  QObject::connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
+  {
+    qDebug() << "double clicked sequence" << wSequence->first.ms() << wSequence->second.ms();
+  });
   
   QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
@@ -63,12 +68,22 @@ void MediaPlayer::setSettings(const Settings& settings)
 {
   mSettings = settings;
   
-  mPlayer->setMuted(mSettings.mMuted);
-  mView->setMuted(mSettings.mMuted);
+  switch (mSettings.mAudioMode)
+  {
+    case Settings::AudioMode::Muted:
+    case Settings::AudioMode::Music:
+      mPlayer->setMuted(true);
+      break;
+    case Settings::AudioMode::Video:
+      mPlayer->setMuted(false);
+      break;
+  }
+
+  mView->toggleAudio(mSettings.mAudioMode);
   mView->setCursorTimeout(mSettings.mCursorTimeout);
 }
 
-const MediaPlayer::Settings& MediaPlayer::getSettings() const
+const Settings& MediaPlayer::getSettings() const
 {
   return mSettings;
 }
@@ -168,12 +183,24 @@ void MediaPlayer::previous()
   }
 }
 
-void MediaPlayer::toggleMute()
+void MediaPlayer::toggleAudio()
 {
-  mSettings.mMuted = !mSettings.mMuted;
+  auto modeInt = static_cast<std::underlying_type<Settings::AudioMode>::type>(mSettings.mAudioMode);
+  modeInt = (modeInt + 1) % static_cast<int>(Settings::AudioMode::Last);
+  mSettings.mAudioMode = static_cast<Settings::AudioMode>(modeInt);
 
-  mPlayer->setMuted(mSettings.mMuted);
-  mView->setMuted(mSettings.mMuted);
+  switch (mSettings.mAudioMode)
+  {
+    case Settings::AudioMode::Muted:
+    case Settings::AudioMode::Music:
+      mPlayer->setMuted(true);
+      break;
+    case Settings::AudioMode::Video:
+      mPlayer->setMuted(false);
+      break;
+  }
+
+  mView->toggleAudio(mSettings.mAudioMode);
 }
 
 void MediaPlayer::setPosition(const VTime& position)
@@ -217,7 +244,7 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
         }
       }
 
-      wStepSize = VTime(Random(qint64(0), wSeekWindow.ms()));
+      wStepSize = VTime(Random(qint64(10), wSeekWindow.ms()));  // assuming 10 ms is left from the video, at leat..
     }
   }
 

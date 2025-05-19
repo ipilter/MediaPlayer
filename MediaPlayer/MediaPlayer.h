@@ -2,6 +2,7 @@
 
 #include "Types.h"
 #include "Process.h"
+#include "Settings.h"
 
 #include <QObject>
 
@@ -20,7 +21,7 @@ class MediaPlayer : public QObject
 
 public:
   using Playlist = std::vector<QUrl>;
-  struct Settings { bool mAutoPlay = false; bool mMuted = true; bool mShowFirstFrame = false; int mCursorTimeout = 1000; };
+
   enum class CutMethod { Fast, Precise, Loop };
   enum class SeekStep { Normal, Small, Big, Random };
   enum class SeekDirection { Forward, Backward };
@@ -41,7 +42,7 @@ public:
   void stop();
   void next();
   void previous();
-  void toggleMute();
+  void toggleAudio();
 
   void setPosition(const VTime& position);
   void seek(SeekDirection direction, SeekStep step);

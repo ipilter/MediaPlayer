@@ -6,6 +6,7 @@
 #include <QMediaMetaData>
 
 #include <vector>
+#include <memory>
 
 class VideoWidget;
 class View;
@@ -52,7 +53,8 @@ signals:
   void videoLoaded();
 
 private:
-  QMediaPlayer* mMediaPlayer;
+  std::unique_ptr<QMediaPlayer> mVideoPlayer;
+  std::unique_ptr<QMediaPlayer> mMusicPlayer;
   bool mIsVideoLoaded = false;
 
   QAudioOutput* mAudioOutput = nullptr;

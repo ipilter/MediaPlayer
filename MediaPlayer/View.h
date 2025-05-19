@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.h"
+#include "Settings.h"
 
 #include <QWidget>
 
@@ -27,7 +28,7 @@ public:
   VideoWidget* getVideoWidget() const;
   QLayout* getLayout() const;
 
-  void setMuted(bool muted);
+  void toggleAudio(const Settings::AudioMode iAudioMode);
   void setMarking(bool marking);
   void setCursorTimeout(int timeoutMs);
   unsigned getLoopCount() const;
@@ -47,10 +48,12 @@ signals:
   void previousButtonClicked();
   void startStopButtonClicked();
   void nextButtonClicked();
-  void muteButtonClicked();
+  void audioButtonClicked();
   void sequenceSelected(const Sequence* wSequence);
+  void sequenceDoubleClicked(const Sequence* wSequence);
 
   void onMouseClick();
+  void onMouseDoubleClick();
 
 private:
   std::map<QString, QPixmap> mPixmapTable;
@@ -60,7 +63,7 @@ private:
   QPushButton* mPreviousButton;
   QPushButton* mPlayButton;
   QPushButton* mNextButton;
-  QPushButton* mMuteButton;
+  QPushButton* mAudioButton;
 
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;

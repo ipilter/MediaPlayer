@@ -15,10 +15,12 @@ public:
 
 signals:
   void sequenceSelected(const Sequence* wSequence);
+  void sequenceDoubleClicked(const Sequence* wSequence);
 
 protected:
   void paintEvent(QPaintEvent* wEvent) override;
   void mousePressEvent(QMouseEvent* wEvent) override;
+  void mouseDoubleClickEvent(QMouseEvent* wEvent) override;
 
 private:
   const QColor& sequenceColor(const SequenceEntry& wSequenceEntry) const;

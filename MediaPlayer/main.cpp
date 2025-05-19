@@ -106,7 +106,7 @@ void savePreferences(const MainWindow& iMainWindow)
   settings.setValue("size", wPlacement.mSize);
   settings.setValue("pos", wPlacement.mPosition - QPoint(0, 31)); // TODO: what is this??, we move the window in loadPreferences with this value, but when the window gets the event, the y value is bigger than this by 31 pixels!!
   settings.setValue("autoPlay", iMainWindow.getSettings().mAutoPlay);
-  settings.setValue("muted", iMainWindow.getSettings().mMuted);
+  settings.setValue("audioMode", static_cast<quint32>(iMainWindow.getSettings().mAudioMode));
   settings.setValue("firstFrame", iMainWindow.getSettings().mShowFirstFrame);
   settings.setValue("cursorTimeout", iMainWindow.getSettings().mCursorTimeout);
   settings.endGroup();
@@ -122,7 +122,10 @@ void loadPreferences(MainWindow& iMainWindow)
 
   iMainWindow.resize(wSize);
   iMainWindow.move(wPosition);
-  iMainWindow.setSettings(MediaPlayer::Settings{ settings.value("autoPlay", false).toBool(), settings.value("muted", false).toBool(), settings.value("firstFrame", false).toBool(), settings.value("cursorTimeout", 500).toInt() });
+  iMainWindow.setSettings(Settings{ settings.value("autoPlay", false).toBool()
+                                                 , static_cast<Settings::AudioMode>(settings.value("audioMode", 0).toUInt())
+                                                 , settings.value("firstFrame", false).toBool()
+                                                 , settings.value("cursorTimeout", 500).toInt() });
   settings.endGroup();
 }
 

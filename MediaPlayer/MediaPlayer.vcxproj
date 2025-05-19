@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="CursorHider.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="VTime.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Types.h" />
