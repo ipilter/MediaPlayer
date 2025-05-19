@@ -23,6 +23,7 @@ struct SequenceState
   OperationState mState = OperationState::Ready;
   bool mSelected = false;
   bool mIsEditing = false;
+  QString mFilePath; // just the file name at the time of being cut. user must check if the file really exists!
 };
 
 using SequenceMap = std::map<Sequence, SequenceState>;

@@ -23,23 +23,37 @@ MediaPlayer::MediaPlayer(QObject* parent)
   QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded,     this, &MediaPlayer::onVideoLoaded);
   QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded);
 
-  QObject::connect(mView.get(), &View::onMouseClick,           this, [this]() { mView->hide(); });
   QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
   QObject::connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
   QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
   QObject::connect(mView.get(), &View::audioButtonClicked,      this, [this]() { toggleAudio(); });
+  
   QObject::connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
       : mView->setDurationLabel(wSequence->second - wSequence->first, true); // TODO solve the coloring of the label in a better way
     mSelectedSequence = wSequence; });
-
   QObject::connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
   {
     qDebug() << "double clicked sequence" << wSequence->first.ms() << wSequence->second.ms();
-  });
+    QString wFileName = QFileInfo(mPlaylist[mCurrentVideo].toString()).fileName();
+
+    auto wSequenceEntry = mSequenceMap.find(*wSequence);
+    if (wSequenceEntry == mSequenceMap.end())
+    {
+      return;
+    }
   
+    if (wSequenceEntry->second.mState != OperationState::Succeeded || !QFile(wSequenceEntry->second.mFilePath).exists())
+    {
+      return;
+    }
+
+    qDebug() << "executing" << wSequenceEntry->second.mFilePath;
+    QProcess::startDetached("explorer.exe", { wSequenceEntry->second.mFilePath });
+  });
+
   QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
   mPlayer->setVolume(50);
@@ -395,7 +409,8 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
   const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
-  
+  sequenceEntry.second.mFilePath = wCutFilePath;
+
   mProcesses.push_back(std::make_unique<QProcess>(this));
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
     sequenceEntry.second.mState = OperationState::Processing;
@@ -427,6 +442,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
   const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
+  sequenceEntry.second.mFilePath = wCutFilePath;
 
   mProcesses.push_back(std::make_unique<QProcess>(this));  
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
@@ -474,8 +490,8 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
   const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + "loop.mp4";
-
   const unsigned loopCount = mView->getLoopCount();
+  sequenceEntry.second.mFilePath = wLoopFilePath;
 
   // TODO: ugly nested process definitions down there. As these are dependent, we need to wait for the first one to finish before starting the second one
   // so the whole dependency scheduling is done in the previous process onfinished callback... in theory this is ok, but must have better implementation
@@ -593,6 +609,25 @@ void MediaPlayer::deleteSequence()
   if (mSequenceMap.empty() || mSelectedSequence == nullptr)
   {
     return;
+  }
+
+  auto it = mSequenceMap.find(*mSelectedSequence);
+  if (it == mSequenceMap.end())
+  {
+    return;
+  }
+
+  if (QFile::exists(it->second.mFilePath))
+  {
+    try
+    {
+      QFile::remove(it->second.mFilePath);
+      logStatusMessage(QString("%1 successfully deleted").arg(it->second.mFilePath));
+    }
+    catch (const std::exception& e)
+    {
+      logStatusMessage(QString("Deleting file %1: failed! Error: %2").arg(it->second.mFilePath).arg(e.what()));
+    }
   }
 
   mSequenceMap.erase(*mSelectedSequence);
