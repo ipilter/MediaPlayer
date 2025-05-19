@@ -348,24 +348,54 @@ void MediaPlayer::logStatusMessage(const QString& msg)
 
 void MediaPlayer::cut(const CutMethod cutMethod)
 {
-  for (auto& wSequenceEntry : mSequenceMap)
+  if (mSequenceMap.empty())
   {
+    return;
+  }
+
+  if (mSelectedSequence != nullptr)
+  {
+    auto wSequenceEntryIt = mSequenceMap.find(*mSelectedSequence);
+    auto& wSequenceEntry = *wSequenceEntryIt;
     if (wSequenceEntry.second.mState != OperationState::Ready)
     {
-      continue;
+      return;
     }
 
     switch (cutMethod)
     {
       case CutMethod::Fast:
         FastCut(wSequenceEntry);
-      break;
+        break;
       case CutMethod::Precise:
         PreciseCut(wSequenceEntry);
-      break;
+        break;
       case CutMethod::Loop:
         LoopCut(wSequenceEntry);
-      break;
+        break;
+    }
+  }
+  else
+  {
+    for (auto& wSequenceEntry : mSequenceMap)
+    {
+      if (wSequenceEntry.second.mState != OperationState::Ready)
+      {
+        continue;
+      }
+
+      switch (cutMethod)
+      {
+        case CutMethod::Fast:
+          FastCut(wSequenceEntry);
+          break;
+        case CutMethod::Precise:
+          PreciseCut(wSequenceEntry);
+          break;
+        case CutMethod::Loop:
+          LoopCut(wSequenceEntry);
+        break;
+      }
     }
   }
 }
