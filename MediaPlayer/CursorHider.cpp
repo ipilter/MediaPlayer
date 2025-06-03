@@ -38,6 +38,7 @@ bool CursorHider::eventFilter(QObject* obj, QEvent* event)
     switch (event->type())
     {
       case QEvent::Leave:
+      case QEvent::Enter:
       case QEvent::HoverMove:
       case QEvent::MouseMove:
         if (mCursorHidden)

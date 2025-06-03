@@ -228,7 +228,7 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   switch (step)
   {
     case SeekStep::Small:
-      wStepSize = VTime(50);  // TODO use settings
+      wStepSize = VTime(25);  // TODO use settings
       break;
     case SeekStep::Big:
       wStepSize = VTime(5000);
@@ -242,7 +242,7 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
       const VTime wPosition = mPlayer->getPosition();
       const VTime wRemaining = mPlayer->getDuration() - mPlayer->getPosition();
 
-      VTime wSeekWindow = VTime(static_cast<qint64>(wDuration.ms() / 3.0f));
+      VTime wSeekWindow = VTime(static_cast<qint64>(wDuration.ms() / 5.0f));
       if (direction == SeekDirection::Forward)
       {
         if (wPosition + wSeekWindow >= wDuration)

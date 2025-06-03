@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         wMainWindow.setPlaylist(readDirectory(wInputPath));
         wMainWindow.setWindowTitle(QString("Playing directory: %1").arg(wInputInfo.completeBaseName()));
       }
-      else // TODO: validate if know file type...
+      else // TODO: validate if known file type...
       {
         MainWindow::Playlist playlist;
         playlist.push_back(QUrl::fromLocalFile(wInputPath));
@@ -101,10 +101,10 @@ void savePreferences(const MainWindow& iMainWindow)
 {
   const auto& wPlacement = iMainWindow.getPlacement();
 
-  QSettings settings("IstuSoft", "MediaPlayer");
+  QSettings settings(QSettings::IniFormat, QSettings::UserScope, "IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
   settings.setValue("size", wPlacement.mSize);
-  settings.setValue("pos", wPlacement.mPosition - QPoint(0, 31)); // TODO: what is this??, we move the window in loadPreferences with this value, but when the window gets the event, the y value is bigger than this by 31 pixels!!
+  settings.setValue("pos", wPlacement.mPosition - QPoint(0, 31)); // TODO: what is this 31 height change in every run??, we move the window in loadPreferences with this value, but when the window gets the event, the y value is bigger than this by 31 pixels!!
   settings.setValue("autoPlay", iMainWindow.getSettings().mAutoPlay);
   settings.setValue("audioMode", static_cast<quint32>(iMainWindow.getSettings().mAudioMode));
   settings.setValue("firstFrame", iMainWindow.getSettings().mShowFirstFrame);
@@ -114,7 +114,7 @@ void savePreferences(const MainWindow& iMainWindow)
 
 void loadPreferences(MainWindow& iMainWindow)
 {
-  QSettings settings("IstuSoft", "MediaPlayer");
+  QSettings settings(QSettings::IniFormat, QSettings::UserScope, "IstuSoft", "MediaPlayer");
   settings.beginGroup("MainWindow");
 
   auto wSize = settings.value("size", QSize(800, 600)).toSize();

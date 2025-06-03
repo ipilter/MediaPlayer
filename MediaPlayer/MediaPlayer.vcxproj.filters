@@ -118,6 +118,9 @@
     <Image Include="Icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="MediaPlayerApp.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="default_style.qss">

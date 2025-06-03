@@ -31,8 +31,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Escape:
+  {
     close();
     break;
+  }
   case Qt::Key_A:
   {
     MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
@@ -47,7 +49,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if (event->modifiers() & Qt::AltModifier)
     {
       mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::Start);
-      return;
+      break;
     }
     mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, step);
     break;
@@ -66,7 +68,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else if (event->modifiers() & Qt::AltModifier)
     {
       mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::End);
-      return;
+      break;
     }
     mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, step);
     break;
@@ -159,6 +161,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     else
     {
       this->showMaximized();
+      //TODO send event to view to hide mouse cursor if needed. at least schedule the timer to hide the cursor
     }
     break;
   }
@@ -204,14 +207,23 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key::Key_Delete:
   {
-    mMediaPlayer->deleteSequence();
-    break;
+    MediaPlayer::CutMethod wCutMethod = MediaPlayer::CutMethod::Fast;
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      mMediaPlayer->deleteSequence();
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+    }
   }
   default:
   {
     QMainWindow::keyPressEvent(event);
-    break;
   }
+  break;
   }
 }
 

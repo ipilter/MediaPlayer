@@ -40,13 +40,15 @@ void Slider::mousePressEvent(QMouseEvent* wEvent)
 
   if (wEvent->button() == Qt::LeftButton)
   {
-    for (auto& wSequence : mSequences)
-    {
-      wSequence.second.mSelected = false;
-    }
-
     const QPoint wClickPos = wEvent->pos();
+    // two areas: top half is the seqence area, bottom half is the progress bar area
+    const QRect wSequenceArea(0, mSequenceRectBottom, size().width(), mSequenceRectTop);
+    // use some threshold to help selecting small pieces
+    const QRect wClickArea(wClickPos.x() - (mSequenceRectMinLength / 2), wClickPos.y(), mSequenceRectMinLength, wClickPos.y());
+    // check if the click is in the sequence area    
+    wHandled = wSequenceArea.intersects(wClickArea);
 
+    // collect intersecting sequences, if any
     OrderedSequenceEntries wIntersectingSequence;
     for (auto& wSequenceEntry : mSequences)
     {
@@ -55,8 +57,15 @@ void Slider::mousePressEvent(QMouseEvent* wEvent)
         qDebug() << wClickPos << " clicked on " << wSequenceEntry.first.first.toString() << " - " << wSequenceEntry.first.second.toString();
         wIntersectingSequence.insert(&wSequenceEntry);
       }
+
+      // if the click is in the sequence area, toggle selection
+      if (wHandled)
+      {
+        wSequenceEntry.second.mSelected = false;
+      }
     }
 
+    // use intersecting sequences using slection logic TODO: to do
     if (wIntersectingSequence.empty())
     {
       emit sequenceSelected(nullptr);
@@ -70,14 +79,6 @@ void Slider::mousePressEvent(QMouseEvent* wEvent)
       wHandled = true;
     }
     update();
-
-    // TODO: clicking on the Sequence area should not set the value of the slider
-    const QRect wSequenceArea(0, mSequenceRectBottom, size().width(), mSequenceRectTop);
-
-    // Click area for the click to make it easier to select small sequences
-    const QRect wClickArea(wClickPos.x() - (mSequenceRectMinLength / 2), wClickPos.y(), mSequenceRectMinLength, wClickPos.y());
-    // Check if the click is within the sequence area, is do so, do not move the slider
-    wHandled = wSequenceArea.intersects(wClickArea);
 
     if (!wHandled)
     {
@@ -123,10 +124,19 @@ void Slider::paintEvent(QPaintEvent* wEvent)
 {
   QSlider::paintEvent(wEvent);
 
-  QPainter wPainter(this);  
-  for (const auto& wSequence : mSequences)
+  OrderedSequenceEntries wOrderedSequences;
+  for (auto& wSequenceEntry : mSequences)
   {
-    wPainter.fillRect(sequenceRect(wSequence), sequenceColor(wSequence));
+    wOrderedSequences.insert(&wSequenceEntry);
+  }
+
+  QPainter wPainter(this);
+  auto wIt = wOrderedSequences.rbegin();
+  while (wIt != wOrderedSequences.rend())
+  {
+    const SequenceEntry& wSequenceEntry = **wIt;
+    wPainter.fillRect(sequenceRect(wSequenceEntry), sequenceColor(wSequenceEntry));
+    ++wIt;
   }
 }
 
@@ -144,18 +154,16 @@ void Slider::setSequences(const SequenceMap& wSequence)
 const QColor& Slider::sequenceColor(const SequenceEntry& wSequenceEntry) const
 {
   static const std::map<QString, const QColor> colorMap = {
-    {"invalid",    QColor(255, 100, 100, 210) },
-    {"ready",      QColor(80, 120, 255, 156)  },
-    {"processing", QColor(255, 255, 255, 156) },
-    {"succeeded",  QColor(80, 250, 90, 156)   },
-    {"failed",     QColor(255, 20, 78, 156)    },
-    {"selected",   QColor(216, 219, 28, 156) },
-    {"editing",    QColor(155, 200, 210, 156) }
+    {"invalid",    QColor(255,   0,   0, 185) },
+    {"ready",      QColor(100, 130, 205, 185) },
+    {"processing", QColor(255, 255, 255, 185) },
+    {"succeeded",  QColor( 80, 255,  90, 185) },
+    {"failed",     QColor(255,  20,  78, 185) },
+    {"selected",   QColor(246, 249,  38, 185) },
+    {"editing",    QColor(055, 150, 150, 185) }
   };
 
   QString colorName = "invalid";
-
-  // if editing or selected
   if (wSequenceEntry.second.mIsEditing)
   {
     colorName = "editing";
@@ -166,7 +174,6 @@ const QColor& Slider::sequenceColor(const SequenceEntry& wSequenceEntry) const
   }
   else
   {
-    // if alredy done, color by cut operation state
     switch (wSequenceEntry.second.mState)
     {
       case OperationState::Ready:
