@@ -46,7 +46,9 @@ public slots:
 signals:
   void sliderChanged(int position);
   void previousButtonClicked();
+  void seekLeftButtonClicked();
   void startStopButtonClicked();
+  void seekRightButtonClicked();
   void nextButtonClicked();
   void audioButtonClicked();
   void sequenceSelected(const Sequence* wSequence);
@@ -61,7 +63,9 @@ private:
   VideoWidget* mVideoWidget;
   Slider* mSlider;
   QPushButton* mPreviousButton;
+  QPushButton* mSeekLeft;
   QPushButton* mPlayButton;
+  QPushButton* mSeekRight;
   QPushButton* mNextButton;
   QPushButton* mAudioButton;
 

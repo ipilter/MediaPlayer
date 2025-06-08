@@ -18,23 +18,25 @@ MediaPlayer::MediaPlayer(QObject* parent)
   , mView(std::make_shared<View>())
   , mPlayer(std::make_shared<VideoPlayer>(mView->getVideoWidget()))
 {
-  QObject::connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) { mView->setPosition(position); });
-  QObject::connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) { mView->setDuration(duration); });
-  QObject::connect(mPlayer.get(), &VideoPlayer::videoLoaded,     this, &MediaPlayer::onVideoLoaded);
-  QObject::connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded);
+  connect(mPlayer.get(), &VideoPlayer::positionChanged, this, [this](VTime position) { mView->setPosition(position); });
+  connect(mPlayer.get(), &VideoPlayer::durationChanged, this, [this](VTime duration) { mView->setDuration(duration); });
+  connect(mPlayer.get(), &VideoPlayer::videoLoaded,     this, &MediaPlayer::onVideoLoaded);
+  connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded);
 
-  QObject::connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
-  QObject::connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
-  QObject::connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
-  QObject::connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
-  QObject::connect(mView.get(), &View::audioButtonClicked,      this, [this]() { toggleAudio(); });
-  
-  QObject::connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
+  connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
+  connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
+  connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
+  connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
+  connect(mView.get(), &View::audioButtonClicked,      this, [this]() { toggleAudio(); });
+  connect(mView.get(), &View::seekLeftButtonClicked, this, [this]() { seek(SeekDirection::Backward, SeekStep::Random); });
+  connect(mView.get(), &View::seekRightButtonClicked, this, [this]() { seek(SeekDirection::Forward, SeekStep::Random); });
+
+  connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
       : mView->setDurationLabel(wSequence->second - wSequence->first, true); // TODO solve the coloring of the label in a better way
     mSelectedSequence = wSequence; });
-  QObject::connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
+  connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
   {
     qDebug() << "double clicked sequence" << wSequence->first.ms() << wSequence->second.ms();
     QString wFileName = QFileInfo(mPlaylist[mCurrentVideo].toString()).fileName();
@@ -54,7 +56,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
     QProcess::startDetached("explorer.exe", { wSequenceEntry->second.mFilePath });
   });
 
-  QObject::connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
+  connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
   mPlayer->setVolume(50);
   //mPlayer->setPlaybackRate(0.5f);

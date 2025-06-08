@@ -7,5 +7,7 @@
         <file>bitmaps/musicAudio.png</file>
         <file>bitmaps/mutedAudio.png</file>
         <file>bitmaps/videoAudio.png</file>
+        <file>bitmaps/seekLeft.png</file>
+        <file>bitmaps/seekRight.png</file>
     </qresource>
 </RCC>

@@ -21,6 +21,8 @@ View::View(QWidget* parent)
 {
   mPixmapTable.emplace("play",     QPixmap(":/bitmaps/play.png"));
   mPixmapTable.emplace("pause",    QPixmap(":/bitmaps/pause.png"));
+  mPixmapTable.emplace("seekLeft",    QPixmap(":/bitmaps/seekLeft.png"));
+  mPixmapTable.emplace("seekRight",    QPixmap(":/bitmaps/seekRight.png"));
   mPixmapTable.emplace("previous", QPixmap(":/bitmaps/previous.png"));
   mPixmapTable.emplace("next",     QPixmap(":/bitmaps/next.png"));
   mPixmapTable.emplace("mutedAudio",    QPixmap(":/bitmaps/mutedAudio.png"));
@@ -36,8 +38,16 @@ View::View(QWidget* parent)
   mPreviousButton = new QPushButton(parent);
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
 
+  mSeekLeft = new QPushButton(parent); // <-- Add this block
+  mSeekLeft->setIcon(QIcon(mPixmapTable["seekLeft"]));
+  mSeekLeft->setObjectName("seekLeftButton");
+
   mPlayButton = new QPushButton(parent);
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
+
+  mSeekRight = new QPushButton(parent); // <-- Add this block
+  mSeekRight->setIcon(QIcon(mPixmapTable["seekRight"]));
+  mSeekRight->setObjectName("seekRightButton");
 
   mNextButton = new QPushButton(parent);
   mNextButton->setIcon(QIcon(mPixmapTable["next"]));
@@ -72,7 +82,9 @@ View::View(QWidget* parent)
 
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   buttonLayout->addWidget(mPreviousButton);
+  buttonLayout->addWidget(mSeekLeft);
   buttonLayout->addWidget(mPlayButton);
+  buttonLayout->addWidget(mSeekRight);
   buttonLayout->addWidget(mNextButton);
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
@@ -90,7 +102,11 @@ View::View(QWidget* parent)
   connect(mSlider, &Slider::sequenceSelected, this, [ this ](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
   connect(mSlider, &Slider::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) { emit sequenceDoubleClicked(wSequence); });
   connect(mPreviousButton, &QPushButton::clicked, this, [ this ]() { emit previousButtonClicked(); mPlayButton->setFocus(); });
+
+  connect(mSeekLeft, &QPushButton::clicked, this, [ this ]() { emit seekLeftButtonClicked(); });
   connect(mPlayButton, &QPushButton::clicked, this, [ this ]() { emit startStopButtonClicked(); });
+  connect(mSeekRight, &QPushButton::clicked, this, [ this ]() { emit seekRightButtonClicked(); });
+
   connect(mNextButton, &QPushButton::clicked, this, [ this ]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [ this ]() { emit onMouseClick(); mPlayButton->setFocus(); });
   connect(mAudioButton, &QPushButton::clicked, this, [ this ]() { emit audioButtonClicked(); mPlayButton->setFocus(); });
