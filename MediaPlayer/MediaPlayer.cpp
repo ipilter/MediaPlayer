@@ -8,10 +8,18 @@
 #include <QUrl>
 #include <QThread>
 #include <QProcess>
+#include <QMessageBox>
+#include <QFileInfo>
+#include <QDir>
 
 #include <random>
 #include <fstream>
 #include <windows.h>
+#include <filesystem>
+#include <algorithm>
+
+#undef min
+#undef max
 
 MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
@@ -67,6 +75,12 @@ MediaPlayer::~MediaPlayer()
 
 void MediaPlayer::setPlaylist(const Playlist& playlist)
 {
+  if (playlist.empty())
+  {
+    logStatusMessage("Playlist is empty.");
+    return;
+  }
+
   mPlaylist = playlist;
   mCurrentVideo = 0;
   mPlayer->setVideo(mPlaylist[mCurrentVideo]);
@@ -260,7 +274,9 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
         }
       }
 
-      wStepSize = VTime(Random(qint64(10), wSeekWindow.ms()));  // assuming 10 ms is left from the video, at leat..
+      qint64 wMin = 10;
+      qint64 wMax = std::max(wMin, wSeekWindow.ms());
+      wStepSize = VTime(Random(wMin, wMax));  // assuming 10 ms is left from the video, at leat..
     }
   }
 
@@ -520,7 +536,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   const QString wPrettyFileName = prettifyFileName(QFileInfo(mPlaylist[mCurrentVideo].toLocalFile()).completeBaseName());
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
-  const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + "loop.mp4";
+  const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + ".loop.mp4";
   const unsigned loopCount = mView->getLoopCount();
   sequenceEntry.second.mFilePath = wLoopFilePath;
 
@@ -663,4 +679,65 @@ void MediaPlayer::deleteSequence()
 
   mSequenceMap.erase(*mSelectedSequence);
   emit sequencesChanged(mSequenceMap);
+}
+
+void MediaPlayer::deleteCurrentVideo()
+{
+  if (mPlaylist.empty() || mCurrentVideo >= mPlaylist.size())
+  {
+    return;
+  }
+
+  const QString filePath = mPlaylist[mCurrentVideo].toLocalFile();
+
+  const QFileInfo fileInfo(filePath);
+  const QString dirPath = QDir::cleanPath(fileInfo.absolutePath());
+
+  // Check if the directory is in the allowed folders
+  bool allowed = std::any_of(
+    mSettings.mRawFolders.begin(), mSettings.mRawFolders.end(),
+    [ &dirPath ](const std::string& allowedFolder)
+  {
+    return dirPath.compare(QDir::cleanPath(QString::fromStdString(allowedFolder)), Qt::CaseInsensitive) == 0;
+  }
+  );
+
+  // if readonly do not delete
+  if (!fileInfo.permissions().testFlag(QFileDevice::WriteUser))
+  {
+    logStatusMessage(QString("Deletion not allowed: %1 is read-only.").arg(filePath));
+    return;
+  }
+  
+  if (!allowed)
+  {
+    logStatusMessage(QStringLiteral("Deletion not allowed: %1 is not in allowed folders.").arg(dirPath));
+    return;
+  }
+
+  QMessageBox::StandardButton reply = QMessageBox::warning(
+    nullptr,
+    QStringLiteral("Delete Video"),
+    QStringLiteral("Are you sure you want to delete?\n\n%1").arg(filePath),
+    QMessageBox::Ok | QMessageBox::Cancel
+  );
+
+  if (reply == QMessageBox::Ok)
+  {
+    std::error_code ec;
+    try { std::filesystem::remove(filePath.toStdWString(), ec); } catch (...) { }
+
+    if (!ec)
+    {
+      logStatusMessage(QString("File deleted: %1").arg(filePath));
+      
+      mPlaylist.erase(mPlaylist.begin() + mCurrentVideo);
+      mCurrentVideo = std::min(mCurrentVideo, mPlaylist.size() - 1);
+      // update with current wideo if any!
+    }
+    else
+    {
+      logStatusMessage(QString("Error deleting file %1: %2").arg(filePath).arg(QString::fromStdString(ec.message())));
+    }
+  }
 }

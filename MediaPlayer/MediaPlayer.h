@@ -5,9 +5,9 @@
 #include "Settings.h"
 
 #include <QObject>
-
 #include <memory>
 #include <vector>
+#include <string> // add for std::string
 
 class View;
 class VideoPlayer;
@@ -55,6 +55,8 @@ public:
   // TODO better sequence management
   void resetSeqenceState();
   void deleteSequence();
+  // file management by who?
+  void deleteCurrentVideo();
 
   void logStatusMessage(const QString& msg);
 

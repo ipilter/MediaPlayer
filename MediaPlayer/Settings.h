@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <string>
+
 struct Settings
 {
   enum class AudioMode : unsigned
@@ -14,4 +17,5 @@ struct Settings
   AudioMode mAudioMode = AudioMode::Muted;
   bool mShowFirstFrame = false;
   int mCursorTimeout = 1000;
+  std::vector<std::string> mRawFolders;
 };

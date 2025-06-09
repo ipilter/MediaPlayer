@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
 public:
   using Playlist = MediaPlayer::Playlist;
 
-  MainWindow(QWidget *parent = nullptr);
+  MainWindow(QWidget* parent = nullptr);
   ~MainWindow();
 
   void setPlaylist(const Playlist& playlist);

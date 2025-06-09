@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "MediaPlayer.h"
+#include "Settings.h" // add this include
 
 #include <QtWidgets/QApplication>
 #include <QSettings>
@@ -7,11 +8,13 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QDir>
+#include <QStringList> // for string list conversion
 
 #include <fstream>
 #include <random>
 #include <algorithm>
 
+std::pair<MainWindow::Playlist, QString> getInputPlaylist(const QString& wInputPath);
 void savePreferences(const MainWindow& iMainWindow);
 void loadPreferences(MainWindow& iMainWindow);
 MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath);
@@ -21,6 +24,7 @@ QString readStyles(const QString& iFilePath);
 int main(int argc, char *argv[])
 {
   QApplication wApp(argc, argv);
+  int wExitStatus = -1;
 
   try
   {
@@ -47,36 +51,22 @@ int main(int argc, char *argv[])
       wApp.setStyleSheet(wStyles);
     }
 
-    MainWindow wMainWindow;
-    loadPreferences(wMainWindow);
-
-    const QString wInputPath = argv[1];
+    // Main logic
     {
-      const QFileInfo wInputInfo(wInputPath);
-      if (wInputInfo.suffix().toLower() == "mpl")
-      {
-        wMainWindow.setPlaylist(readPlaylistFile(wInputPath));
-        wMainWindow.setWindowTitle(QString("Playing playlist: \"%1\"").arg(wInputInfo.completeBaseName()));
-      }
-      else if (wInputInfo.isDir())
-      {
-        wMainWindow.setPlaylist(readDirectory(wInputPath));
-        wMainWindow.setWindowTitle(QString("Playing directory: %1").arg(wInputInfo.completeBaseName()));
-      }
-      else // TODO: validate if known file type...
-      {
-        MainWindow::Playlist playlist;
-        playlist.push_back(QUrl::fromLocalFile(wInputPath));
-        wMainWindow.setPlaylist(playlist);
-        wMainWindow.setWindowTitle(QString("Playing: %1").arg(wInputInfo.fileName()));
-      }
+      // view with controller
+      MainWindow wMainWindow;
+      loadPreferences(wMainWindow);
+
+      const QString wInputPath = argv[1];
+      const auto wPlayList = getInputPlaylist(wInputPath); // playlist, title
+      wMainWindow.setPlaylist(wPlayList.first);
+      wMainWindow.setWindowTitle(wPlayList.second);
+
+      wMainWindow.show();
+      wExitStatus = wApp.exec();
+
+      savePreferences(wMainWindow);
     }
-
-    wMainWindow.show();
-    const int wRet = wApp.exec();
-    savePreferences(wMainWindow);
-
-    return wRet;
   }
   catch (const std::exception& e)
   {
@@ -91,7 +81,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  return 0;
+  return wExitStatus;
 } // main
 
 
@@ -109,6 +99,14 @@ void savePreferences(const MainWindow& iMainWindow)
   settings.setValue("audioMode", static_cast<quint32>(iMainWindow.getSettings().mAudioMode));
   settings.setValue("firstFrame", iMainWindow.getSettings().mShowFirstFrame);
   settings.setValue("cursorTimeout", iMainWindow.getSettings().mCursorTimeout);
+
+  QStringList folderList;
+  for (const auto& folder : iMainWindow.getSettings().mRawFolders)
+  {
+    folderList << QString::fromStdString(folder);
+  }
+  settings.setValue("rawFolders", folderList);
+
   settings.endGroup();
 }
 
@@ -120,12 +118,21 @@ void loadPreferences(MainWindow& iMainWindow)
   auto wSize = settings.value("size", QSize(800, 600)).toSize();
   auto wPosition = settings.value("pos", QPoint(100, 100)).toPoint();
 
+  QStringList folderList = settings.value("rawFolders", QStringList()).toStringList();
+  std::vector<std::string> rawFolders;
+  for (const auto& folder : folderList)
+  {
+    rawFolders.push_back(folder.toStdString());
+  }
+
   iMainWindow.resize(wSize);
   iMainWindow.move(wPosition);
   iMainWindow.setSettings(Settings{ settings.value("autoPlay", false).toBool()
                                                  , static_cast<Settings::AudioMode>(settings.value("audioMode", 0).toUInt())
                                                  , settings.value("firstFrame", false).toBool()
-                                                 , settings.value("cursorTimeout", 500).toInt() });
+                                                 , settings.value("cursorTimeout", 500).toInt()
+                                                 , rawFolders
+  });
   settings.endGroup();
 }
 
@@ -179,4 +186,30 @@ QString readStyles(const QString& iFilePath)
   const QString wStyleSheet = wStream.readAll();
   wFile.close();
   return wStyleSheet;
+}
+
+std::pair<MainWindow::Playlist, QString> getInputPlaylist(const QString& wInputPath)
+{
+  const QFileInfo wInputInfo(wInputPath);
+  if (wInputInfo.suffix().toLower() == "mpl")
+  {
+    auto playlist = readPlaylistFile(wInputPath);
+    QString title = QString("Playing playlist: \"%1\"").arg(wInputInfo.completeBaseName());
+    return { playlist, title };
+  }
+  else if (wInputInfo.isDir())
+  {
+    QDir wInputDir(wInputPath);
+    auto playlist = readDirectory(wInputPath);
+    QString title = QString("Playing directory: %1").arg( 
+      wInputDir.isRoot() ? wInputPath : wInputInfo.completeBaseName());
+    return { playlist, title };
+  }
+  else // TODO: validate if known file type...
+  {
+    MainWindow::Playlist playlist;
+    playlist.push_back(QUrl::fromLocalFile(wInputPath));
+    QString title = QString("Playing: %1").arg(wInputInfo.fileName());
+    return { playlist, title };
+  }
 }
