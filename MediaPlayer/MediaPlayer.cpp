@@ -683,7 +683,7 @@ void MediaPlayer::deleteSequence()
 
 void MediaPlayer::deleteCurrentVideo()
 {
-  if (mPlaylist.empty() || mCurrentVideo >= mPlaylist.size())
+  //if (mPlaylist.empty() || mCurrentVideo >= mPlaylist.size())
   {
     return;
   }
@@ -724,20 +724,29 @@ void MediaPlayer::deleteCurrentVideo()
 
   if (reply == QMessageBox::Ok)
   {
-    std::error_code ec;
-    try { std::filesystem::remove(filePath.toStdWString(), ec); } catch (...) { }
+    //got to next or unload video if single file and try deleting source file.
+    next();
 
-    if (!ec)
-    {
-      logStatusMessage(QString("File deleted: %1").arg(filePath));
-      
-      mPlaylist.erase(mPlaylist.begin() + mCurrentVideo);
-      mCurrentVideo = std::min(mCurrentVideo, mPlaylist.size() - 1);
-      // update with current wideo if any!
-    }
-    else
-    {
-      logStatusMessage(QString("Error deleting file %1: %2").arg(filePath).arg(QString::fromStdString(ec.message())));
-    }
+    //std::error_code ec;
+    //try { std::filesystem::remove(filePath.toStdWString(), ec); } catch (...) { }
+    //
+    //if (!ec)
+    //{
+    //  logStatusMessage(QString("File deleted: %1").arg(filePath));
+    //  
+    //TODO: refactor - same as next/previous 
+    //  mPlaylist.erase(mPlaylist.begin() + mCurrentVideo);
+    //  mCurrentVideo = std::min(mCurrentVideo, mPlaylist.size() - 1);
+    //  
+    //  mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+    //
+    //  mSequenceMap.clear();
+    //  mSelectedSequence = nullptr;
+    //  emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
+    //}
+    //else
+    //{
+    //  logStatusMessage(QString("Error deleting file %1: %2").arg(filePath).arg(QString::fromStdString(ec.message())));
+    //}
   }
 }
