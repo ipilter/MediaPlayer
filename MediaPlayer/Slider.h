@@ -21,6 +21,7 @@ protected:
   void paintEvent(QPaintEvent* wEvent) override;
   void mousePressEvent(QMouseEvent* wEvent) override;
   void mouseDoubleClickEvent(QMouseEvent* wEvent) override;
+  void wheelEvent(QWheelEvent* wEvent) override;
 
 private:
   const QColor& sequenceColor(const SequenceEntry& wSequenceEntry) const;

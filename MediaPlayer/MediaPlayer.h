@@ -3,11 +3,12 @@
 #include "Types.h"
 #include "Process.h"
 #include "Settings.h"
+#include "Playlist.h"
+#include "Filter.h"
 
 #include <QObject>
+
 #include <memory>
-#include <vector>
-#include <string> // add for std::string
 
 class View;
 class VideoPlayer;
@@ -20,12 +21,15 @@ class MediaPlayer : public QObject
   Q_OBJECT
 
 public:
-  using Playlist = std::vector<QUrl>;
-
   enum class CutMethod { Fast, Precise, Loop };
   enum class SeekStep { Normal, Small, Big, Random };
   enum class SeekDirection { Forward, Backward };
   enum class SnapPosition { Start, End };
+
+  using Playlist = details::Playlist;
+  using Filter = details::Filter;
+  using Playlists = std::vector<Playlist>;
+  using Filters = std::vector<Filter>;
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -52,16 +56,21 @@ public:
   void mark(const bool isCancel = false);
   void cut(const CutMethod cutMethod);
 
-  // TODO better sequence management
+  // sequence management
   void resetSeqenceState();
   void deleteSequence();
-  // file management by who?
+
+  // file management
   void deleteCurrentVideo();
+
+  // filter management
+  void addFilter(const Filter& filter);
 
   void logStatusMessage(const QString& msg);
 
 signals:
   void sequencesChanged(const SequenceMap& sequences);
+  void filtersChanged(const Filters& filters);
 
 private:
   void onVideoLoaded();
@@ -85,11 +94,14 @@ private:
   Sequence mEditedSequence = Sequence{ VTime(0), VTime(0) };
   Sequence const * mSelectedSequence = nullptr;
 
+  // filter management
+  Filters mFilters;
+
   using ProcessPtr = std::unique_ptr<QProcess>;
   std::vector<ProcessPtr> mProcesses; // TODO: destroy finished processsed, do not accumulate them
   
   const QString mFFMpegPath = "d:\\Tools\\ffmpeg\\ffmpeg.exe"; // TODO: settings
-  const QString mOutputRootDirectory = "e:\\";  // TODO: settings
+  const QString mOutputRootDirectory = "a:\\";  // TODO: settings
 
   // settings
   Settings mSettings;

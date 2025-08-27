@@ -66,6 +66,10 @@ MediaPlayer::MediaPlayer(QObject* parent)
 
   connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
 
+  // if a +filter button is clicked on the view, ask for a filter pattern and if ok, view will emit an event with the pattern
+  // controller catches this event and creates a new filter then emits a Filter changed event
+  // for the filter changed event the view updates it`s own filter UI element list with the given filter list of the event
+
   mPlayer->setVolume(50);
   //mPlayer->setPlaybackRate(0.5f);
 }
@@ -749,4 +753,10 @@ void MediaPlayer::deleteCurrentVideo()
     //  logStatusMessage(QString("Error deleting file %1: %2").arg(filePath).arg(QString::fromStdString(ec.message())));
     //}
   }
+}
+
+void MediaPlayer::addFilter(const MediaPlayer::Filter& filter)
+{
+  mFilters.push_back(filter);
+  emit filtersChanged(mFilters);
 }

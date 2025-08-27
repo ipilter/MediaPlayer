@@ -8,6 +8,7 @@
 #include <QStyleHintReturn>
 #include <QRect>
 #include <QMargins>
+#include <QWheelEvent>
 
 #include <set>
 
@@ -206,4 +207,28 @@ const QRect Slider::sequenceRect(const SequenceEntry& wSequenceEntry) const
   }
 
   return QRect(wStartX, mSequenceRectBottom, wLength, mSequenceRectTop);
+}
+
+void Slider::wheelEvent(QWheelEvent* wEvent)
+{
+  // TODO move this logic out form the UI element, see MainWindow::keyPressEvent
+  int stepMs = 500;
+  const auto mods = wEvent->modifiers();
+  if (mods & Qt::ControlModifier)
+    stepMs = 25;
+  else if (mods & Qt::ShiftModifier)
+    stepMs = 5'000;
+
+  const int numSteps = wEvent->angleDelta().y() / 120;
+  if (numSteps == 0) {
+    wEvent->ignore();
+    return;
+  }
+
+  int newValue = value() + numSteps * stepMs;
+  newValue = qBound(minimum(), newValue, maximum());
+  setValue(newValue);
+  emit sliderMoved(newValue);
+
+  wEvent->accept();
 }

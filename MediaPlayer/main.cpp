@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
 
   try
   {
+    // Sanity checks
     if (argc < 2 || !QFile::exists(argv[1]))
     {
       if (argc > 1)
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
       wExitStatus = wApp.exec();
 
       savePreferences(wMainWindow);
-    }
+    } // destructor order!
   }
   catch (const std::exception& e)
   {
