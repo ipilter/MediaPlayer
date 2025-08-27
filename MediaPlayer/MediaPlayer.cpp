@@ -31,7 +31,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mPlayer.get(), &VideoPlayer::videoLoaded,     this, &MediaPlayer::onVideoLoaded);
   connect(mPlayer.get(), &VideoPlayer::videoEnded,      this, &MediaPlayer::onVideoEnded);
 
-  connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position)); });
+  connect(mView.get(), &View::sliderChanged,          this, [this](int position) {setPosition(static_cast<VTime>(position), true); });
   connect(mView.get(), &View::previousButtonClicked,  this, [this]() { previous(); });
   connect(mView.get(), &View::startStopButtonClicked, this, [this]() { startStop(); });
   connect(mView.get(), &View::nextButtonClicked,      this, [this]() { next(); });
@@ -161,7 +161,7 @@ void MediaPlayer::next()
 
   if (mPlaylist.size() == 1)
   {
-    setPosition(VTime(0));
+    setPosition(VTime(0), !isPlaying);
   }
   else
   {
@@ -194,7 +194,7 @@ void MediaPlayer::previous()
 
   if (mPlaylist.size() == 1)
   {
-    setPosition(VTime(0));
+    setPosition(VTime(0), !isPlaying);
   }
   else
   {
@@ -237,9 +237,9 @@ void MediaPlayer::toggleAudio()
   mView->toggleAudio(mSettings.mAudioMode);
 }
 
-void MediaPlayer::setPosition(const VTime& position)
+void MediaPlayer::setPosition(const VTime& position, const bool updateNeeded)
 {
-  mPlayer->setPosition(position);
+  mPlayer->setPosition(position, updateNeeded);
 }
 
 void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekStep step)
@@ -427,15 +427,11 @@ void MediaPlayer::onVideoLoaded()
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
 
-  setPosition(VTime(0));
+  setPosition(VTime(0), mSettings.mShowFirstFrame);
 
   if (mSettings.mAutoPlay)
   {
     play();
-  }
-  else if (mSettings.mShowFirstFrame)
-  {
-    pause();
   }
 }
 

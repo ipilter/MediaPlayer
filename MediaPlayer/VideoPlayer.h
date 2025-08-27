@@ -41,7 +41,7 @@ public:
   QMediaMetaData getMetadata() const;
 
 public slots:
-  void setPosition(VTime position);
+  void setPosition(VTime position, const bool updateNeeded = false);
   void setPlaybackRate(qreal rate);
   void setVolume(float volume);
   void setMuted(bool muted);

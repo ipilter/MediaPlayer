@@ -48,7 +48,7 @@ public:
   void previous();
   void toggleAudio();
 
-  void setPosition(const VTime& position);
+  void setPosition(const VTime& position, const bool updateNeeded);
   void seek(SeekDirection direction, SeekStep step);
   void snapToSelection(SnapPosition position);
   void startStop();

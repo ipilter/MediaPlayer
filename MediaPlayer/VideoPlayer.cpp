@@ -95,12 +95,18 @@ void VideoPlayer::stop()
 
 void VideoPlayer::seekBackward(VTime size)
 {
+  const bool wPlaying = isPlaying();
   if (mVideoPlayer->position() <= size.ms())
   {
     mVideoPlayer->setPosition(0);
     return;
   }
   mVideoPlayer->setPosition(mVideoPlayer->position() - size.ms());
+
+  if (!wPlaying)
+  {
+    mVideoPlayer->pause(); // TODO seems working, but check what is the best here?
+  }
 }
 
 void VideoPlayer::seekForward(VTime size)
@@ -129,9 +135,15 @@ bool VideoPlayer::isMuted() const
   return mAudioOutput->isMuted();
 }
 
-void VideoPlayer::setPosition(VTime position)
+void VideoPlayer::setPosition(VTime position, const bool updateNeeded)
 {
+  const bool wPlaying = isPlaying();
   mVideoPlayer->setPosition(position.ms());
+  
+  if (updateNeeded && !wPlaying)
+  {
+    mVideoPlayer->pause(); // TODO seems working, but check what is the best here?
+  }
 }
 
 void VideoPlayer::setPlaybackRate(qreal rate)
