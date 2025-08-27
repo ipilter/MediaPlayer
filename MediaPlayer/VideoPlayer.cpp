@@ -105,12 +105,18 @@ void VideoPlayer::seekBackward(VTime size)
 
 void VideoPlayer::seekForward(VTime size)
 {
+  const bool wPlaying = isPlaying();
   if (mVideoPlayer->position() + size.ms() >= mVideoPlayer->duration())
   {
     mVideoPlayer->setPosition(mVideoPlayer->duration());
     return;
   }
   mVideoPlayer->setPosition(mVideoPlayer->position() + size.ms());
+  
+  if (!wPlaying)
+  {
+    mVideoPlayer->pause(); // TODO seems working, but check what is the best here?
+  }
 }
 
 float VideoPlayer::volume() const
