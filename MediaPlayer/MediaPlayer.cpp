@@ -38,7 +38,8 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::audioButtonClicked,      this, [this]() { toggleAudio(); });
   connect(mView.get(), &View::seekLeftButtonClicked, this, [this]() { seek(SeekDirection::Backward, SeekStep::Random); });
   connect(mView.get(), &View::seekRightButtonClicked, this, [this]() { seek(SeekDirection::Forward, SeekStep::Random); });
-
+  connect(mView.get(), &View::deinterlaceChecked, this, [this](const bool state) { setDeinterlace(state); });
+  
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
@@ -237,9 +238,19 @@ void MediaPlayer::toggleAudio()
   mView->toggleAudio(mSettings.mAudioMode);
 }
 
+void MediaPlayer::setDeinterlace(const bool state)
+{
+  mDeinterlace = state;
+}
+
 void MediaPlayer::setPosition(const VTime& position, const bool updateNeeded)
 {
   mPlayer->setPosition(position, updateNeeded);
+}
+
+VTime MediaPlayer::getPosition() const
+{
+  return mPlayer->getPosition();
 }
 
 void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekStep step)
@@ -427,7 +438,7 @@ void MediaPlayer::onVideoLoaded()
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
 
-  setPosition(VTime(0), mSettings.mShowFirstFrame);
+  setPosition(VTime(0));
 
   if (mSettings.mAutoPlay)
   {
@@ -439,14 +450,6 @@ void MediaPlayer::onVideoEnded()
 {
   // TODO add loop|next|stop Settings
   next();
-  if (isPlaying())
-  {
-    play();
-  }
-  else if (mSettings.mShowFirstFrame)
-  {
-    pause();
-  }
 }
 
 void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
@@ -491,6 +494,38 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
 
+  QStringList args;
+  {
+    const VTime wPreloadTime(1000);
+    if (wStartTime >= wPreloadTime)
+    {
+      args = {
+          "-ss", (wStartTime - wPreloadTime).toString(),
+          "-i", wVideoPath,
+          "-ss", wPreloadTime.toString(),
+      };
+    }
+    else
+    {
+      args = {
+          "-i", wVideoPath,
+          "-ss", wStartTime.toString(),
+          "-t", (wEndTime - wStartTime).toString(),
+      };
+    }
+
+    args.append({ "-t", (wEndTime - wStartTime).toString() });
+
+    if (mDeinterlace)
+    {
+      args.append({ "-vf", "yadif" });
+    }
+
+    args.append({ "-c:v", "libx264",
+                  "-c:a", "aac",
+                  wCutFilePath, "-y" });
+  }
+
   mProcesses.push_back(std::make_unique<QProcess>(this));  
   connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
     sequenceEntry.second.mState = OperationState::Processing;
@@ -504,28 +539,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
     logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
   });
   
-  const VTime wPreloadTime(1000);
-  if (wStartTime >= wPreloadTime)
-  {
-    mProcesses.back()->start(mFFMpegPath, {
-      "-ss", (wStartTime - wPreloadTime).toString(),
-      "-i", wVideoPath,
-      "-ss", wPreloadTime.toString(),
-      "-t", (wEndTime - wStartTime).toString(),
-      "-c:v", "libx264",
-      "-c:a", "aac",
-      wCutFilePath, "-y" });
-  }
-  else
-  {
-    mProcesses.back()->start(mFFMpegPath, {
-      "-i", wVideoPath,
-      "-ss", wStartTime.toString(),
-      "-t", (wEndTime - wStartTime).toString(),
-      "-c:v", "libx264",
-      "-c:a", "aac",
-      wCutFilePath, "-y" });
-  }
+  mProcesses.back()->start(mFFMpegPath, args);
 }
 
 void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
@@ -618,28 +632,39 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   });
 
   // Exectute cut process
-  const VTime wPreloadTime(1000);
-  if (wStartTime >= wPreloadTime)
+  QStringList args;
   {
-    mProcesses.back()->start(mFFMpegPath, {
-      "-ss", (wStartTime - wPreloadTime).toString(),
-      "-i", mPlaylist[mCurrentVideo].toLocalFile(),
-      "-ss", wPreloadTime.toString(),
-      "-t", (wEndTime - wStartTime).toString(),
-      "-c:v", "libx264",
-      "-c:a", "aac",
-      wCutFilePath, "-y" });
+      const VTime wPreloadTime(1000);
+      if (wStartTime >= wPreloadTime)
+      {
+          args = {
+              "-ss", (wStartTime - wPreloadTime).toString(),
+              "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+              "-ss", wPreloadTime.toString(),
+          };
+      }
+      else
+      {
+          args = {
+              "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+              "-ss", wStartTime.toString(),
+              "-t", (wEndTime - wStartTime).toString(),
+          };
+      }
+
+      args.append({ "-t", (wEndTime - wStartTime).toString() });
+
+      if (mDeinterlace)
+      {
+          args.append({ "-vf", "yadif" });
+      }
+
+      args.append({ "-c:v", "libx264",
+                    "-c:a", "aac",
+                    wCutFilePath, "-y" });
   }
-  else
-  {
-    mProcesses.back()->start(mFFMpegPath, {
-      "-i", mPlaylist[mCurrentVideo].toLocalFile(),
-      "-ss", wStartTime.toString(),
-      "-t", (wEndTime - wStartTime).toString(),
-      "-c:v", "libx264",
-      "-c:a", "aac",
-      wCutFilePath, "-y" });
-  }
+
+  mProcesses.back()->start(mFFMpegPath, args);
 }
 
 void MediaPlayer::resetSeqenceState()
@@ -755,4 +780,18 @@ void MediaPlayer::addFilter(const MediaPlayer::Filter& filter)
 {
   mFilters.push_back(filter);
   emit filtersChanged(mFilters);
+}
+
+void MediaPlayer::burstCut()
+{
+  const VTime wBacktrackTime(mView->getBurstLength() * 0.1); // 10 % backtrack time
+
+  for (unsigned n = 0; n < mView->getLoopCount(); ++n)
+  {
+    mark();
+    setPosition(getPosition() + mView->getBurstLength(), false);
+    mark();
+    setPosition(getPosition() - wBacktrackTime, true);
+  }
+  cut(CutMethod::Precise);
 }

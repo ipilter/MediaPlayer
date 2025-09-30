@@ -97,6 +97,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     {
       if (event->modifiers() & Qt::ControlModifier)
       {
+        mMediaPlayer->burstCut();
       }
       else if (event->modifiers() & Qt::ShiftModifier)
       {
@@ -131,7 +132,8 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     }
     case Qt::Key_P:
     {
-      mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay, mMediaPlayer->getSettings().mAudioMode, mMediaPlayer->getSettings().mShowFirstFrame });
+      mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay
+                                  , mMediaPlayer->getSettings().mAudioMode });
       break;
     }
     case Qt::Key_A:
@@ -381,6 +383,25 @@ void MainWindow::dropEvent(QDropEvent* event)
     if (wPlaying)
     {
       mMediaPlayer->play();
+    }
+
+    if (urls.size() == 1)
+    {
+      QString wLocalPath = urls.front().toLocalFile();
+      const QFileInfo wInputInfo(wLocalPath);
+
+      QString title;
+      if (wInputInfo.isDir())
+      {
+        QDir wInputDir(wLocalPath);
+        title = QString("Playing directory: %1").arg( wInputDir.isRoot() ? wLocalPath : wInputInfo.completeBaseName());
+      }
+      else
+      {
+        title = QString("Playing: %1").arg(wInputInfo.fileName());
+      }
+
+      setWindowTitle(title);
     }
   }
 }

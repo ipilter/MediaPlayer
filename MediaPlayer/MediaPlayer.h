@@ -47,8 +47,10 @@ public:
   void next();
   void previous();
   void toggleAudio();
+  void setDeinterlace(const bool state);
 
-  void setPosition(const VTime& position, const bool updateNeeded);
+  void setPosition(const VTime& position, const bool updateNeeded = false);
+  VTime getPosition() const;
   void seek(SeekDirection direction, SeekStep step);
   void snapToSelection(SnapPosition position);
   void startStop();
@@ -68,6 +70,9 @@ public:
 
   void logStatusMessage(const QString& msg);
 
+  // TODO HACK !
+  void burstCut();
+
 signals:
   void sequencesChanged(const SequenceMap& sequences);
   void filtersChanged(const Filters& filters);
@@ -81,9 +86,11 @@ private:
   void LoopCut(SequenceEntry& sequenceEntry);
 
 private:
+  // controller data
   std::shared_ptr<View> mView;
   std::shared_ptr<VideoPlayer> mPlayer;
   bool mPlaying = false;
+  bool mDeinterlace = false;
 
   // video management
   Playlist mPlaylist;

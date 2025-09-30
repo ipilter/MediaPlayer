@@ -13,8 +13,10 @@
 #include <QPixmap>
 #include <QPlainTextEdit>
 #include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QTextBlock>
 #include <QScrollBar>
+#include <QCheckBox>
 
 View::View(QWidget* parent)
   : QWidget(parent)
@@ -38,14 +40,14 @@ View::View(QWidget* parent)
   mPreviousButton = new QPushButton(parent);
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
 
-  mSeekLeft = new QPushButton(parent); // <-- Add this block
+  mSeekLeft = new QPushButton(parent);
   mSeekLeft->setIcon(QIcon(mPixmapTable["seekLeft"]));
   mSeekLeft->setObjectName("seekLeftButton");
 
   mPlayButton = new QPushButton(parent);
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
 
-  mSeekRight = new QPushButton(parent); // <-- Add this block
+  mSeekRight = new QPushButton(parent);
   mSeekRight->setIcon(QIcon(mPixmapTable["seekRight"]));
   mSeekRight->setObjectName("seekRightButton");
 
@@ -54,6 +56,11 @@ View::View(QWidget* parent)
 
   mAudioButton = new QPushButton(parent);
   mAudioButton->setIcon(QIcon(mPixmapTable["muted"]));
+
+  mDeinterlaceCheckBox = new QCheckBox(parent);
+  mDeinterlaceCheckBox->setText("Deinterlace");
+  mDeinterlaceCheckBox->setChecked(false);
+  mDeinterlaceCheckBox->setObjectName("myCheckBox");
 
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
@@ -66,12 +73,22 @@ View::View(QWidget* parent)
   mLoopCountSpinBox = new QSpinBox(parent);
   mLoopCountSpinBox->setObjectName("loopCountSpinBox");
   mLoopCountSpinBox->setRange(1, 999);
-  mLoopCountSpinBox->setValue(7);
+  mLoopCountSpinBox->setValue(4);
   mLoopCountSpinBox->setSingleStep(1);
   mLoopCountSpinBox->setPrefix("Loops: ");
   mLoopCountSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mLoopCountSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
   mLoopCountSpinBox->setMinimumWidth(140);
+
+  mBurstLengthSpinBox = new QDoubleSpinBox(parent);
+  mBurstLengthSpinBox->setObjectName("burstLengthSpinBox");
+  mBurstLengthSpinBox->setRange(0.0, 20.0);
+  mBurstLengthSpinBox->setValue(2.0);
+  mBurstLengthSpinBox->setSingleStep(0.1);
+  mBurstLengthSpinBox->setPrefix("Burst length: ");
+  mBurstLengthSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  mBurstLengthSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+  mBurstLengthSpinBox->setMinimumWidth(140);
 
   mInfoBar = new QPlainTextEdit(parent);
   mInfoBar->setObjectName("infoBar");
@@ -88,8 +105,10 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mNextButton);
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
-  buttonLayout->addWidget(mAudioButton);
   buttonLayout->addWidget(mLoopCountSpinBox);
+  buttonLayout->addWidget(mBurstLengthSpinBox);
+  buttonLayout->addWidget(mAudioButton);
+  buttonLayout->addWidget(mDeinterlaceCheckBox);
 
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
   rootLayout->addWidget(mVideoWidget);
@@ -110,7 +129,10 @@ View::View(QWidget* parent)
   connect(mNextButton, &QPushButton::clicked, this, [ this ]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [ this ]() { emit onMouseClick(); mPlayButton->setFocus(); });
   connect(mAudioButton, &QPushButton::clicked, this, [ this ]() { emit audioButtonClicked(); mPlayButton->setFocus(); });
-  connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mLoopCountSpinBox->setValue(value); mPlayButton->setFocus(); });
+  connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mPlayButton->setFocus(); });
+  connect(mBurstLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [ this ](double value) { mPlayButton->setFocus(); });
+
+  connect(mDeinterlaceCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit deinterlaceChecked(mDeinterlaceCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });
 
   mCursorHider.reset(new CursorHider(mVideoWidget));
 }
@@ -169,6 +191,11 @@ void View::setCursorTimeout(int timeoutMs)
 unsigned View::getLoopCount() const
 {
   return mLoopCountSpinBox->value();
+}
+
+VTime View::getBurstLength() const
+{
+  return static_cast<VTime>(mBurstLengthSpinBox->value() * 1000.0);
 }
 
 void View::onPlay()

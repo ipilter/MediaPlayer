@@ -16,7 +16,6 @@ struct Settings
 
   bool mAutoPlay = false;
   AudioMode mAudioMode = AudioMode::Muted;
-  bool mShowFirstFrame = false;
   int mCursorTimeout = 1000;
   std::vector<std::string> mRawFolders;
   CacheData mCacheData;

@@ -98,7 +98,6 @@ void savePreferences(const MainWindow& iMainWindow)
   settings.setValue("pos", wPlacement.mPosition - QPoint(0, 31)); // TODO: what is this 31 height change in every run??, we move the window in loadPreferences with this value, but when the window gets the event, the y value is bigger than this by 31 pixels!!
   settings.setValue("autoPlay", iMainWindow.getSettings().mAutoPlay);
   settings.setValue("audioMode", static_cast<quint32>(iMainWindow.getSettings().mAudioMode));
-  settings.setValue("firstFrame", iMainWindow.getSettings().mShowFirstFrame);
   settings.setValue("cursorTimeout", iMainWindow.getSettings().mCursorTimeout);
 
   QStringList folderList;
@@ -130,7 +129,6 @@ void loadPreferences(MainWindow& iMainWindow)
   iMainWindow.move(wPosition);
   iMainWindow.setSettings(Settings{ settings.value("autoPlay", false).toBool()
                                                  , static_cast<Settings::AudioMode>(settings.value("audioMode", 0).toUInt())
-                                                 , settings.value("firstFrame", false).toBool()
                                                  , settings.value("cursorTimeout", 500).toInt()
                                                  , rawFolders
   });

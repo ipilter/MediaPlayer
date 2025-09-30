@@ -83,6 +83,11 @@ VTime VTime::operator + (const VTime& time) const
   return VTime(mTime + time.mTime);
 }
 
+VTime VTime::operator * (const double factor) const
+{
+    return VTime(static_cast<qint64>(mTime * factor));
+}
+
 VTime& VTime::operator += (const VTime& time)
 {
   mTime += time.mTime;
@@ -92,6 +97,12 @@ VTime& VTime::operator += (const VTime& time)
 VTime& VTime::operator -= (const VTime& time)
 {
   mTime -= time.mTime;
+  return *this;
+}
+
+VTime& VTime::operator *= (const double factor)
+{
+  mTime = static_cast<qint64>(mTime * factor);
   return *this;
 }
 

@@ -15,7 +15,9 @@ class QLayout;
 class QPixmap;
 class QPlainTextEdit;
 class QSpinBox;
+class QDoubleSpinBox;
 class CursorHider;
+class QCheckBox;
 
 class View : public QWidget
 {
@@ -32,6 +34,7 @@ public:
   void setMarking(bool marking);
   void setCursorTimeout(int timeoutMs);
   unsigned getLoopCount() const;
+  VTime getBurstLength() const;
 
 public slots:
   void setPosition(VTime position);
@@ -51,6 +54,7 @@ signals:
   void seekRightButtonClicked();
   void nextButtonClicked();
   void audioButtonClicked();
+  void deinterlaceChecked(bool state);
   void sequenceSelected(const Sequence* wSequence);
   void sequenceDoubleClicked(const Sequence* wSequence);
 
@@ -68,14 +72,17 @@ private:
   QPushButton* mSeekRight;
   QPushButton* mNextButton;
   QPushButton* mAudioButton;
+  QCheckBox* mDeinterlaceCheckBox;
 
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;
   QSpinBox* mLoopCountSpinBox;
+  QDoubleSpinBox* mBurstLengthSpinBox;
 
   QPlainTextEdit* mInfoBar;
 
   QLayout* mLayout;
 
   std::unique_ptr<CursorHider> mCursorHider;
+
 };

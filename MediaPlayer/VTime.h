@@ -21,8 +21,10 @@ public:
 
  VTime operator - (const VTime& time) const;  
  VTime operator + (const VTime& time) const;  
- VTime& operator += (const VTime& time);  
- VTime& operator -= (const VTime& time);  
+ VTime operator * (double factor) const;
+ VTime& operator += (const VTime& time);
+ VTime& operator -= (const VTime& time);
+ VTime& operator *= (double factor);
 
  qint64 ms() const;  
  qint64 seconds() const;  
