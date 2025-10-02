@@ -55,6 +55,7 @@ signals:
   void nextButtonClicked();
   void audioButtonClicked();
   void deinterlaceChecked(bool state);
+  void gpuEncodeChecked(bool state);
   void sequenceSelected(const Sequence* wSequence);
   void sequenceDoubleClicked(const Sequence* wSequence);
 
@@ -73,6 +74,7 @@ private:
   QPushButton* mNextButton;
   QPushButton* mAudioButton;
   QCheckBox* mDeinterlaceCheckBox;
+  QCheckBox* mGpuEncodeCheckBox;
 
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;

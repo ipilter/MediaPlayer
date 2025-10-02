@@ -62,6 +62,11 @@ View::View(QWidget* parent)
   mDeinterlaceCheckBox->setChecked(false);
   mDeinterlaceCheckBox->setObjectName("myCheckBox");
 
+  mGpuEncodeCheckBox = new QCheckBox(parent);
+  mGpuEncodeCheckBox->setText("GPU Encode");
+  mGpuEncodeCheckBox->setChecked(false);
+  mGpuEncodeCheckBox->setObjectName("gpuEncodeCheckBox");
+
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
   mPositionLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
@@ -109,6 +114,7 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mBurstLengthSpinBox);
   buttonLayout->addWidget(mAudioButton);
   buttonLayout->addWidget(mDeinterlaceCheckBox);
+  buttonLayout->addWidget(mGpuEncodeCheckBox);
 
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
   rootLayout->addWidget(mVideoWidget);
@@ -133,6 +139,7 @@ View::View(QWidget* parent)
   connect(mBurstLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [ this ](double value) { mPlayButton->setFocus(); });
 
   connect(mDeinterlaceCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit deinterlaceChecked(mDeinterlaceCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });
+  connect(mGpuEncodeCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit gpuEncodeChecked(mGpuEncodeCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });
 
   mCursorHider.reset(new CursorHider(mVideoWidget));
 }

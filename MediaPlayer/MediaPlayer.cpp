@@ -39,6 +39,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::seekLeftButtonClicked, this, [this]() { seek(SeekDirection::Backward, SeekStep::Random); });
   connect(mView.get(), &View::seekRightButtonClicked, this, [this]() { seek(SeekDirection::Forward, SeekStep::Random); });
   connect(mView.get(), &View::deinterlaceChecked, this, [this](const bool state) { setDeinterlace(state); });
+  connect(mView.get(), &View::gpuEncodeChecked, this, [this](const bool state) { setGpuEncode(state); });  
   
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
@@ -241,6 +242,11 @@ void MediaPlayer::toggleAudio()
 void MediaPlayer::setDeinterlace(const bool state)
 {
   mDeinterlace = state;
+}
+
+void MediaPlayer::setGpuEncode(const bool state)
+{
+  mGpuEncode = state;
 }
 
 void MediaPlayer::setPosition(const VTime& position, const bool updateNeeded)
@@ -494,24 +500,31 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
 
+  //ffmpeg -hwaccel cuda -i input.mp4 -c:v h264_nvenc -c:a copy output.mp4
   QStringList args;
   {
+	args = { "-hide_banner", "-loglevel", "error", "-y" };
+    if (mGpuEncode)
+    {
+        args.append({ "-hwaccel", "cuda" });
+    }
+
     const VTime wPreloadTime(1000);
     if (wStartTime >= wPreloadTime)
     {
-      args = {
+      args.append({
           "-ss", (wStartTime - wPreloadTime).toString(),
           "-i", wVideoPath,
           "-ss", wPreloadTime.toString(),
-      };
+      });
     }
     else
     {
-      args = {
+      args.append({
           "-i", wVideoPath,
           "-ss", wStartTime.toString(),
           "-t", (wEndTime - wStartTime).toString(),
-      };
+      });
     }
 
     args.append({ "-t", (wEndTime - wStartTime).toString() });
@@ -521,9 +534,17 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
       args.append({ "-vf", "yadif" });
     }
 
-    args.append({ "-c:v", "libx264",
-                  "-c:a", "aac",
-                  wCutFilePath, "-y" });
+    if (mGpuEncode)
+    {
+      args.append({ "-c:v", "h264_nvenc" }); // GPU
+    }
+    else
+    {
+      args.append({ "-c:v", "libx264" }); // CPU
+    }
+
+	args.append({ "-c:a", "copy" }); //"aac" if needed
+    args.append(wCutFilePath);
   }
 
   mProcesses.push_back(std::make_unique<QProcess>(this));  

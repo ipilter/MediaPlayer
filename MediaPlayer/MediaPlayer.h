@@ -48,6 +48,7 @@ public:
   void previous();
   void toggleAudio();
   void setDeinterlace(const bool state);
+  void setGpuEncode(const bool state);
 
   void setPosition(const VTime& position, const bool updateNeeded = false);
   VTime getPosition() const;
@@ -91,6 +92,7 @@ private:
   std::shared_ptr<VideoPlayer> mPlayer;
   bool mPlaying = false;
   bool mDeinterlace = false;
+  bool mGpuEncode = false;
 
   // video management
   Playlist mPlaylist;
