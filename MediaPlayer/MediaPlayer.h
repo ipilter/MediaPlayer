@@ -101,14 +101,14 @@ private:
   // sequence management
   SequenceMap mSequenceMap;
   Sequence mEditedSequence = Sequence{ VTime(0), VTime(0) };
-  Sequence const * mSelectedSequence = nullptr;
+  Sequence const* mSelectedSequence = nullptr;
 
   // filter management
   Filters mFilters;
 
   using ProcessPtr = std::unique_ptr<QProcess>;
   std::vector<ProcessPtr> mProcesses; // TODO: destroy finished processsed, do not accumulate them
-  
+
   const QString mFFMpegPath = "d:\\Tools\\ffmpeg\\ffmpeg.exe"; // TODO: settings
   const QString mOutputRootDirectory = "a:\\";  // TODO: settings
 

@@ -24,7 +24,7 @@ class View : public QWidget
   Q_OBJECT
 
 public:
-  View(QWidget * parent = nullptr);
+  View(QWidget* parent = nullptr);
   ~View();
 
   VideoWidget* getVideoWidget() const;

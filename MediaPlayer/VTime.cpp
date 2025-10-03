@@ -3,20 +3,33 @@
 #include <QString>
 #include <QStringList>
 
+#include <vector>
+
+//assumes hh:mm:ss[.mmm]
 VTime::VTime(const QString& time)
 {
   QStringList parts = time.split(':');
-  if (parts.size() != 3)
+  if (parts.size() < 3)
   {
-    mTime;
+    return;
   }
 
-  const qint64 h = parts[0].toLongLong();
-  const qint64 m = parts[1].toLongLong();
-  const qint64 s = parts[2].toLongLong();
-  const qint64 ms = parts[3].toLongLong();
+  std::vector<qint64> tparts = { parts[0].toLongLong(), parts[1].toLongLong() };
+  if (parts[2].indexOf('.') != -1)
+  {
+    QStringList subparts = parts[2].split('.');
+    if (subparts.size() == 2)
+    {
+      tparts.push_back(subparts[0].toLongLong());
+      tparts.push_back(subparts[1].toLongLong());
+    }
+  }
+  else
+  {
+    tparts.push_back(0u);
+  }
 
-  mTime = getMilliseconds(h, m, s, ms);
+  mTime = getMilliseconds(tparts[0],tparts[1],tparts[2],tparts[3]);
 }
 
 VTime::VTime(qint64 milliseconds)
@@ -116,16 +129,18 @@ qint64 VTime::seconds() const
   return mTime / 1000;
 }
 
-QString VTime::toString(const QChar sep) const
+//results hh:mm:ss.mmm
+QString VTime::toString(const char sep) const
 {
   const qint64 h = mTime / 3600000;
   const qint64 m = (mTime - h * 3600000) / 60000;
   const qint64 s = (mTime - h * 3600000 - m * 60000) / 1000;
   const qint64 ms = mTime - h * 3600000 - m * 60000 - s * 1000;
 
-  QString ss = QString("%0").arg(h, 2, 10, QChar('0')) + QString(sep) +
-    QString("%0").arg(m, 2, 10, QChar('0')) + QString(sep) +
-    QString("%0").arg(s, 2, 10, QChar('0')) + QString('.') +
+  const char cSep[] = { sep, '.' };
+  QString ss = QString("%0").arg(h, 2, 10, QChar('0')) + QString(cSep[0]) +
+    QString("%0").arg(m, 2, 10, QChar('0')) + QString(cSep[0]) +
+    QString("%0").arg(s, 2, 10, QChar('0')) + QString(cSep[1]) +
     QString("%0").arg(ms, 3, 10, QChar('0'));
   return ss;
 }

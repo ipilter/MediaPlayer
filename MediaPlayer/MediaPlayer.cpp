@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDir>
+#include <QRegularExpression>
 
 #include <random>
 #include <fstream>
@@ -265,13 +266,13 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
   switch (step)
   {
     case SeekStep::Small:
-      wStepSize = VTime(25);  // TODO use settings
+      wStepSize = VTime("00:00:00.025");
       break;
     case SeekStep::Big:
-      wStepSize = VTime(5000);
+      wStepSize = VTime("00:00:05.000");
       break;
     case SeekStep::Normal:
-      wStepSize = VTime(500);
+      wStepSize = VTime("00:00:00.500");
       break;
     case SeekStep::Random:
     {
@@ -500,13 +501,12 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
 
-  //ffmpeg -hwaccel cuda -i input.mp4 -c:v h264_nvenc -c:a copy output.mp4
   QStringList args;
   {
-	args = { "-hide_banner", "-loglevel", "error", "-y" };
+    args = { "-hide_banner", "-loglevel", "info", "-y" };
     if (mGpuEncode)
     {
-        args.append({ "-hwaccel", "cuda" });
+      args.append({ "-hwaccel", "cuda" });
     }
 
     const VTime wPreloadTime(1000);
@@ -516,7 +516,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
           "-ss", (wStartTime - wPreloadTime).toString(),
           "-i", wVideoPath,
           "-ss", wPreloadTime.toString(),
-      });
+        });
     }
     else
     {
@@ -524,42 +524,64 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
           "-i", wVideoPath,
           "-ss", wStartTime.toString(),
           "-t", (wEndTime - wStartTime).toString(),
-      });
+        });
     }
-
     args.append({ "-t", (wEndTime - wStartTime).toString() });
-
     if (mDeinterlace)
     {
       args.append({ "-vf", "yadif" });
     }
 
-    if (mGpuEncode)
-    {
-      args.append({ "-c:v", "h264_nvenc" }); // GPU
-    }
-    else
-    {
-      args.append({ "-c:v", "libx264" }); // CPU
-    }
-
-	args.append({ "-c:a", "copy" }); //"aac" if needed
+    args.append({ "-c:v", mGpuEncode ? "h264_nvenc" : "libx264" }); // GPU or CPU
+    args.append({ "-c:a", "copy" }); //"aac" if needed
     args.append(wCutFilePath);
   }
 
-  mProcesses.push_back(std::make_unique<QProcess>(this));  
-  connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
+  mProcesses.push_back(std::make_unique<QProcess>(this));
+  QProcess* wProcess = mProcesses.back().get();
+  connect(wProcess, &QProcess::started, this, [&]() {
     sequenceEntry.second.mState = OperationState::Processing;
     emit sequencesChanged(mSequenceMap);
-    logStatusMessage("Precise cut started");
-  });
-  
-  connect(mProcesses.back().get(), &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
+    logStatusMessage(QString("Precise cut started on ") + (mGpuEncode ? "GPU" : "CPU") + (mDeinterlace ? " with deinterlacing" : ""));
+    });
+
+  connect(wProcess, &QProcess::finished, this, [&](int exitCode, QProcess::ExitStatus exitStatus) {
     sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
-  });
-  
+    });
+
+  connect(wProcess, &QProcess::readyReadStandardOutput, this, [this, wProcess]() {
+    QString output = QString::fromLocal8Bit(wProcess->readAllStandardOutput());
+    if (!output.isEmpty())
+    {
+      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpressionMatchIterator i = re.globalMatch(output);
+      while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch()) {
+          QString time = match.captured(1); // e.g., "00:00:09.13"
+          logStatusMessage(time);
+        }
+      }
+    }
+    });
+  connect(wProcess, &QProcess::readyReadStandardError, this, [this, wProcess]() {
+    QString error = QString::fromLocal8Bit(wProcess->readAllStandardError());
+    if (!error.isEmpty())
+    {
+      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpressionMatchIterator i = re.globalMatch(error);
+      while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch()) {
+          QString time = match.captured(1); // e.g., "00:00:09.13"
+          logStatusMessage(time);
+        }
+      }
+    }
+    });
+
   mProcesses.back()->start(mFFMpegPath, args);
 }
 
@@ -580,13 +602,14 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   const QString wCutFilePath = QFileInfo(wLoopFilePath).absolutePath() + QFileInfo(wLoopFilePath).completeBaseName() + "_cut.mp4";
 
   mProcesses.push_back(std::make_unique<QProcess>(this));
-  connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
+  QProcess* wCutProcess = mProcesses.back().get();
+  connect(wCutProcess, &QProcess::started, this, [&]() {
     sequenceEntry.second.mState = OperationState::Processing;
     emit sequencesChanged(mSequenceMap);
-    logStatusMessage("Loop cut started");
-  });
+    logStatusMessage(QString("Loop cut started on ") + (mGpuEncode ? "GPU" : "CPU") + (mDeinterlace ? " with deinterlacing" : ""));
+    });
 
-  connect(mProcesses.back().get(), &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
+  connect(wCutProcess, &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
     logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
     if (exitCode != 0)
     {
@@ -599,11 +622,12 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
 
     // Execute reverser process
     mProcesses.push_back(std::make_unique<QProcess>(this));
-    connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
+    QProcess* wReverserProcess = mProcesses.back().get();
+    connect(wReverserProcess, &QProcess::started, this, [&]() {
       logStatusMessage("Reverser started");
-    });
+      });
 
-    connect(mProcesses.back().get(), &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, wReversedFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
+    connect(wReverserProcess, &QProcess::finished, this, [&, wCutFilePath, wLoopFilePath, wReversedFilePath, loopCount](int exitCode, QProcess::ExitStatus exitStatus) {
       logStatusMessage(QString("Reverser ") + (exitCode == 0 ? "succeeded" : "failed"));
       if (exitCode != 0)
       {
@@ -626,11 +650,12 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
 
       // Execute merger process
       mProcesses.push_back(std::make_unique<QProcess>(this));
-      connect(mProcesses.back().get(), &QProcess::started, this, [&]() {
+      QProcess* wMergerProcess = mProcesses.back().get();
+      connect(wMergerProcess, &QProcess::started, this, [&]() {
         logStatusMessage("Merger started");
-      });
+        });
 
-      connect(mProcesses.back().get(), &QProcess::finished, this, [&, wConcatFilePath, wCutFilePath, wReversedFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
+      connect(wMergerProcess, &QProcess::finished, this, [&, wConcatFilePath, wCutFilePath, wReversedFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
         sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
         emit sequencesChanged(mSequenceMap);
         logStatusMessage(QString("Loop cut ") + (exitCode == 0 ? "succeeded" : "failed"));
@@ -638,59 +663,157 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
         QFile::remove(wConcatFilePath);
         QFile::remove(wCutFilePath);
         QFile::remove(wReversedFilePath);
-      });
+        });
+
+      connect(wMergerProcess, &QProcess::readyReadStandardOutput, this, [this, wMergerProcess]() {
+        QString output = QString::fromLocal8Bit(wMergerProcess->readAllStandardOutput());
+        if (!output.isEmpty())
+        {
+          QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+          QRegularExpressionMatchIterator i = re.globalMatch(output);
+          while (i.hasNext()) {
+            QRegularExpressionMatch match = i.next();
+            if (match.hasMatch()) {
+              QString time = match.captured(1); // e.g., "00:00:09.13"
+              logStatusMessage(time);
+            }
+          }
+        }
+        });
+      connect(wMergerProcess, &QProcess::readyReadStandardError, this, [this, wMergerProcess]() {
+        QString error = QString::fromLocal8Bit(wMergerProcess->readAllStandardError());
+        if (!error.isEmpty())
+        {
+          QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+          QRegularExpressionMatchIterator i = re.globalMatch(error);
+          while (i.hasNext()) {
+            QRegularExpressionMatch match = i.next();
+            if (match.hasMatch()) {
+              QString time = match.captured(1); // e.g., "00:00:09.13"
+              logStatusMessage(time);
+            }
+          }
+        }
+        });
 
       QStringList wArguments;
       wArguments << "-f" << "concat" << "-safe" << "0" << "-i" << wConcatFilePath << "-c" << "copy" << wLoopFilePath << "-y";
-      mProcesses.back()->start(mFFMpegPath, wArguments);
-    });
+      wMergerProcess->start(mFFMpegPath, wArguments);
+      });
 
-    mProcesses.back()->start(mFFMpegPath, {
+    connect(wReverserProcess, &QProcess::readyReadStandardOutput, this, [this, wReverserProcess]() {
+      QString output = QString::fromLocal8Bit(wReverserProcess->readAllStandardOutput());
+      if (!output.isEmpty())
+      {
+        QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+        QRegularExpressionMatchIterator i = re.globalMatch(output);
+        while (i.hasNext()) {
+          QRegularExpressionMatch match = i.next();
+          if (match.hasMatch()) {
+            QString time = match.captured(1); // e.g., "00:00:09.13"
+            logStatusMessage(time);
+          }
+        }
+      }
+      });
+    connect(wReverserProcess, &QProcess::readyReadStandardError, this, [this, wReverserProcess]() {
+      QString error = QString::fromLocal8Bit(wReverserProcess->readAllStandardError());
+      if (!error.isEmpty())
+      {
+        QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+        QRegularExpressionMatchIterator i = re.globalMatch(error);
+        while (i.hasNext()) {
+          QRegularExpressionMatch match = i.next();
+          if (match.hasMatch()) {
+            QString time = match.captured(1); // e.g., "00:00:09.13"
+            logStatusMessage(time);
+          }
+        }
+      }
+      });
+
+    wReverserProcess->start(mFFMpegPath, {
       "-i", wCutFilePath,
       "-vf", "reverse",
       "-af", "areverse",
       wReversedFilePath, "-y" });
-  });
+    });
+
+  connect(wCutProcess, &QProcess::readyReadStandardOutput, this, [this, wCutProcess]() {
+    QString output = QString::fromLocal8Bit(wCutProcess->readAllStandardOutput());
+    if (!output.isEmpty())
+    {
+      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpressionMatchIterator i = re.globalMatch(output);
+      while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch()) {
+          QString time = match.captured(1); // e.g., "00:00:09.13"
+          logStatusMessage(time);
+        }
+      }
+    }
+    });
+  connect(wCutProcess, &QProcess::readyReadStandardError, this, [this, wCutProcess]() {
+    QString error = QString::fromLocal8Bit(wCutProcess->readAllStandardError());
+    if (!error.isEmpty())
+    {
+      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpressionMatchIterator i = re.globalMatch(error);
+      while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch()) {
+          QString time = match.captured(1); // e.g., "00:00:09.13"
+          logStatusMessage(time);
+        }
+      }
+    }
+    });
 
   // Exectute cut process
   QStringList args;
   {
-      const VTime wPreloadTime(1000);
-      if (wStartTime >= wPreloadTime)
-      {
-          args = {
-              "-ss", (wStartTime - wPreloadTime).toString(),
-              "-i", mPlaylist[mCurrentVideo].toLocalFile(),
-              "-ss", wPreloadTime.toString(),
-          };
-      }
-      else
-      {
-          args = {
-              "-i", mPlaylist[mCurrentVideo].toLocalFile(),
-              "-ss", wStartTime.toString(),
-              "-t", (wEndTime - wStartTime).toString(),
-          };
-      }
+    args = { "-hide_banner", "-loglevel", "info", "-y" };
+    if (mGpuEncode)
+    {
+      args.append({ "-hwaccel", "cuda" });
+    }
 
-      args.append({ "-t", (wEndTime - wStartTime).toString() });
+    const VTime wPreloadTime(1000);
+    if (wStartTime >= wPreloadTime)
+    {
+      args = {
+          "-ss", (wStartTime - wPreloadTime).toString(),
+          "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+          "-ss", wPreloadTime.toString(),
+      };
+    }
+    else
+    {
+      args = {
+          "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+          "-ss", wStartTime.toString(),
+          "-t", (wEndTime - wStartTime).toString(),
+      };
+    }
 
-      if (mDeinterlace)
-      {
-          args.append({ "-vf", "yadif" });
-      }
+    args.append({ "-t", (wEndTime - wStartTime).toString() });
 
-      args.append({ "-c:v", "libx264",
-                    "-c:a", "aac",
-                    wCutFilePath, "-y" });
+    if (mDeinterlace)
+    {
+      args.append({ "-vf", "yadif" });
+    }
+    args.append({ "-c:v", mGpuEncode ? "h264_nvenc" : "libx264" }); // GPU or CPU
+    args.append({ "-c:a", "aac",
+                  wCutFilePath });
   }
 
-  mProcesses.back()->start(mFFMpegPath, args);
+  wCutProcess->start(mFFMpegPath, args);
 }
 
 void MediaPlayer::resetSeqenceState()
 {
-  for(auto& wSequence : mSequenceMap)
+  for (auto& wSequence : mSequenceMap)
   {
     wSequence.second.mState = OperationState::Ready;
   }
@@ -742,10 +865,10 @@ void MediaPlayer::deleteCurrentVideo()
   // Check if the directory is in the allowed folders
   bool allowed = std::any_of(
     mSettings.mRawFolders.begin(), mSettings.mRawFolders.end(),
-    [ &dirPath ](const std::string& allowedFolder)
-  {
-    return dirPath.compare(QDir::cleanPath(QString::fromStdString(allowedFolder)), Qt::CaseInsensitive) == 0;
-  }
+    [&dirPath](const std::string& allowedFolder)
+    {
+      return dirPath.compare(QDir::cleanPath(QString::fromStdString(allowedFolder)), Qt::CaseInsensitive) == 0;
+    }
   );
 
   // if readonly do not delete
@@ -754,7 +877,7 @@ void MediaPlayer::deleteCurrentVideo()
     logStatusMessage(QString("Deletion not allowed: %1 is read-only.").arg(filePath));
     return;
   }
-  
+
   if (!allowed)
   {
     logStatusMessage(QStringLiteral("Deletion not allowed: %1 is not in allowed folders.").arg(dirPath));

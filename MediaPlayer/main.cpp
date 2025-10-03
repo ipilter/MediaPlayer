@@ -21,7 +21,7 @@ MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath);
 MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath);
 QString readStyles(const QString& iFilePath);
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   QApplication wApp(argc, argv);
   int wExitStatus = -1;
@@ -151,7 +151,7 @@ MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
     }
     wFile.close();
   }
-  
+
   std::random_device wRndDevice;
   std::mt19937 wRndGenerator(wRndDevice());
   std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
@@ -200,7 +200,7 @@ std::pair<MainWindow::Playlist, QString> getInputPlaylist(const QString& wInputP
   {
     QDir wInputDir(wInputPath);
     auto playlist = readDirectory(wInputPath);
-    QString title = QString("Playing directory: %1").arg( 
+    QString title = QString("Playing directory: %1").arg(
       wInputDir.isRoot() ? wInputPath : wInputInfo.completeBaseName());
     return { playlist, title };
   }

@@ -21,15 +21,15 @@
 View::View(QWidget* parent)
   : QWidget(parent)
 {
-  mPixmapTable.emplace("play",     QPixmap(":/bitmaps/play.png"));
-  mPixmapTable.emplace("pause",    QPixmap(":/bitmaps/pause.png"));
-  mPixmapTable.emplace("seekLeft",    QPixmap(":/bitmaps/seekLeft.png"));
-  mPixmapTable.emplace("seekRight",    QPixmap(":/bitmaps/seekRight.png"));
+  mPixmapTable.emplace("play", QPixmap(":/bitmaps/play.png"));
+  mPixmapTable.emplace("pause", QPixmap(":/bitmaps/pause.png"));
+  mPixmapTable.emplace("seekLeft", QPixmap(":/bitmaps/seekLeft.png"));
+  mPixmapTable.emplace("seekRight", QPixmap(":/bitmaps/seekRight.png"));
   mPixmapTable.emplace("previous", QPixmap(":/bitmaps/previous.png"));
-  mPixmapTable.emplace("next",     QPixmap(":/bitmaps/next.png"));
-  mPixmapTable.emplace("mutedAudio",    QPixmap(":/bitmaps/mutedAudio.png"));
-  mPixmapTable.emplace("videoAudio",  QPixmap(":/bitmaps/videoAudio.png"));
-  mPixmapTable.emplace("musicAudio",  QPixmap(":/bitmaps/musicAudio.png"));  
+  mPixmapTable.emplace("next", QPixmap(":/bitmaps/next.png"));
+  mPixmapTable.emplace("mutedAudio", QPixmap(":/bitmaps/mutedAudio.png"));
+  mPixmapTable.emplace("videoAudio", QPixmap(":/bitmaps/videoAudio.png"));
+  mPixmapTable.emplace("musicAudio", QPixmap(":/bitmaps/musicAudio.png"));
 
   mVideoWidget = new VideoWidget(parent);
   mVideoWidget->setObjectName("videoWidget");
@@ -123,20 +123,20 @@ View::View(QWidget* parent)
   rootLayout->addWidget(mInfoBar);
   mLayout = rootLayout;
 
-  connect(mSlider, &QSlider::sliderMoved, this, [ this ](int position) { emit sliderChanged(position); });
-  connect(mSlider, &Slider::sequenceSelected, this, [ this ](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
-  connect(mSlider, &Slider::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) { emit sequenceDoubleClicked(wSequence); });
-  connect(mPreviousButton, &QPushButton::clicked, this, [ this ]() { emit previousButtonClicked(); mPlayButton->setFocus(); });
+  connect(mSlider, &QSlider::sliderMoved, this, [this](int position) { emit sliderChanged(position); });
+  connect(mSlider, &Slider::sequenceSelected, this, [this](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
+  connect(mSlider, &Slider::sequenceDoubleClicked, this, [this](const Sequence* wSequence) { emit sequenceDoubleClicked(wSequence); });
+  connect(mPreviousButton, &QPushButton::clicked, this, [this]() { emit previousButtonClicked(); mPlayButton->setFocus(); });
 
-  connect(mSeekLeft, &QPushButton::clicked, this, [ this ]() { emit seekLeftButtonClicked(); });
-  connect(mPlayButton, &QPushButton::clicked, this, [ this ]() { emit startStopButtonClicked(); });
-  connect(mSeekRight, &QPushButton::clicked, this, [ this ]() { emit seekRightButtonClicked(); });
+  connect(mSeekLeft, &QPushButton::clicked, this, [this]() { emit seekLeftButtonClicked(); });
+  connect(mPlayButton, &QPushButton::clicked, this, [this]() { emit startStopButtonClicked(); });
+  connect(mSeekRight, &QPushButton::clicked, this, [this]() { emit seekRightButtonClicked(); });
 
-  connect(mNextButton, &QPushButton::clicked, this, [ this ]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
-  connect(mVideoWidget, &VideoWidget::mouseClicked, this, [ this ]() { emit onMouseClick(); mPlayButton->setFocus(); });
-  connect(mAudioButton, &QPushButton::clicked, this, [ this ]() { emit audioButtonClicked(); mPlayButton->setFocus(); });
-  connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [ this ](int value) { mPlayButton->setFocus(); });
-  connect(mBurstLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [ this ](double value) { mPlayButton->setFocus(); });
+  connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
+  connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); mPlayButton->setFocus(); });
+  connect(mAudioButton, &QPushButton::clicked, this, [this]() { emit audioButtonClicked(); mPlayButton->setFocus(); });
+  connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [this](int value) { mPlayButton->setFocus(); });
+  connect(mBurstLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this](double value) { mPlayButton->setFocus(); });
 
   connect(mDeinterlaceCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit deinterlaceChecked(mDeinterlaceCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });
   connect(mGpuEncodeCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit gpuEncodeChecked(mGpuEncodeCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });

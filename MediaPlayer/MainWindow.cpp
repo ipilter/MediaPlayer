@@ -37,259 +37,259 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 {
   switch (event->key())
   {
-    case Qt::Key_Escape:
+  case Qt::Key_Escape:
+  {
+    close();
+    break;
+  }
+  case Qt::Key::Key_Delete:
+  {
+    if (event->modifiers() & Qt::ShiftModifier)
     {
-      close();
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+    }
+    break;
+  }
+  case Qt::Key_1:
+  {
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      qDebug() << "ShiftModifier + 1 pressed!";
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+      qDebug() << "AltModifier + 1 pressed!";
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      qDebug() << "ControlModifier + 1 pressed!";
+    }
+    else
+    {
+      qDebug() << "1 with No Modifier pressed!";
+      mMediaPlayer->deleteCurrentVideo();
+    }
+    break;
+  }
+  case Qt::Key_2:
+  {
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+    }
+    else
+    {
+      mMediaPlayer->deleteSequence();
+    }
+    break;
+  }
+  case Qt::Key_W:
+  {
+    if (event->modifiers() & Qt::ControlModifier)
+    {
+      mMediaPlayer->burstCut();
+    }
+    else if (event->modifiers() & Qt::ShiftModifier)
+    {
+      mMediaPlayer->mark(true);
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else
+    {
+      mMediaPlayer->mark();
+    }
+    break;
+  }
+  case Qt::Key_R:
+  {
+    if (event->modifiers() & Qt::ControlModifier)
+    {
+      mMediaPlayer->resetSeqenceState();
+    }
+    else if (event->modifiers() & Qt::ShiftModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else
+    {
+      mMediaPlayer->previous();
+    }
+    break;
+  }
+  case Qt::Key_P:
+  {
+    mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay
+                                , mMediaPlayer->getSettings().mAudioMode });
+    break;
+  }
+  case Qt::Key_A:
+  {
+    // TODO move this logic out form the UI element, see Slider::wheelEvent
+    MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      step = MediaPlayer::SeekStep::Big;
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      step = MediaPlayer::SeekStep::Small;
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+      mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::Start);
       break;
     }
-    case Qt::Key::Key_Delete:
+    mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, step);
+    break;
+  }
+  case Qt::Key_S:
+  {
+    break;
+  }
+  case Qt::Key_D:
+  {
+    MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
+    if (event->modifiers() & Qt::ShiftModifier)
     {
-      if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ControlModifier)
-      {
-      }
+      step = MediaPlayer::SeekStep::Big;
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      step = MediaPlayer::SeekStep::Small;
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+      mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::End);
       break;
     }
-    case Qt::Key_1:
+    mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, step);
+    break;
+  }
+  case Qt::Key_F:
+  {
+    if (this->isMaximized())
     {
-      if (event->modifiers() & Qt::ShiftModifier)
-      {
-        qDebug() << "ShiftModifier + 1 pressed!";
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-        qDebug() << "AltModifier + 1 pressed!";
-      }
-      else if (event->modifiers() & Qt::ControlModifier)
-      {
-        qDebug() << "ControlModifier + 1 pressed!";
-      }
-      else
-      {
-        qDebug() << "1 with No Modifier pressed!";
-        mMediaPlayer->deleteCurrentVideo();
-      } 
-      break;
+      this->showNormal();
+      //TODO send event to view to show all controls
+      //mMediaPlayer->setNormalView();
     }
-    case Qt::Key_2:
+    else
     {
-      if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ControlModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->deleteSequence();
-      }
-      break;
+      this->showMaximized();
+      //TODO send event to view to hide all controls, just keep the media player
+      //mMediaPlayer->setFullScreen();
     }
-    case Qt::Key_W:
+    break;
+  }
+  case Qt::Key_Z:
+  {
+    if (event->modifiers() & Qt::ControlModifier)
     {
-      if (event->modifiers() & Qt::ControlModifier)
-      {
-        mMediaPlayer->burstCut();
-      }
-      else if (event->modifiers() & Qt::ShiftModifier)
-      {
-        mMediaPlayer->mark(true);
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->mark();
-      }
-      break;
     }
-    case Qt::Key_R:
+    else if (event->modifiers() & Qt::ShiftModifier)
     {
-      if (event->modifiers() & Qt::ControlModifier)
-      {
-        mMediaPlayer->resetSeqenceState();
-      }
-      else if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->previous();
-      }
-      break;
     }
-    case Qt::Key_P:
+    else if (event->modifiers() & Qt::AltModifier)
     {
-      mMediaPlayer->setSettings({ !mMediaPlayer->getSettings().mAutoPlay
-                                  , mMediaPlayer->getSettings().mAudioMode });
-      break;
     }
-    case Qt::Key_A:
+    else
     {
-      // TODO move this logic out form the UI element, see Slider::wheelEvent
-      MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
-      if (event->modifiers() & Qt::ShiftModifier)
-      {
-        step = MediaPlayer::SeekStep::Big;
-      }
-      else if (event->modifiers() & Qt::ControlModifier)
-      {
-        step = MediaPlayer::SeekStep::Small;
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-        mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::Start);
-        break;
-      }
-      mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, step);
-      break;
+      mMediaPlayer->previous();
     }
-    case Qt::Key_S:
+    break;
+  }
+  case Qt::Key_X:
+  {
+    if (event->modifiers() & Qt::ControlModifier)
     {
-      break;
     }
-    case Qt::Key_D:
+    else if (event->modifiers() & Qt::ShiftModifier)
     {
-      MediaPlayer::SeekStep step = MediaPlayer::SeekStep::Normal;
-      if (event->modifiers() & Qt::ShiftModifier)
-      {
-        step = MediaPlayer::SeekStep::Big;
-      }
-      else if (event->modifiers() & Qt::ControlModifier)
-      {
-        step = MediaPlayer::SeekStep::Small;
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-        mMediaPlayer->snapToSelection(MediaPlayer::SnapPosition::End);
-        break;
-      }
-      mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, step);
-      break;
     }
-    case Qt::Key_F:
+    else if (event->modifiers() & Qt::AltModifier)
     {
-      if (this->isMaximized())
-      {
-        this->showNormal();
-        //TODO send event to view to show all controls
-        //mMediaPlayer->setNormalView();
-      }
-      else
-      {
-        this->showMaximized();
-        //TODO send event to view to hide all controls, just keep the media player
-        //mMediaPlayer->setFullScreen();
-      }
-      break;
     }
-    case Qt::Key_Z:
+    else
     {
-      if (event->modifiers() & Qt::ControlModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->previous();
-      }
-      break;
+      mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, MediaPlayer::SeekStep::Random);
     }
-    case Qt::Key_X:
+    break;
+  }
+  case Qt::Key_C:
+  {
+    if (event->modifiers() & Qt::ControlModifier)
     {
-      if (event->modifiers() & Qt::ControlModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->seek(MediaPlayer::SeekDirection::Backward, MediaPlayer::SeekStep::Random);
-      }
-      break;
     }
-    case Qt::Key_C:
+    else if (event->modifiers() & Qt::ShiftModifier)
     {
-      if (event->modifiers() & Qt::ControlModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, MediaPlayer::SeekStep::Random);
-      }
-      break;
     }
-    case Qt::Key_V:
+    else if (event->modifiers() & Qt::AltModifier)
     {
-      if (event->modifiers() & Qt::ControlModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ShiftModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else
-      {
-        mMediaPlayer->next();
-      }
-      break;
     }
-    case Qt::Key_B:
+    else
     {
-      MediaPlayer::CutMethod wCutMethod = MediaPlayer::CutMethod::Fast;
-      if (event->modifiers() & Qt::ShiftModifier)
-      {
-        wCutMethod = MediaPlayer::CutMethod::Precise;
-      }
-      else if (event->modifiers() & Qt::AltModifier)
-      {
-      }
-      else if (event->modifiers() & Qt::ControlModifier)
-      {
-        wCutMethod = MediaPlayer::CutMethod::Loop;
-      }
-      mMediaPlayer->cut(wCutMethod);
-      break;
+      mMediaPlayer->seek(MediaPlayer::SeekDirection::Forward, MediaPlayer::SeekStep::Random);
     }
-    case Qt::Key_Space:
+    break;
+  }
+  case Qt::Key_V:
+  {
+    if (event->modifiers() & Qt::ControlModifier)
     {
-      mMediaPlayer->startStop();
-      break;
     }
-    default:
+    else if (event->modifiers() & Qt::ShiftModifier)
     {
-      QMainWindow::keyPressEvent(event);
-      break;
     }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else
+    {
+      mMediaPlayer->next();
+    }
+    break;
+  }
+  case Qt::Key_B:
+  {
+    MediaPlayer::CutMethod wCutMethod = MediaPlayer::CutMethod::Fast;
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      wCutMethod = MediaPlayer::CutMethod::Precise;
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      wCutMethod = MediaPlayer::CutMethod::Loop;
+    }
+    mMediaPlayer->cut(wCutMethod);
+    break;
+  }
+  case Qt::Key_Space:
+  {
+    mMediaPlayer->startStop();
+    break;
+  }
+  default:
+  {
+    QMainWindow::keyPressEvent(event);
+    break;
+  }
   }
 }
 
@@ -341,7 +341,9 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 {
   // Accept drag if it contains URLs (files or directories)
   if (event->mimeData()->hasUrls())
+  {
     event->acceptProposedAction();
+  }
 }
 
 void MainWindow::dropEvent(QDropEvent* event)
@@ -394,7 +396,7 @@ void MainWindow::dropEvent(QDropEvent* event)
       if (wInputInfo.isDir())
       {
         QDir wInputDir(wLocalPath);
-        title = QString("Playing directory: %1").arg( wInputDir.isRoot() ? wLocalPath : wInputInfo.completeBaseName());
+        title = QString("Playing directory: %1").arg(wInputDir.isRoot() ? wLocalPath : wInputInfo.completeBaseName());
       }
       else
       {

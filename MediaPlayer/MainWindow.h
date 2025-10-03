@@ -26,9 +26,9 @@ public:
 
 protected:
   virtual void keyPressEvent(QKeyEvent* event);
-  virtual void resizeEvent(QResizeEvent *event);
-  virtual void moveEvent(QMoveEvent *event);
-  virtual void closeEvent(QCloseEvent *event);
+  virtual void resizeEvent(QResizeEvent* event);
+  virtual void moveEvent(QMoveEvent* event);
+  virtual void closeEvent(QCloseEvent* event);
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 

@@ -158,7 +158,7 @@ const QColor& Slider::sequenceColor(const SequenceEntry& wSequenceEntry) const
     {"invalid",    QColor(255,   0,   0, 185) },
     {"ready",      QColor(100, 130, 205, 185) },
     {"processing", QColor(255, 255, 255, 185) },
-    {"succeeded",  QColor( 80, 255,  90, 185) },
+    {"succeeded",  QColor(80, 255,  90, 185) },
     {"failed",     QColor(255,  20,  78, 185) },
     {"selected",   QColor(246, 249,  38, 185) },
     {"editing",    QColor(055, 150, 150, 185) }
@@ -177,16 +177,16 @@ const QColor& Slider::sequenceColor(const SequenceEntry& wSequenceEntry) const
   {
     switch (wSequenceEntry.second.mState)
     {
-      case OperationState::Ready:
+    case OperationState::Ready:
       colorName = "ready";
       break;
-      case OperationState::Processing:
+    case OperationState::Processing:
       colorName = "processing";
       break;
-      case OperationState::Succeeded:
+    case OperationState::Succeeded:
       colorName = "succeeded";
       break;
-      case OperationState::Failed:
+    case OperationState::Failed:
       colorName = "failed";
       break;
     }

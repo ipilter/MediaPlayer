@@ -5,11 +5,13 @@ namespace details
 
 Playlist::Playlist(const std::vector<QUrl>& urls)
   : mUrls(urls)
-{ }
+{
+}
 
 Playlist::Playlist(std::vector<QUrl>&& urls)
   : mUrls(std::move(urls))
-{ }
+{
+}
 
 std::size_t Playlist::size() const
 {

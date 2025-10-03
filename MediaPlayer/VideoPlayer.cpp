@@ -139,7 +139,7 @@ void VideoPlayer::setPosition(VTime position, const bool updateNeeded)
 {
   const bool wPlaying = isPlaying();
   mVideoPlayer->setPosition(position.ms());
-  
+
   if (updateNeeded && !wPlaying)
   {
     mVideoPlayer->pause(); // TODO seems working, but check what is the best here?
