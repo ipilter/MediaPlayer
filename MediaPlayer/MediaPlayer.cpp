@@ -298,7 +298,7 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
 
       qint64 wMin = 10;
       qint64 wMax = std::max(wMin, wSeekWindow.ms());
-      wStepSize = VTime(Random(wMin, wMax));  // assuming 10 ms is left from the video, at leat..
+      wStepSize = VTime(Random(wMin, wMax));  // assuming 10 ms is left from the video, at least..
     }
   }
 
@@ -469,27 +469,67 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
   sequenceEntry.second.mFilePath = wCutFilePath;
 
   mProcesses.push_back(std::make_unique<QProcess>(this));
-  connect(mProcesses.back().get(), &QProcess::started, this, [ & ]() {
+  QProcess* wProcess = mProcesses.back().get();
+
+  connect(wProcess, &QProcess::started, this, [ & ]() {
     sequenceEntry.second.mState = OperationState::Processing;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage("Fast cut started");
   });
 
-  connect(mProcesses.back().get(), &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
+  connect(wProcess, &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
     sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
     emit sequencesChanged(mSequenceMap);
     logStatusMessage(QString("Fast cut ") + (exitCode == 0 ? "succeeded" : "failed"));
   });
 
-  mProcesses.back()->start(mFFMpegPath, {
-    "-ss", wStartTime.toString(),
-    "-i", wVideoPath,
-    "-t", (wEndTime - wStartTime).toString(),
-    "-async", "1",
-    "-vcodec", "copy",
-    "-acodec", "copy",
-    "-avoid_negative_ts", "1",
-    wCutFilePath, "-y"});
+  connect(wProcess, &QProcess::readyReadStandardOutput, this, [ &, this, wProcess]() {
+    QString output = QString::fromLocal8Bit(wProcess->readAllStandardOutput());
+    if (!output.isEmpty())
+    {
+      QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpressionMatchIterator i = re.globalMatch(output);
+      while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch()) {
+          QString time = match.captured(1); // "hh:mm:ss.mm"
+
+          sequenceEntry.second.mProcessTimer = VTime(time);
+          emit sequencesChanged(mSequenceMap);
+        }
+      }
+    }
+    });
+  connect(wProcess, &QProcess::readyReadStandardError, this, [ &, this, wProcess]() {
+    QString error = QString::fromLocal8Bit(wProcess->readAllStandardError());
+    if (!error.isEmpty())
+    {
+        QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
+        QRegularExpressionMatchIterator i = re.globalMatch(error);
+        while (i.hasNext()) {
+          QRegularExpressionMatch match = i.next();
+          if (match.hasMatch()) {
+            QString time = match.captured(1); // "hh:mm:ss.mm"
+
+            sequenceEntry.second.mProcessTimer = VTime(time);
+            emit sequencesChanged(mSequenceMap);
+          }
+      }
+    }
+    });
+
+  QStringList args;
+  {
+    args = { "-ss", wStartTime.toString(),
+             "-i", wVideoPath,
+             "-t", (wEndTime - wStartTime).toString(),
+             "-async", "1",
+             "-vcodec", "copy",
+             "-acodec", "copy",
+             "-avoid_negative_ts", "1",
+             wCutFilePath, "-y" };
+  }
+  wProcess->start(mFFMpegPath, args);
 }
 
 void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
@@ -551,38 +591,42 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
     logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
     });
 
-  connect(wProcess, &QProcess::readyReadStandardOutput, this, [this, wProcess]() {
+  connect(wProcess, &QProcess::readyReadStandardOutput, this, [&, this, wProcess]() {
     QString output = QString::fromLocal8Bit(wProcess->readAllStandardOutput());
     if (!output.isEmpty())
     {
-      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
       QRegularExpressionMatchIterator i = re.globalMatch(output);
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // e.g., "00:00:09.13"
-          logStatusMessage(time);
+          QString time = match.captured(1); // "hh:mm:ss.mmm"
+
+          sequenceEntry.second.mProcessTimer = VTime(time);
+          emit sequencesChanged(mSequenceMap);
         }
       }
     }
     });
-  connect(wProcess, &QProcess::readyReadStandardError, this, [this, wProcess]() {
+  connect(wProcess, &QProcess::readyReadStandardError, this, [&, this, wProcess]() {
     QString error = QString::fromLocal8Bit(wProcess->readAllStandardError());
     if (!error.isEmpty())
     {
-      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
       QRegularExpressionMatchIterator i = re.globalMatch(error);
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // e.g., "00:00:09.13"
-          logStatusMessage(time);
+          QString time = match.captured(1); // "hh:mm:ss.mmm"
+
+          sequenceEntry.second.mProcessTimer = VTime(time);
+          emit sequencesChanged(mSequenceMap);
         }
       }
     }
     });
 
-  mProcesses.back()->start(mFFMpegPath, args);
+  wProcess->start(mFFMpegPath, args);
 }
 
 void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
@@ -605,6 +649,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   QProcess* wCutProcess = mProcesses.back().get();
   connect(wCutProcess, &QProcess::started, this, [&]() {
     sequenceEntry.second.mState = OperationState::Processing;
+    sequenceEntry.second.mProcessTimer = VTime(0);
     emit sequencesChanged(mSequenceMap);
     logStatusMessage(QString("Loop cut started on ") + (mGpuEncode ? "GPU" : "CPU") + (mDeinterlace ? " with deinterlacing" : ""));
     });
@@ -624,6 +669,8 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
     mProcesses.push_back(std::make_unique<QProcess>(this));
     QProcess* wReverserProcess = mProcesses.back().get();
     connect(wReverserProcess, &QProcess::started, this, [&]() {
+      sequenceEntry.second.mProcessTimer = VTime(0);
+      emit sequencesChanged(mSequenceMap);
       logStatusMessage("Reverser started");
       });
 
@@ -652,6 +699,8 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       mProcesses.push_back(std::make_unique<QProcess>(this));
       QProcess* wMergerProcess = mProcesses.back().get();
       connect(wMergerProcess, &QProcess::started, this, [&]() {
+        sequenceEntry.second.mProcessTimer = VTime(0);
+        emit sequencesChanged(mSequenceMap);
         logStatusMessage("Merger started");
         });
 
@@ -665,32 +714,58 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
         QFile::remove(wReversedFilePath);
         });
 
-      connect(wMergerProcess, &QProcess::readyReadStandardOutput, this, [this, wMergerProcess]() {
+      connect(wMergerProcess, &QProcess::readyReadStandardOutput, this, [&, this, wMergerProcess]() {
         QString output = QString::fromLocal8Bit(wMergerProcess->readAllStandardOutput());
         if (!output.isEmpty())
         {
-          QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+          QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
           QRegularExpressionMatchIterator i = re.globalMatch(output);
           while (i.hasNext()) {
             QRegularExpressionMatch match = i.next();
             if (match.hasMatch()) {
-              QString time = match.captured(1); // e.g., "00:00:09.13"
-              logStatusMessage(time);
+              const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+              // this output gets an invalid time=... at the endo of the process which makes the progress of the last step invalid.
+              // we clamp it to the duration of the sequence
+              const VTime time = VTime(timeStr);
+              const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+              if(time < duration)
+              {
+                sequenceEntry.second.mProcessTimer = time;
+              }              
+              else
+              {
+                sequenceEntry.second.mProcessTimer = duration;
+              }
+              logStatusMessage(QString("wMergerProcess mProcessTimer: ") + sequenceEntry.second.mProcessTimer.toString());
+              logStatusMessage(output);
+              emit sequencesChanged(mSequenceMap);
             }
           }
         }
         });
-      connect(wMergerProcess, &QProcess::readyReadStandardError, this, [this, wMergerProcess]() {
+      connect(wMergerProcess, &QProcess::readyReadStandardError, this, [&, this, wMergerProcess]() {
         QString error = QString::fromLocal8Bit(wMergerProcess->readAllStandardError());
         if (!error.isEmpty())
         {
-          QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+          QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
           QRegularExpressionMatchIterator i = re.globalMatch(error);
           while (i.hasNext()) {
             QRegularExpressionMatch match = i.next();
             if (match.hasMatch()) {
-              QString time = match.captured(1); // e.g., "00:00:09.13"
-              logStatusMessage(time);
+              const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+              // this output gets an invalid time=... at the endo of the process which makes the progress of the last step invalid.
+              // we clamp it to the duration of the sequence
+              const VTime time = VTime(timeStr);
+              const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+              if (time < duration)
+              {
+                sequenceEntry.second.mProcessTimer = time;
+              }
+              else
+              {
+                sequenceEntry.second.mProcessTimer = duration;
+              }
+              emit sequencesChanged(mSequenceMap);
             }
           }
         }
@@ -701,32 +776,37 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       wMergerProcess->start(mFFMpegPath, wArguments);
       });
 
-    connect(wReverserProcess, &QProcess::readyReadStandardOutput, this, [this, wReverserProcess]() {
+    connect(wReverserProcess, &QProcess::readyReadStandardOutput, this, [&, this, wReverserProcess]() {
       QString output = QString::fromLocal8Bit(wReverserProcess->readAllStandardOutput());
       if (!output.isEmpty())
       {
-        QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+        QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
         QRegularExpressionMatchIterator i = re.globalMatch(output);
         while (i.hasNext()) {
           QRegularExpressionMatch match = i.next();
           if (match.hasMatch()) {
-            QString time = match.captured(1); // e.g., "00:00:09.13"
-            logStatusMessage(time);
+            QString time = match.captured(1); // "hh:mm:ss.mm"
+
+            sequenceEntry.second.mProcessTimer = VTime(time);
+            emit sequencesChanged(mSequenceMap);
           }
         }
       }
       });
-    connect(wReverserProcess, &QProcess::readyReadStandardError, this, [this, wReverserProcess]() {
+
+    connect(wReverserProcess, &QProcess::readyReadStandardError, this, [&, this, wReverserProcess]() {
       QString error = QString::fromLocal8Bit(wReverserProcess->readAllStandardError());
       if (!error.isEmpty())
       {
-        QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+        QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
         QRegularExpressionMatchIterator i = re.globalMatch(error);
         while (i.hasNext()) {
           QRegularExpressionMatch match = i.next();
           if (match.hasMatch()) {
-            QString time = match.captured(1); // e.g., "00:00:09.13"
-            logStatusMessage(time);
+            QString time = match.captured(1); // "hh:mm:ss.mm"
+
+            sequenceEntry.second.mProcessTimer = VTime(time);
+            emit sequencesChanged(mSequenceMap);
           }
         }
       }
@@ -739,32 +819,36 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       wReversedFilePath, "-y" });
     });
 
-  connect(wCutProcess, &QProcess::readyReadStandardOutput, this, [this, wCutProcess]() {
+  connect(wCutProcess, &QProcess::readyReadStandardOutput, this, [&, this, wCutProcess]() {
     QString output = QString::fromLocal8Bit(wCutProcess->readAllStandardOutput());
     if (!output.isEmpty())
     {
-      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
       QRegularExpressionMatchIterator i = re.globalMatch(output);
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // e.g., "00:00:09.13"
-          logStatusMessage(time);
+          QString time = match.captured(1); // "hh:mm:ss.mm"
+
+          sequenceEntry.second.mProcessTimer = VTime(time);
+          emit sequencesChanged(mSequenceMap);
         }
       }
     }
     });
-  connect(wCutProcess, &QProcess::readyReadStandardError, this, [this, wCutProcess]() {
+  connect(wCutProcess, &QProcess::readyReadStandardError, this, [&, this, wCutProcess]() {
     QString error = QString::fromLocal8Bit(wCutProcess->readAllStandardError());
     if (!error.isEmpty())
     {
-      QRegularExpression re(R"((time.*\d{2}:\d{2}:\d{2}\.\d{2}))");
+      QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
       QRegularExpressionMatchIterator i = re.globalMatch(error);
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // e.g., "00:00:09.13"
-          logStatusMessage(time);
+          QString time = match.captured(1); // "hh:mm:ss.mm"
+
+          sequenceEntry.second.mProcessTimer = VTime(time);
+          emit sequencesChanged(mSequenceMap);
         }
       }
     }

@@ -136,7 +136,31 @@ void Slider::paintEvent(QPaintEvent* wEvent)
   while (wIt != wOrderedSequences.rend())
   {
     const SequenceEntry& wSequenceEntry = **wIt;
-    wPainter.fillRect(sequenceRect(wSequenceEntry), sequenceColor(wSequenceEntry));
+    QRect wFullRect = sequenceRect(wSequenceEntry);
+    if(wSequenceEntry.second.mState != OperationState::Processing)
+    {
+      wPainter.fillRect(wFullRect, sequenceColor(wSequenceEntry));
+    }
+    else
+    {
+      const VTime wDuration = wSequenceEntry.first.second - wSequenceEntry.first.first;
+      const VTime wProcessTime = wSequenceEntry.second.mProcessTimer;
+
+      // Calculate the processed rect (green)
+      int wStartX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(wSequenceEntry.first.first.ms()), width());
+      int wProcessEndX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(wSequenceEntry.first.first.ms() + wProcessTime.ms()), width());
+      int wRectY = mSequenceRectBottom;
+      int wRectH = mSequenceRectTop;
+
+      QRect processedRect(wStartX, wRectY, wProcessEndX - wStartX, wRectH);
+      QRect nonProcessedRect(wProcessEndX, wRectY, wFullRect.right() - wProcessEndX + 1, wRectH);
+
+      // Draw processed (green)
+      wPainter.fillRect(processedRect, QColor(80, 255, 90, 185));
+      // Draw non-processed (white)
+      wPainter.fillRect(nonProcessedRect, QColor(255, 255, 255, 185));
+    }
+
     ++wIt;
   }
 }
@@ -146,7 +170,7 @@ void Slider::setSequences(const SequenceMap& wSequence)
   mSequences.clear();
   for (auto& wSequence : wSequence)
   {
-    mSequences[wSequence.first] = SequenceState{ wSequence.second.mState, wSequence.second.mSelected, wSequence.second.mIsEditing };
+    mSequences[wSequence.first] = SequenceState{ wSequence.second };
   }
   update();
   emit sequenceSelected(nullptr);
