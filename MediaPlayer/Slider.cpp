@@ -156,9 +156,9 @@ void Slider::paintEvent(QPaintEvent* wEvent)
       QRect nonProcessedRect(wProcessEndX, wRectY, wFullRect.right() - wProcessEndX + 1, wRectH);
 
       // Draw processed (green)
-      wPainter.fillRect(processedRect, QColor(80, 255, 90, 185));
+      wPainter.fillRect(processedRect, QColor(150, 255, 150, 185)); // progress color: "processed"
       // Draw non-processed (white)
-      wPainter.fillRect(nonProcessedRect, QColor(255, 255, 255, 185));
+      wPainter.fillRect(nonProcessedRect, QColor(255, 255, 255, 185)); // progress color: "processing"
     }
 
     ++wIt;

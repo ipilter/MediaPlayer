@@ -492,9 +492,17 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // "hh:mm:ss.mm"
-
-          sequenceEntry.second.mProcessTimer = VTime(time);
+          const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+          const VTime time = VTime(timeStr);
+          const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+          if (time < duration)
+          {
+            sequenceEntry.second.mProcessTimer = time;
+          }
+          else
+          {
+            sequenceEntry.second.mProcessTimer = duration;
+          }
           emit sequencesChanged(mSequenceMap);
         }
       }
@@ -509,9 +517,17 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
         while (i.hasNext()) {
           QRegularExpressionMatch match = i.next();
           if (match.hasMatch()) {
-            QString time = match.captured(1); // "hh:mm:ss.mm"
-
-            sequenceEntry.second.mProcessTimer = VTime(time);
+            const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+            const VTime time = VTime(timeStr);
+            const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+            if (time < duration)
+            {
+              sequenceEntry.second.mProcessTimer = time;
+            }
+            else
+            {
+              sequenceEntry.second.mProcessTimer = duration;
+            }
             emit sequencesChanged(mSequenceMap);
           }
       }
@@ -600,9 +616,17 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // "hh:mm:ss.mmm"
-
-          sequenceEntry.second.mProcessTimer = VTime(time);
+          const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+          const VTime time = VTime(timeStr);
+          const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+          if (time < duration)
+          {
+            sequenceEntry.second.mProcessTimer = time;
+          }
+          else
+          {
+            sequenceEntry.second.mProcessTimer = duration;
+          }
           emit sequencesChanged(mSequenceMap);
         }
       }
@@ -617,9 +641,17 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // "hh:mm:ss.mmm"
-
-          sequenceEntry.second.mProcessTimer = VTime(time);
+          const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+          const VTime time = VTime(timeStr);
+          const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+          if (time < duration)
+          {
+            sequenceEntry.second.mProcessTimer = time;
+          }
+          else
+          {
+            sequenceEntry.second.mProcessTimer = duration;
+          }
           emit sequencesChanged(mSequenceMap);
         }
       }
@@ -724,11 +756,9 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
             QRegularExpressionMatch match = i.next();
             if (match.hasMatch()) {
               const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
-              // this output gets an invalid time=... at the endo of the process which makes the progress of the last step invalid.
-              // we clamp it to the duration of the sequence
               const VTime time = VTime(timeStr);
               const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
-              if(time < duration)
+              if (time < duration)
               {
                 sequenceEntry.second.mProcessTimer = time;
               }              
@@ -736,8 +766,6 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
               {
                 sequenceEntry.second.mProcessTimer = duration;
               }
-              logStatusMessage(QString("wMergerProcess mProcessTimer: ") + sequenceEntry.second.mProcessTimer.toString());
-              logStatusMessage(output);
               emit sequencesChanged(mSequenceMap);
             }
           }
@@ -753,8 +781,6 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
             QRegularExpressionMatch match = i.next();
             if (match.hasMatch()) {
               const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
-              // this output gets an invalid time=... at the endo of the process which makes the progress of the last step invalid.
-              // we clamp it to the duration of the sequence
               const VTime time = VTime(timeStr);
               const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
               if (time < duration)
@@ -785,9 +811,17 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
         while (i.hasNext()) {
           QRegularExpressionMatch match = i.next();
           if (match.hasMatch()) {
-            QString time = match.captured(1); // "hh:mm:ss.mm"
-
-            sequenceEntry.second.mProcessTimer = VTime(time);
+            const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+            const VTime time = VTime(timeStr);
+            const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+            if (time < duration)
+            {
+              sequenceEntry.second.mProcessTimer = time;
+            }
+            else
+            {
+              sequenceEntry.second.mProcessTimer = duration;
+            }
             emit sequencesChanged(mSequenceMap);
           }
         }
@@ -803,9 +837,17 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
         while (i.hasNext()) {
           QRegularExpressionMatch match = i.next();
           if (match.hasMatch()) {
-            QString time = match.captured(1); // "hh:mm:ss.mm"
-
-            sequenceEntry.second.mProcessTimer = VTime(time);
+            const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+            const VTime time = VTime(timeStr);
+            const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+            if (time < duration)
+            {
+              sequenceEntry.second.mProcessTimer = time;
+            }
+            else
+            {
+              sequenceEntry.second.mProcessTimer = duration;
+            }
             emit sequencesChanged(mSequenceMap);
           }
         }
@@ -828,9 +870,17 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // "hh:mm:ss.mm"
-
-          sequenceEntry.second.mProcessTimer = VTime(time);
+          const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+          const VTime time = VTime(timeStr);
+          const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+          if (time < duration)
+          {
+            sequenceEntry.second.mProcessTimer = time;
+          }
+          else
+          {
+            sequenceEntry.second.mProcessTimer = duration;
+          }
           emit sequencesChanged(mSequenceMap);
         }
       }
@@ -845,9 +895,17 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       while (i.hasNext()) {
         QRegularExpressionMatch match = i.next();
         if (match.hasMatch()) {
-          QString time = match.captured(1); // "hh:mm:ss.mm"
-
-          sequenceEntry.second.mProcessTimer = VTime(time);
+          const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
+          const VTime time = VTime(timeStr);
+          const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
+          if (time < duration)
+          {
+            sequenceEntry.second.mProcessTimer = time;
+          }
+          else
+          {
+            sequenceEntry.second.mProcessTimer = duration;
+          }
           emit sequencesChanged(mSequenceMap);
         }
       }
