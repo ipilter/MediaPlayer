@@ -298,7 +298,7 @@ void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekSt
 
       qint64 wMin = 10;
       qint64 wMax = std::max(wMin, wSeekWindow.ms());
-      wStepSize = VTime(Random(wMin, wMax));  // assuming 10 ms is left from the video, at least..
+      wStepSize = VTime(utils::Random(wMin, wMax));  // assuming 10 ms is left from the video, at least..
     }
   }
 
@@ -465,7 +465,7 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
   const VTime wEndTime = sequenceEntry.first.second;
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
-  const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
+  const QString wCutFilePath = mOutputRootDirectory + utils::prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
 
   mProcesses.push_back(std::make_unique<QProcess>(this));
@@ -554,7 +554,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   const VTime wEndTime = sequenceEntry.first.second;
   const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
 
-  const QString wCutFilePath = mOutputRootDirectory + prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
+  const QString wCutFilePath = mOutputRootDirectory + utils::prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
 
   QStringList args;
@@ -666,7 +666,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
 
-  const QString wPrettyFileName = prettifyFileName(QFileInfo(mPlaylist[mCurrentVideo].toLocalFile()).completeBaseName());
+  const QString wPrettyFileName = utils::prettifyFileName(QFileInfo(mPlaylist[mCurrentVideo].toLocalFile()).completeBaseName());
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
   const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + ".loop.mp4";
@@ -717,7 +717,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
 
       // Merge the files
       // Create concat list file
-      const QString wConcatFilePath = uniqueFileName(mOutputRootDirectory + "concat.txt");
+      const QString wConcatFilePath = utils::uniqueFileName(mOutputRootDirectory + "concat.txt");
       {
         std::ofstream ofs(wConcatFilePath.toStdString());
         for (unsigned n = 0; n < loopCount; ++n)

@@ -3,9 +3,13 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QString>
+#include <QColor>
 #include <QRegularExpression>
 
 #include <random>
+
+namespace utils
+{
 
 inline QString prettifyFileName(QString fileName)
 {
@@ -35,4 +39,15 @@ inline T Random(const T min, const T max)
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(min, max);
   return static_cast<T>(dis(gen));
-};
+}
+
+QColor inline lerp(const QColor& c1, const QColor& c2, double t)
+{
+  int r = static_cast<int>(c1.red() + (c2.red() - c1.red()) * t);
+  int g = static_cast<int>(c1.green() + (c2.green() - c1.green()) * t);
+  int b = static_cast<int>(c1.blue() + (c2.blue() - c1.blue()) * t);
+  int a = static_cast<int>(c1.alpha() + (c2.alpha() - c1.alpha()) * t);
+  return QColor(r, g, b, a);
+}
+
+}
