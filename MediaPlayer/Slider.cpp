@@ -155,7 +155,7 @@ void Slider::paintEvent(QPaintEvent* wEvent)
       const QRect wProcessedRect(wStartX, wRectY, wProcessEndX - wStartX, wRectH);
       const QRect wNonProcessedRect(wProcessEndX, wRectY, wFullRect.right() - wProcessEndX + 1, wRectH);
 
-      const QColor wBackColor(205, 210, 215, 195);
+      const QColor wBackColor(255, 255, 255, 105);
       const QColor wStartColor(14, 85, 151, 255);
       const QColor wEndColor(0, 205, 0, 255);
 
