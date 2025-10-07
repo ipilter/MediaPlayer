@@ -146,19 +146,36 @@ void Slider::paintEvent(QPaintEvent* wEvent)
       const VTime wDuration = wSequenceEntry.first.second - wSequenceEntry.first.first;
       const VTime wProcessTime = wSequenceEntry.second.mProcessTimer;
 
-      // Calculate the processed rect (green)
+      // Calculate the processed rect (lerped color)
       int wStartX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(wSequenceEntry.first.first.ms()), width());
       int wProcessEndX = QStyle::sliderPositionFromValue(minimum(), maximum(), static_cast<int>(wSequenceEntry.first.first.ms() + wProcessTime.ms()), width());
       int wRectY = mSequenceRectBottom;
-      int wRectH = mSequenceRectTop;
+      int wRectH = mSequenceRectTop;  
 
       QRect processedRect(wStartX, wRectY, wProcessEndX - wStartX, wRectH);
       QRect nonProcessedRect(wProcessEndX, wRectY, wFullRect.right() - wProcessEndX + 1, wRectH);
 
-      // Draw processed (green)
-      wPainter.fillRect(processedRect, QColor(150, 255, 150, 185)); // progress color: "processed"
-      // Draw non-processed (white)
-      wPainter.fillRect(nonProcessedRect, QColor(255, 255, 255, 185)); // progress color: "processing"
+      QColor a(255, 255, 255, 255);
+      QColor b(4, 45, 161, 255);
+      QColor c(0, 255, 0, 255);
+
+      // Calculate lerp t parameter (clamped between 0 and 1)
+      double t = 0.0;
+      if (wDuration.ms() > 0) {
+          t = std::min(1.0, std::max(0.0, static_cast<double>(wProcessTime.ms()) / static_cast<double>(wDuration.ms())));
+      }
+
+      // Linear interpolation between a and b
+      auto lerpColor = [](const QColor& c1, const QColor& c2, double t) -> QColor {
+          int r = static_cast<int>(c1.red()   + (c2.red()   - c1.red())   * t);
+          int g = static_cast<int>(c1.green() + (c2.green() - c1.green()) * t);
+          int b = static_cast<int>(c1.blue()  + (c2.blue()  - c1.blue())  * t);
+          int a = static_cast<int>(c1.alpha() + (c2.alpha() - c1.alpha()) * t);
+          return QColor(r, g, b, a);
+      };
+
+      wPainter.fillRect(processedRect, lerpColor(b, c, t));
+      wPainter.fillRect(nonProcessedRect, a);
     }
 
     ++wIt;
