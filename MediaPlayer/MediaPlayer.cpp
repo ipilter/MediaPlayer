@@ -589,8 +589,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
     }
 
     args.append({ "-c:v", mGpuEncode ? "h264_nvenc" : "libx264" }); // GPU or CPU
-    args.append({ "-c:a", "copy" }); //"aac" if needed
-    args.append(wCutFilePath);
+    args.append({ "-c:a", "aac", wCutFilePath });
   }
 
   mProcesses.push_back(std::make_unique<QProcess>(this));
@@ -946,8 +945,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       args.append({ "-vf", "yadif" });
     }
     args.append({ "-c:v", mGpuEncode ? "h264_nvenc" : "libx264" }); // GPU or CPU
-    args.append({ "-c:a", "aac",
-                  wCutFilePath });
+    args.append({ "-c:a", "aac", wCutFilePath });
   }
 
   wCutProcess->start(mFFMpegPath, args);

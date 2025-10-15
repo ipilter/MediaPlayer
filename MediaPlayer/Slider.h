@@ -51,6 +51,7 @@ private:
   };
 
   using OrderedSequenceEntries = std::set<SequenceEntry*, SequenceLess>;
+  static const std::map<QString, const QColor> sColorMap;
 
   const int mSequenceRectBottom = 2;
   const int mSequenceRectTop = 10;

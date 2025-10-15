@@ -38,23 +38,29 @@ View::View(QWidget* parent)
   mSlider->setObjectName("videoSlider");
 
   mPreviousButton = new QPushButton(parent);
+  mPreviousButton->setMinimumWidth(70);
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
 
   mSeekLeft = new QPushButton(parent);
   mSeekLeft->setIcon(QIcon(mPixmapTable["seekLeft"]));
+  mSeekLeft->setMinimumWidth(70);
   mSeekLeft->setObjectName("seekLeftButton");
 
   mPlayButton = new QPushButton(parent);
+  mPlayButton->setMinimumWidth(70);
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
 
   mSeekRight = new QPushButton(parent);
+  mSeekRight->setMinimumWidth(70);
   mSeekRight->setIcon(QIcon(mPixmapTable["seekRight"]));
   mSeekRight->setObjectName("seekRightButton");
 
   mNextButton = new QPushButton(parent);
+  mNextButton->setMinimumWidth(70);
   mNextButton->setIcon(QIcon(mPixmapTable["next"]));
 
   mAudioButton = new QPushButton(parent);
+  mAudioButton->setMinimumWidth(70);
   mAudioButton->setIcon(QIcon(mPixmapTable["muted"]));
 
   mDeinterlaceCheckBox = new QCheckBox(parent);
@@ -83,7 +89,7 @@ View::View(QWidget* parent)
   mLoopCountSpinBox->setPrefix("Loops: ");
   mLoopCountSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mLoopCountSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-  mLoopCountSpinBox->setMinimumWidth(140);
+  mLoopCountSpinBox->setMinimumWidth(110);
 
   mBurstLengthSpinBox = new QDoubleSpinBox(parent);
   mBurstLengthSpinBox->setObjectName("burstLengthSpinBox");
@@ -93,7 +99,7 @@ View::View(QWidget* parent)
   mBurstLengthSpinBox->setPrefix("Burst length: ");
   mBurstLengthSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mBurstLengthSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-  mBurstLengthSpinBox->setMinimumWidth(140);
+  mBurstLengthSpinBox->setMinimumWidth(170);
 
   mInfoBar = new QPlainTextEdit(parent);
   mInfoBar->setObjectName("infoBar");

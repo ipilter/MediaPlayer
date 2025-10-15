@@ -13,6 +13,20 @@
 
 #include <set>
 
+// Color map for different sequence states
+const std::map<QString, const QColor> Slider::sColorMap = {
+  { "progressBackground", QColor(255, 255, 255, 85) },
+  { "progressStart",      QColor(34, 115, 211, 185) },
+  { "progressEnd",        QColor(34, 115, 211, 185)},
+  { "invalid",            QColor(255, 0, 0, 155) },
+  { "ready",              QColor(255, 255, 255, 55) },
+  { "processing",         QColor(255, 255, 255, 155) },
+  { "succeeded",          QColor(40, 185,  70, 155) },
+  { "failed",             QColor(255,  20,  78, 155) },
+  { "selected",           QColor(246, 249,  38, 155) },
+  { "editing",            QColor(55, 150, 150, 155) }
+  };
+
 // Custom style for the slider
 class SliderStyle : public QProxyStyle
 {
@@ -155,17 +169,13 @@ void Slider::paintEvent(QPaintEvent* wEvent)
       const QRect wProcessedRect(wStartX, wRectY, wProcessEndX - wStartX, wRectH);
       const QRect wNonProcessedRect(wProcessEndX, wRectY, wFullRect.right() - wProcessEndX + 1, wRectH);
 
-      const QColor wBackColor(255, 255, 255, 105);
-      const QColor wStartColor(14, 85, 151, 255);
-      const QColor wEndColor(0, 205, 0, 255);
-
       double wT = 0.0;
       if (wDuration.ms() > 0) {
         wT = std::min(1.0, std::max(0.0, static_cast<double>(wProcessTime.ms()) / static_cast<double>(wDuration.ms())));
       }
 
-      wPainter.fillRect(wProcessedRect, utils::lerp(wStartColor, wEndColor, wT));
-      wPainter.fillRect(wNonProcessedRect, wBackColor);
+      wPainter.fillRect(wProcessedRect, utils::lerp(sColorMap.at("progressStart"), sColorMap.at("progressEnd"), wT));
+      wPainter.fillRect(wNonProcessedRect, sColorMap.at("progressBackground"));
     }
 
     ++wIt;
@@ -185,16 +195,6 @@ void Slider::setSequences(const SequenceMap& wSequence)
 
 const QColor& Slider::sequenceColor(const SequenceEntry& wSequenceEntry) const
 {
-  static const std::map<QString, const QColor> colorMap = {
-    {"invalid",    QColor(255,   0,   0, 185) },
-    {"ready",      QColor(100, 130, 205, 185) },
-    {"processing", QColor(255, 255, 255, 185) },
-    {"succeeded",  QColor(80, 255,  90, 185) },
-    {"failed",     QColor(255,  20,  78, 185) },
-    {"selected",   QColor(246, 249,  38, 185) },
-    {"editing",    QColor(055, 150, 150, 185) }
-  };
-
   QString colorName = "invalid";
   if (wSequenceEntry.second.mIsEditing)
   {
@@ -222,7 +222,7 @@ const QColor& Slider::sequenceColor(const SequenceEntry& wSequenceEntry) const
       break;
     }
   }
-  return colorMap.at(colorName);
+  return sColorMap.at(colorName);
 }
 
 const QRect Slider::sequenceRect(const SequenceEntry& wSequenceEntry) const
