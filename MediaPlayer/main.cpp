@@ -99,14 +99,6 @@ void savePreferences(const MainWindow& iMainWindow)
   settings.setValue("autoPlay", iMainWindow.getSettings().mAutoPlay);
   settings.setValue("audioMode", static_cast<quint32>(iMainWindow.getSettings().mAudioMode));
   settings.setValue("cursorTimeout", iMainWindow.getSettings().mCursorTimeout);
-
-  QStringList folderList;
-  for (const auto& folder : iMainWindow.getSettings().mRawFolders)
-  {
-    folderList << QString::fromStdString(folder);
-  }
-  settings.setValue("rawFolders", folderList);
-
   settings.endGroup();
 }
 
@@ -118,20 +110,11 @@ void loadPreferences(MainWindow& iMainWindow)
   auto wSize = settings.value("size", QSize(800, 600)).toSize();
   auto wPosition = settings.value("pos", QPoint(100, 100)).toPoint();
 
-  QStringList folderList = settings.value("rawFolders", QStringList()).toStringList();
-  std::vector<std::string> rawFolders;
-  for (const auto& folder : folderList)
-  {
-    rawFolders.push_back(folder.toStdString());
-  }
-
   iMainWindow.resize(wSize);
   iMainWindow.move(wPosition);
   iMainWindow.setSettings(Settings{ settings.value("autoPlay", false).toBool()
                                                  , static_cast<Settings::AudioMode>(settings.value("audioMode", 0).toUInt())
-                                                 , settings.value("cursorTimeout", 500).toInt()
-                                                 , rawFolders
-  });
+                                                 , settings.value("cursorTimeout", 500).toInt() });
   settings.endGroup();
 }
 

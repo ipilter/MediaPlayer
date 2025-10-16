@@ -59,20 +59,15 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   {
     if (event->modifiers() & Qt::ShiftModifier)
     {
-      qDebug() << "ShiftModifier + 1 pressed!";
     }
     else if (event->modifiers() & Qt::AltModifier)
     {
-      qDebug() << "AltModifier + 1 pressed!";
     }
     else if (event->modifiers() & Qt::ControlModifier)
     {
-      qDebug() << "ControlModifier + 1 pressed!";
     }
     else
     {
-      qDebug() << "1 with No Modifier pressed!";
-      mMediaPlayer->deleteCurrentVideo();
     }
     break;
   }

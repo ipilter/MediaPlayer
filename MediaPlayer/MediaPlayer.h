@@ -27,9 +27,7 @@ public:
   enum class SnapPosition { Start, End };
 
   using Playlist = details::Playlist;
-  using Filter = details::Filter;
   using Playlists = std::vector<Playlist>;
-  using Filters = std::vector<Filter>;
 
   MediaPlayer(QObject* parent = nullptr);
   ~MediaPlayer();
@@ -63,12 +61,6 @@ public:
   void resetSeqenceState();
   void deleteSequence();
 
-  // file management
-  void deleteCurrentVideo();
-
-  // filter management
-  void addFilter(const Filter& filter);
-
   void logStatusMessage(const QString& msg);
 
   // TODO HACK !
@@ -76,7 +68,6 @@ public:
 
 signals:
   void sequencesChanged(const SequenceMap& sequences);
-  void filtersChanged(const Filters& filters);
 
 private:
   void onVideoLoaded();
@@ -102,9 +93,6 @@ private:
   SequenceMap mSequenceMap;
   Sequence mEditedSequence = Sequence{ VTime(0), VTime(0) };
   Sequence const* mSelectedSequence = nullptr;
-
-  // filter management
-  Filters mFilters;
 
   using ProcessPtr = std::unique_ptr<QProcess>;
   std::vector<ProcessPtr> mProcesses; // TODO: destroy finished processsed, do not accumulate them

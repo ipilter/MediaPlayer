@@ -105,9 +105,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CacheData.cpp" />
     <ClCompile Include="CursorHider.cpp" />
-    <ClCompile Include="Filter.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
     <ClCompile Include="Playlist.cpp" />
     <ClCompile Include="VTime.cpp" />
@@ -146,8 +144,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="CursorHider.h" />
-    <ClInclude Include="CacheData.h" />
-    <ClInclude Include="Filter.h" />
     <ClInclude Include="Playlist.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="VTime.h" />

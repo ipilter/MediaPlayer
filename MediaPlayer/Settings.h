@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-#include "CacheData.h"
 
 struct Settings
 {
@@ -17,6 +16,4 @@ struct Settings
   bool mAutoPlay = false;
   AudioMode mAudioMode = AudioMode::Muted;
   int mCursorTimeout = 1000;
-  std::vector<std::string> mRawFolders;
-  CacheData mCacheData;
 };
