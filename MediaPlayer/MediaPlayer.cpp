@@ -41,12 +41,27 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::seekRightButtonClicked, this, [this]() { seek(SeekDirection::Forward, SeekStep::Random); });
   connect(mView.get(), &View::deinterlaceChecked, this, [this](const bool state) { setDeinterlace(state); });
   connect(mView.get(), &View::gpuEncodeChecked, this, [this](const bool state) { setGpuEncode(state); });  
-  
+  connect(mView.get(), &View::onMouseClick, this, [this]() { stop();  });
+  connect(mView.get(), &View::videoItemDoubleClicked, this, [this](const QUrl url) 
+  {
+    auto it = std::find(mPlaylist.GetVideos().begin(), mPlaylist.GetVideos().end(), url);
+    if (it != mPlaylist.GetVideos().end())
+    {
+      stop();
+      mCurrentVideo = std::distance(mPlaylist.GetVideos().begin(), it);
+      mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+      play();
+    }
+    });
+  connect(mView.get(), &View::speedChanged, this, [this](double speed) { mPlayer->setPlaybackRate(speed); });
+  connect(mView.get(), &View::volumeChanged, this, [this](double volume) { mPlayer->setVolume(static_cast<float>(volume)); });
+
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
       : mView->setDurationLabel(wSequence->second - wSequence->first, true); // TODO solve the coloring of the label in a better way
     mSelectedSequence = wSequence; });
+
   connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
   {
     qDebug() << "double clicked sequence" << wSequence->first.ms() << wSequence->second.ms();
@@ -68,13 +83,10 @@ MediaPlayer::MediaPlayer(QObject* parent)
   });
 
   connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
+  connect(this, &MediaPlayer::videoListChanged, mView.get(), &View::onVideoListChanged);
 
-  // if a +filter button is clicked on the view, ask for a filter pattern and if ok, view will emit an event with the pattern
-  // controller catches this event and creates a new filter then emits a Filter changed event
-  // for the filter changed event the view updates it`s own filter UI element list with the given filter list of the event
-
-  mPlayer->setVolume(50);
-  //mPlayer->setPlaybackRate(0.5f);
+  mPlayer->setVolume(0);
+  mPlayer->setPlaybackRate(1.0f);
 }
 
 MediaPlayer::~MediaPlayer()
@@ -94,6 +106,7 @@ void MediaPlayer::setPlaylist(const Playlist& playlist)
 
   mSequenceMap.clear();
   emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
+  emit videoListChanged(mPlaylist.GetVideos());
 }
 
 QLayout* MediaPlayer::getLayout() const
@@ -396,7 +409,7 @@ void MediaPlayer::cut(const CutMethod cutMethod)
   if (mSelectedSequence != nullptr)
   {
     auto wSequenceEntryIt = mSequenceMap.find(*mSelectedSequence);
-    if (wSequenceEntryIt == mSequenceMap.end() || wSequenceEntryIt->second.mState != OperationState::Ready)
+    if (wSequenceEntryIt == mSequenceMap.end())
     {
       return;
     }

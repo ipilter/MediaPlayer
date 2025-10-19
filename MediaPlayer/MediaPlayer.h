@@ -68,6 +68,7 @@ public:
 
 signals:
   void sequencesChanged(const SequenceMap& sequences);
+  void videoListChanged(const std::vector<QUrl>& videos);
 
 private:
   void onVideoLoaded();

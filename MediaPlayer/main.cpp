@@ -135,9 +135,9 @@ MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
     wFile.close();
   }
 
-  std::random_device wRndDevice;
-  std::mt19937 wRndGenerator(wRndDevice());
-  std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
+  //std::random_device wRndDevice;
+  //std::mt19937 wRndGenerator(wRndDevice());
+  //std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
 
   return wPlaylist;
 }
@@ -150,9 +150,9 @@ MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath)
     wPlaylist.push_back(QUrl::fromLocalFile(iDirectoryPath + "/" + wFile));
   }
 
-  std::random_device wRndDevice;
-  std::mt19937 wRndGenerator(wRndDevice());
-  std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
+  //std::random_device wRndDevice;
+  //std::mt19937 wRndGenerator(wRndDevice());
+  //std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
   return wPlaylist;
 }
 

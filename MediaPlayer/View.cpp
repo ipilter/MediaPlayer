@@ -17,6 +17,8 @@
 #include <QTextBlock>
 #include <QScrollBar>
 #include <QCheckBox>
+#include <QListWidget>
+#include <QFileInfo>
 
 View::View(QWidget* parent)
   : QWidget(parent)
@@ -33,53 +35,72 @@ View::View(QWidget* parent)
 
   mVideoWidget = new VideoWidget(parent);
   mVideoWidget->setObjectName("videoWidget");
+  mVideoWidget->setFocusPolicy(Qt::NoFocus);
+
+  mVideoList = new QListWidget(parent);
+  mVideoList->setObjectName("videoList");
+  mVideoList->setFixedWidth(300);
+  mVideoList->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  mVideoList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  mVideoList->setFocusPolicy(Qt::NoFocus);
 
   mSlider = new Slider(Qt::Horizontal, parent);
   mSlider->setObjectName("videoSlider");
+  mSlider->setFocusPolicy(Qt::NoFocus);
 
   mPreviousButton = new QPushButton(parent);
   mPreviousButton->setMinimumWidth(70);
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
+  mPreviousButton->setFocusPolicy(Qt::NoFocus);
 
   mSeekLeft = new QPushButton(parent);
   mSeekLeft->setIcon(QIcon(mPixmapTable["seekLeft"]));
   mSeekLeft->setMinimumWidth(70);
   mSeekLeft->setObjectName("seekLeftButton");
+  mSeekLeft->setFocusPolicy(Qt::NoFocus);
 
   mPlayButton = new QPushButton(parent);
   mPlayButton->setMinimumWidth(70);
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
+  mPlayButton->setFocusPolicy(Qt::StrongFocus);
 
   mSeekRight = new QPushButton(parent);
   mSeekRight->setMinimumWidth(70);
   mSeekRight->setIcon(QIcon(mPixmapTable["seekRight"]));
   mSeekRight->setObjectName("seekRightButton");
+  mSeekRight->setFocusPolicy(Qt::NoFocus);
 
   mNextButton = new QPushButton(parent);
   mNextButton->setMinimumWidth(70);
   mNextButton->setIcon(QIcon(mPixmapTable["next"]));
+  mNextButton->setFocusPolicy(Qt::NoFocus);
 
   mAudioButton = new QPushButton(parent);
   mAudioButton->setMinimumWidth(70);
   mAudioButton->setIcon(QIcon(mPixmapTable["muted"]));
+  mAudioButton->setFocusPolicy(Qt::NoFocus);
 
   mDeinterlaceCheckBox = new QCheckBox(parent);
   mDeinterlaceCheckBox->setText("Deinterlace");
   mDeinterlaceCheckBox->setChecked(false);
   mDeinterlaceCheckBox->setObjectName("myCheckBox");
+  mDeinterlaceCheckBox->setFocusPolicy(Qt::NoFocus);
 
   mGpuEncodeCheckBox = new QCheckBox(parent);
   mGpuEncodeCheckBox->setText("GPU Encode");
   mGpuEncodeCheckBox->setChecked(false);
   mGpuEncodeCheckBox->setObjectName("gpuEncodeCheckBox");
+  mGpuEncodeCheckBox->setFocusPolicy(Qt::NoFocus);
 
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
   mPositionLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+  mPositionLabel->setFocusPolicy(Qt::NoFocus);
 
   mDurationLabel = new QLabel("00:00:00:000", parent);
   mDurationLabel->setObjectName("durationLabel");
   mDurationLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+  mDurationLabel->setFocusPolicy(Qt::NoFocus);
 
   mLoopCountSpinBox = new QSpinBox(parent);
   mLoopCountSpinBox->setObjectName("loopCountSpinBox");
@@ -90,6 +111,7 @@ View::View(QWidget* parent)
   mLoopCountSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mLoopCountSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
   mLoopCountSpinBox->setMinimumWidth(110);
+  mLoopCountSpinBox->setFocusPolicy(Qt::NoFocus);
 
   mBurstLengthSpinBox = new QDoubleSpinBox(parent);
   mBurstLengthSpinBox->setObjectName("burstLengthSpinBox");
@@ -100,6 +122,29 @@ View::View(QWidget* parent)
   mBurstLengthSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mBurstLengthSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
   mBurstLengthSpinBox->setMinimumWidth(170);
+  mBurstLengthSpinBox->setFocusPolicy(Qt::NoFocus);
+
+  mSpeedSpinBox = new QDoubleSpinBox(parent);
+  mSpeedSpinBox->setObjectName("speedSpinBox");
+  mSpeedSpinBox->setRange(0.1, 10.0);
+  mSpeedSpinBox->setValue(1.0);
+  mSpeedSpinBox->setSingleStep(0.1);
+  mSpeedSpinBox->setPrefix("Speed: ");
+  mSpeedSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  mSpeedSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+  mSpeedSpinBox->setMinimumWidth(130);
+  mSpeedSpinBox->setFocusPolicy(Qt::NoFocus);
+
+  mVolumeSpinBox = new QDoubleSpinBox(parent);
+  mVolumeSpinBox->setObjectName("volumeSpinBox");
+  mVolumeSpinBox->setRange(0.0, 100.0);
+  mVolumeSpinBox->setValue(0.0);
+  mVolumeSpinBox->setSingleStep(10.0);
+  mVolumeSpinBox->setPrefix("Volume: ");
+  mVolumeSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  mVolumeSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+  mVolumeSpinBox->setMinimumWidth(130);
+  mVolumeSpinBox->setFocusPolicy(Qt::NoFocus);
 
   mInfoBar = new QPlainTextEdit(parent);
   mInfoBar->setObjectName("infoBar");
@@ -107,6 +152,7 @@ View::View(QWidget* parent)
   mInfoBar->setMaximumHeight(45);
   mInfoBar->setLineWrapMode(QPlainTextEdit::NoWrap);
   mInfoBar->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  mInfoBar->setFocusPolicy(Qt::NoFocus);
 
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   buttonLayout->addWidget(mPreviousButton);
@@ -116,36 +162,54 @@ View::View(QWidget* parent)
   buttonLayout->addWidget(mNextButton);
   buttonLayout->addWidget(mPositionLabel);
   buttonLayout->addWidget(mDurationLabel);
+  buttonLayout->addWidget(mSpeedSpinBox);
   buttonLayout->addWidget(mLoopCountSpinBox);
   buttonLayout->addWidget(mBurstLengthSpinBox);
   buttonLayout->addWidget(mAudioButton);
+  buttonLayout->addWidget(mVolumeSpinBox);
   buttonLayout->addWidget(mDeinterlaceCheckBox);
   buttonLayout->addWidget(mGpuEncodeCheckBox);
 
+  QHBoxLayout* videoLayout = new QHBoxLayout;
+  videoLayout->addWidget(mVideoWidget);
+  videoLayout->addWidget(mVideoList);
+
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
-  rootLayout->addWidget(mVideoWidget);
+  rootLayout->addLayout(videoLayout);
   rootLayout->addWidget(mSlider);
   rootLayout->addLayout(buttonLayout);
   rootLayout->addWidget(mInfoBar);
   mLayout = rootLayout;
 
+  connect(mVideoList, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem* item) {
+    if (!item)
+      return;
+    
+    const QUrl wVideoUrl = item->data(Qt::UserRole).value<QUrl>();
+    if (!wVideoUrl.isValid())
+      return;
+
+    emit videoItemDoubleClicked(wVideoUrl);
+  });
+
   connect(mSlider, &QSlider::sliderMoved, this, [this](int position) { emit sliderChanged(position); });
   connect(mSlider, &Slider::sequenceSelected, this, [this](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
   connect(mSlider, &Slider::sequenceDoubleClicked, this, [this](const Sequence* wSequence) { emit sequenceDoubleClicked(wSequence); });
-  connect(mPreviousButton, &QPushButton::clicked, this, [this]() { emit previousButtonClicked(); mPlayButton->setFocus(); });
+  connect(mPreviousButton, &QPushButton::clicked, this, [this]() { emit previousButtonClicked(); });
 
   connect(mSeekLeft, &QPushButton::clicked, this, [this]() { emit seekLeftButtonClicked(); });
   connect(mPlayButton, &QPushButton::clicked, this, [this]() { emit startStopButtonClicked(); });
   connect(mSeekRight, &QPushButton::clicked, this, [this]() { emit seekRightButtonClicked(); });
 
-  connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); mPlayButton->setFocus(); });
-  connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); mPlayButton->setFocus(); });
-  connect(mAudioButton, &QPushButton::clicked, this, [this]() { emit audioButtonClicked(); mPlayButton->setFocus(); });
-  connect(mLoopCountSpinBox, &QSpinBox::valueChanged, this, [this](int value) { mPlayButton->setFocus(); });
-  connect(mBurstLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this](double value) { mPlayButton->setFocus(); });
+  connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); });
+  connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); });
+  connect(mAudioButton, &QPushButton::clicked, this, [this]() { emit audioButtonClicked(); });
 
-  connect(mDeinterlaceCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit deinterlaceChecked(mDeinterlaceCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });
-  connect(mGpuEncodeCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit gpuEncodeChecked(mGpuEncodeCheckBox->checkState() == Qt::Checked); mPlayButton->setFocus(); });
+  connect(mDeinterlaceCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit deinterlaceChecked(mDeinterlaceCheckBox->checkState() == Qt::Checked); });
+  connect(mGpuEncodeCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit gpuEncodeChecked(mGpuEncodeCheckBox->checkState() == Qt::Checked); });
+
+  connect(mSpeedSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit speedChanged(value); });
+  connect(mVolumeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit volumeChanged(value); });
 
   mCursorHider.reset(new CursorHider(mVideoWidget));
 }
@@ -168,7 +232,8 @@ QLayout* View::getLayout() const
 
 void View::toggleAudio(const Settings::AudioMode iAudioMode)
 {
-  switch (iAudioMode)
+  mCurrentAudioMode = iAudioMode;
+  switch (mCurrentAudioMode)
   {
     case Settings::AudioMode::Muted:
     mAudioButton->setIcon(QIcon(mPixmapTable["mutedAudio"]));
@@ -229,6 +294,20 @@ void View::onStop()
 void View::onSequencesChanged(const SequenceMap& sequences)
 {
   mSlider->setSequences(sequences);
+}
+
+void View::onVideoListChanged(const std::vector<QUrl>& videos)
+{
+  mVideoList->clear();
+  for (const auto& video : videos)
+  {
+    const QString displayName = QFileInfo(video.toLocalFile()).completeBaseName();
+
+    QListWidgetItem* item = new QListWidgetItem(displayName);
+    item->setData(Qt::UserRole, QVariant::fromValue(video));
+
+    mVideoList->addItem(item);
+  }
 }
 
 void View::setPosition(VTime position)

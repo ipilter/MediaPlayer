@@ -38,6 +38,8 @@ public:
   QUrl& operator[](std::size_t index);
   const QUrl& operator[](std::size_t index) const;
 
+  const std::vector<QUrl>& GetVideos() const;
+
 private:
   std::vector<QUrl> mUrls;
 };

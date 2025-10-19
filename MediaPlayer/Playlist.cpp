@@ -59,4 +59,9 @@ const QUrl& Playlist::operator[](std::size_t index) const
   return mUrls[index];
 }
 
+const std::vector<QUrl>& Playlist::GetVideos() const
+{
+  return mUrls;
+}
+
 } // namespace details

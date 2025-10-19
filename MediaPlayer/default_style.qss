@@ -2,7 +2,6 @@
     background-color: #262626;
     color: #AAAAAA;
     border: 3px solid #363636;
-    padding: 5px;
     border-radius: 2px;
     box-shadow: 1px 1px 1px #DD0636;
     icon-size: 24px;
@@ -42,3 +41,32 @@ QSlider::add-page:horizontal {
 QPlainTextEdit#infoBar {  
  background-color: #262626;
 }  
+
+QListWidget#videoList QScrollBar:vertical {
+    width: 14px;
+    background: transparent;
+}
+
+QListWidget#videoList QScrollBar::sub-page:vertical {
+    background: #252525;
+}
+
+QListWidget#videoList QScrollBar::add-page:vertical {
+    background: #252525;
+}
+
+QListWidget#videoList QScrollBar::handle:vertical {
+    background: #444444;
+    border-radius: 6px;
+    min-height: 20px;
+}
+
+QListWidget#videoList QScrollBar::add-line:vertical,
+QListWidget#videoList QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QListWidget#videoList::item:selected {
+    background-color: #191919;
+    color: #FFFFFF;
+}

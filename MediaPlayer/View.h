@@ -4,6 +4,7 @@
 #include "Settings.h"
 
 #include <QWidget>
+#include <QUrl>
 
 class VideoWidget;
 class VideoPlayer;
@@ -18,6 +19,7 @@ class QSpinBox;
 class QDoubleSpinBox;
 class CursorHider;
 class QCheckBox;
+class QListWidget;
 
 class View : public QWidget
 {
@@ -45,6 +47,7 @@ public slots:
   void onPause();
   void onStop();
   void onSequencesChanged(const SequenceMap& seqences);
+  void onVideoListChanged(const std::vector<QUrl>& videos);
 
 signals:
   void sliderChanged(int position);
@@ -58,6 +61,9 @@ signals:
   void gpuEncodeChecked(bool state);
   void sequenceSelected(const Sequence* wSequence);
   void sequenceDoubleClicked(const Sequence* wSequence);
+  void videoItemDoubleClicked(const QUrl url);
+  void speedChanged(double speed);
+  void volumeChanged(double volume);
 
   void onMouseClick();
   void onMouseDoubleClick();
@@ -66,6 +72,7 @@ private:
   std::map<QString, QPixmap> mPixmapTable;
 
   VideoWidget* mVideoWidget;
+  QListWidget* mVideoList;
   Slider* mSlider;
   QPushButton* mPreviousButton;
   QPushButton* mSeekLeft;
@@ -80,6 +87,8 @@ private:
   QLabel* mDurationLabel;
   QSpinBox* mLoopCountSpinBox;
   QDoubleSpinBox* mBurstLengthSpinBox;
+  QDoubleSpinBox* mSpeedSpinBox;
+  QDoubleSpinBox* mVolumeSpinBox;
 
   QPlainTextEdit* mInfoBar;
 
@@ -87,4 +96,5 @@ private:
 
   std::unique_ptr<CursorHider> mCursorHider;
 
+  Settings::AudioMode mCurrentAudioMode = Settings::AudioMode::Muted;
 };
