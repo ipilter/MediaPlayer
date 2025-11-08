@@ -20,6 +20,7 @@ class QDoubleSpinBox;
 class CursorHider;
 class QCheckBox;
 class QListWidget;
+class QHBoxLayout;
 
 class View : public QWidget
 {
@@ -35,8 +36,11 @@ public:
   void toggleAudio(const Settings::AudioMode iAudioMode);
   void setMarking(bool marking);
   void setCursorTimeout(int timeoutMs);
+  void setVolume(float volume);
   unsigned getLoopCount() const;
   VTime getBurstLength() const;
+  void setCurrentVideo(const size_t idx);
+  void setFullscreen(const bool fullscreen);
 
 public slots:
   void setPosition(VTime position);
@@ -74,6 +78,8 @@ private:
   VideoWidget* mVideoWidget;
   QListWidget* mVideoList;
   Slider* mSlider;
+
+  QHBoxLayout* mButtonLayout;
   QPushButton* mPreviousButton;
   QPushButton* mSeekLeft;
   QPushButton* mPlayButton;

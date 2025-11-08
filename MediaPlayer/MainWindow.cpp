@@ -176,15 +176,17 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_F:
   {
-    if (this->isMaximized())
+    if (isMaximized())
     {
-      this->showNormal();
+      showNormal();
+      mMediaPlayer->setFullscreen(false);
       //TODO send event to view to show all controls
       //mMediaPlayer->setNormalView();
     }
     else
     {
-      this->showMaximized();
+      showMaximized();
+      mMediaPlayer->setFullscreen(true);
       //TODO send event to view to hide all controls, just keep the media player
       //mMediaPlayer->setFullScreen();
     }

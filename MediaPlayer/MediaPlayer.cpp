@@ -54,7 +54,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
     }
     });
   connect(mView.get(), &View::speedChanged, this, [this](double speed) { mPlayer->setPlaybackRate(speed); });
-  connect(mView.get(), &View::volumeChanged, this, [this](double volume) { mPlayer->setVolume(static_cast<float>(volume)); });
+  connect(mView.get(), &View::volumeChanged, this, [this](double volume) { mPlayer->setVolume(static_cast<float>(volume)); mSettings.mVolume = static_cast<float>(volume); });
 
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
@@ -85,8 +85,8 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
   connect(this, &MediaPlayer::videoListChanged, mView.get(), &View::onVideoListChanged);
 
-  mPlayer->setVolume(0);
-  mPlayer->setPlaybackRate(1.0f);
+  mPlayer->setVolume(0.0f);
+  mPlayer->setPlaybackRate(1.0);
 }
 
 MediaPlayer::~MediaPlayer()
@@ -131,6 +131,7 @@ void MediaPlayer::setSettings(const Settings& settings)
 
   mView->toggleAudio(mSettings.mAudioMode);
   mView->setCursorTimeout(mSettings.mCursorTimeout);
+  mView->setVolume(mSettings.mVolume);
 }
 
 const Settings& MediaPlayer::getSettings() const
@@ -192,7 +193,7 @@ void MediaPlayer::next()
 
     stop();
     mPlayer->setVideo(mPlaylist[mCurrentVideo]);
-
+    mView->setCurrentVideo(mCurrentVideo);
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
     emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
@@ -225,6 +226,10 @@ void MediaPlayer::previous()
 
     stop();
     mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+    mView->setCurrentVideo(mCurrentVideo);
+    mSequenceMap.clear();
+    mSelectedSequence = nullptr;
+    emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
   }
 
   if (isPlaying)
@@ -261,6 +266,11 @@ void MediaPlayer::setDeinterlace(const bool state)
 void MediaPlayer::setGpuEncode(const bool state)
 {
   mGpuEncode = state;
+}
+
+void MediaPlayer::setFullscreen(const bool fullscreen)
+{
+  mView->setFullscreen(fullscreen);
 }
 
 void MediaPlayer::setPosition(const VTime& position, const bool updateNeeded)
@@ -459,7 +469,8 @@ void MediaPlayer::onVideoLoaded()
   mView->setInfo(info);
 
   setPosition(VTime(0));
-
+  
+  mView->setCurrentVideo(static_cast<int>(mCurrentVideo));
   if (mSettings.mAutoPlay)
   {
     play();

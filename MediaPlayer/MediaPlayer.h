@@ -47,6 +47,7 @@ public:
   void toggleAudio();
   void setDeinterlace(const bool state);
   void setGpuEncode(const bool state);
+  void setFullscreen(const bool fullscreen);
 
   void setPosition(const VTime& position, const bool updateNeeded = false);
   VTime getPosition() const;

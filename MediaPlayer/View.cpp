@@ -128,7 +128,7 @@ View::View(QWidget* parent)
   mSpeedSpinBox->setObjectName("speedSpinBox");
   mSpeedSpinBox->setRange(0.1, 10.0);
   mSpeedSpinBox->setValue(1.0);
-  mSpeedSpinBox->setSingleStep(0.1);
+  mSpeedSpinBox->setSingleStep(0.05);
   mSpeedSpinBox->setPrefix("Speed: ");
   mSpeedSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mSpeedSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
@@ -137,9 +137,9 @@ View::View(QWidget* parent)
 
   mVolumeSpinBox = new QDoubleSpinBox(parent);
   mVolumeSpinBox->setObjectName("volumeSpinBox");
-  mVolumeSpinBox->setRange(0.0, 100.0);
+  mVolumeSpinBox->setRange(0.0, 1.0);
   mVolumeSpinBox->setValue(0.0);
-  mVolumeSpinBox->setSingleStep(10.0);
+  mVolumeSpinBox->setSingleStep(0.05);
   mVolumeSpinBox->setPrefix("Volume: ");
   mVolumeSpinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
   mVolumeSpinBox->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
@@ -149,26 +149,26 @@ View::View(QWidget* parent)
   mInfoBar = new QPlainTextEdit(parent);
   mInfoBar->setObjectName("infoBar");
   mInfoBar->setReadOnly(true);
-  mInfoBar->setMaximumHeight(45);
+  mInfoBar->setFixedHeight(32);
   mInfoBar->setLineWrapMode(QPlainTextEdit::NoWrap);
   mInfoBar->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   mInfoBar->setFocusPolicy(Qt::NoFocus);
 
-  QHBoxLayout* buttonLayout = new QHBoxLayout;
-  buttonLayout->addWidget(mPreviousButton);
-  buttonLayout->addWidget(mSeekLeft);
-  buttonLayout->addWidget(mPlayButton);
-  buttonLayout->addWidget(mSeekRight);
-  buttonLayout->addWidget(mNextButton);
-  buttonLayout->addWidget(mPositionLabel);
-  buttonLayout->addWidget(mDurationLabel);
-  buttonLayout->addWidget(mSpeedSpinBox);
-  buttonLayout->addWidget(mLoopCountSpinBox);
-  buttonLayout->addWidget(mBurstLengthSpinBox);
-  buttonLayout->addWidget(mAudioButton);
-  buttonLayout->addWidget(mVolumeSpinBox);
-  buttonLayout->addWidget(mDeinterlaceCheckBox);
-  buttonLayout->addWidget(mGpuEncodeCheckBox);
+  mButtonLayout = new QHBoxLayout;
+  mButtonLayout->addWidget(mPreviousButton);
+  mButtonLayout->addWidget(mSeekLeft);
+  mButtonLayout->addWidget(mPlayButton);
+  mButtonLayout->addWidget(mSeekRight);
+  mButtonLayout->addWidget(mNextButton);
+  mButtonLayout->addWidget(mPositionLabel);
+  mButtonLayout->addWidget(mDurationLabel);
+  mButtonLayout->addWidget(mSpeedSpinBox);
+  mButtonLayout->addWidget(mLoopCountSpinBox);
+  mButtonLayout->addWidget(mBurstLengthSpinBox);
+  mButtonLayout->addWidget(mAudioButton);
+  mButtonLayout->addWidget(mVolumeSpinBox);
+  mButtonLayout->addWidget(mDeinterlaceCheckBox);
+  mButtonLayout->addWidget(mGpuEncodeCheckBox);
 
   QHBoxLayout* videoLayout = new QHBoxLayout;
   videoLayout->addWidget(mVideoWidget);
@@ -177,7 +177,7 @@ View::View(QWidget* parent)
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
   rootLayout->addLayout(videoLayout);
   rootLayout->addWidget(mSlider);
-  rootLayout->addLayout(buttonLayout);
+  rootLayout->addLayout(static_cast<QLayout*>(mButtonLayout));
   rootLayout->addWidget(mInfoBar);
   mLayout = rootLayout;
 
@@ -195,6 +195,7 @@ View::View(QWidget* parent)
   connect(mSlider, &QSlider::sliderMoved, this, [this](int position) { emit sliderChanged(position); });
   connect(mSlider, &Slider::sequenceSelected, this, [this](const Sequence* wSequence) { emit sequenceSelected(wSequence); });
   connect(mSlider, &Slider::sequenceDoubleClicked, this, [this](const Sequence* wSequence) { emit sequenceDoubleClicked(wSequence); });
+  
   connect(mPreviousButton, &QPushButton::clicked, this, [this]() { emit previousButtonClicked(); });
 
   connect(mSeekLeft, &QPushButton::clicked, this, [this]() { emit seekLeftButtonClicked(); });
@@ -202,6 +203,7 @@ View::View(QWidget* parent)
   connect(mSeekRight, &QPushButton::clicked, this, [this]() { emit seekRightButtonClicked(); });
 
   connect(mNextButton, &QPushButton::clicked, this, [this]() { emit nextButtonClicked(); });
+  
   connect(mVideoWidget, &VideoWidget::mouseClicked, this, [this]() { emit onMouseClick(); });
   connect(mAudioButton, &QPushButton::clicked, this, [this]() { emit audioButtonClicked(); });
 
@@ -264,6 +266,32 @@ void View::setMarking(bool marking)
 void View::setCursorTimeout(int timeoutMs)
 {
   mCursorHider->setTimeout(timeoutMs);
+}
+
+void View::setVolume(float volume)
+{
+  mVolumeSpinBox->setValue(static_cast<double>(volume));
+}
+
+void View::setCurrentVideo(const size_t idx)
+{
+  mVideoList->setCurrentRow(static_cast<int>(idx));
+}
+
+void View::setFullscreen(const bool isFullscreen)
+{
+  if (isFullscreen)
+  {
+    mVideoList->hide();
+    mSlider->hide();
+    mInfoBar->hide();
+  }
+  else
+  {
+    mVideoList->show();
+    mSlider->show();
+    mInfoBar->show();
+  }
 }
 
 unsigned View::getLoopCount() const
