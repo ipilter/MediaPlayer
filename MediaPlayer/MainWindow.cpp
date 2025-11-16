@@ -14,7 +14,7 @@
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
-  , mMediaPlayer(std::make_shared<MediaPlayer>()) // TODO: createo out of main window, best in main, destructor crash in view class !
+  , mMediaPlayer(std::make_shared<MediaPlayer>()) // TODO: create out of main window, best in main, destructor crash in view class !
 {
   ui.setupUi(this);
 
@@ -176,19 +176,27 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   }
   case Qt::Key_F:
   {
-    if (isMaximized())
+    if (event->modifiers() & Qt::ControlModifier)
     {
-      showNormal();
-      mMediaPlayer->setFullscreen(false);
-      //TODO send event to view to show all controls
-      //mMediaPlayer->setNormalView();
+    }
+    else if (event->modifiers() & Qt::ShiftModifier)
+    {
+      mMediaPlayer->setFullscreen(!mMediaPlayer->isFullscreen());
+    }
+    else if (event->modifiers() & Qt::AltModifier)
+    {
     }
     else
     {
-      showMaximized();
-      mMediaPlayer->setFullscreen(true);
-      //TODO send event to view to hide all controls, just keep the media player
-      //mMediaPlayer->setFullScreen();
+      mMediaPlayer->setFullscreen(!isMaximized());
+      if (isMaximized())
+      {
+        showNormal();
+      }
+      else
+      {
+        showMaximized();
+      }
     }
     break;
   }
@@ -372,10 +380,6 @@ void MainWindow::dropEvent(QDropEvent* event)
         }
       }
     }
-
-    //std::random_device wRndDevice;
-    //std::mt19937 wRndGenerator(wRndDevice());
-    //std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
 
     const bool wPlaying = mMediaPlayer->isPlaying();
     mMediaPlayer->setPlaylist(wPlaylist);

@@ -48,6 +48,7 @@ public:
   void setDeinterlace(const bool state);
   void setGpuEncode(const bool state);
   void setFullscreen(const bool fullscreen);
+  bool isFullscreen() const;
 
   void setPosition(const VTime& position, const bool updateNeeded = false);
   VTime getPosition() const;

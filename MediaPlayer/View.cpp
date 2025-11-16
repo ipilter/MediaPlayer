@@ -278,20 +278,55 @@ void View::setCurrentVideo(const size_t idx)
   mVideoList->setCurrentRow(static_cast<int>(idx));
 }
 
-void View::setFullscreen(const bool isFullscreen)
+void View::setFullscreenView(const bool isFullscreen)
 {
-  if (isFullscreen)
+  mIsFullscreenView = isFullscreen;
+
+  auto toggleLayoutWidgets = [this](QLayout* layout, bool visible) {
+    if (!layout) return;
+    for (int i = 0; i < layout->count(); ++i)
+    {
+      QLayoutItem* item = layout->itemAt(i);
+      if (!item) continue;
+      if (QWidget* w = item->widget())
+      {
+        if (visible) w->show(); else w->hide();
+      }
+      else if (QLayout* subLayout = item->layout())
+      {
+        // recurse one level deep (handles nested layouts)
+        for (int j = 0; j < subLayout->count(); ++j)
+        {
+          QLayoutItem* subItem = subLayout->itemAt(j);
+          if (!subItem) continue;
+          if (QWidget* sw = subItem->widget())
+          {
+            if (visible) sw->show(); else sw->hide();
+          }
+        }
+      }
+    }
+    };
+
+  if (mIsFullscreenView)
   {
     mVideoList->hide();
     mSlider->hide();
     mInfoBar->hide();
+    toggleLayoutWidgets(mButtonLayout, false);
   }
   else
   {
     mVideoList->show();
     mSlider->show();
     mInfoBar->show();
+    toggleLayoutWidgets(mButtonLayout, true);
   }
+}
+
+bool View::isFullscreenView() const
+{
+  return mIsFullscreenView; // TODO internal state?
 }
 
 unsigned View::getLoopCount() const

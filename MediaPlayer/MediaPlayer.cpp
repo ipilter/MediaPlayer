@@ -270,7 +270,12 @@ void MediaPlayer::setGpuEncode(const bool state)
 
 void MediaPlayer::setFullscreen(const bool fullscreen)
 {
-  mView->setFullscreen(fullscreen);
+  mView->setFullscreenView(fullscreen);
+}
+
+bool MediaPlayer::isFullscreen() const
+{
+  return mView->isFullscreenView();
 }
 
 void MediaPlayer::setPosition(const VTime& position, const bool updateNeeded)

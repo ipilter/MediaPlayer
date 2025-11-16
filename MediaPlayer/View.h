@@ -40,7 +40,8 @@ public:
   unsigned getLoopCount() const;
   VTime getBurstLength() const;
   void setCurrentVideo(const size_t idx);
-  void setFullscreen(const bool fullscreen);
+  void setFullscreenView(const bool fullscreen);
+  bool isFullscreenView() const;
 
 public slots:
   void setPosition(VTime position);
@@ -99,6 +100,7 @@ private:
   QPlainTextEdit* mInfoBar;
 
   QLayout* mLayout;
+  bool mIsFullscreenView = false;
 
   std::unique_ptr<CursorHider> mCursorHider;
 
