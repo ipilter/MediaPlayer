@@ -37,6 +37,7 @@ public:
   void setMarking(bool marking);
   void setCursorTimeout(int timeoutMs);
   void setVolume(float volume);
+  void setRandomize(bool state);
   unsigned getLoopCount() const;
   VTime getBurstLength() const;
   void setCurrentVideo(const size_t idx);
@@ -69,6 +70,7 @@ signals:
   void videoItemDoubleClicked(const QUrl url);
   void speedChanged(double speed);
   void volumeChanged(double volume);
+  void randomizeChanged(bool state);
 
   void onMouseClick();
   void onMouseDoubleClick();
@@ -89,6 +91,7 @@ private:
   QPushButton* mAudioButton;
   QCheckBox* mDeinterlaceCheckBox;
   QCheckBox* mGpuEncodeCheckBox;
+  QCheckBox* mRandomizeCheckBox;
 
   QLabel* mPositionLabel;
   QLabel* mDurationLabel;

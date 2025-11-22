@@ -7,6 +7,8 @@
 
 class Playlist
 {
+  constexpr static size_t npos = -1;
+
 public:
   explicit Playlist(const std::vector<QUrl>& urls = {});
   explicit Playlist(std::vector<QUrl>&& urls);
@@ -22,10 +24,10 @@ public:
   std::size_t currentIndex() const;
   void setCurrentIndex(std::size_t index);
   QUrl current() const;
-  bool next(); 
-  bool previous();
+  bool next(const bool randomize = false);
+  bool previous(const bool randomize = false);
 
 private:
   std::vector<QUrl> mUrls;
-  std::size_t mCurrentIndex = 0;
+  size_t mCurrentIndex = npos;
 };

@@ -92,6 +92,12 @@ View::View(QWidget* parent)
   mGpuEncodeCheckBox->setObjectName("gpuEncodeCheckBox");
   mGpuEncodeCheckBox->setFocusPolicy(Qt::NoFocus);
 
+  mRandomizeCheckBox = new QCheckBox(parent);
+  mRandomizeCheckBox->setText("Randomize");
+  mRandomizeCheckBox->setChecked(false);
+  mRandomizeCheckBox->setObjectName("randomizeCheckBox");
+  mRandomizeCheckBox->setFocusPolicy(Qt::NoFocus);
+
   mPositionLabel = new QLabel("00:00:00:000", parent);
   mPositionLabel->setObjectName("positionLabel");
   mPositionLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
@@ -169,6 +175,7 @@ View::View(QWidget* parent)
   mButtonLayout->addWidget(mVolumeSpinBox);
   mButtonLayout->addWidget(mDeinterlaceCheckBox);
   mButtonLayout->addWidget(mGpuEncodeCheckBox);
+  mButtonLayout->addWidget(mRandomizeCheckBox);
 
   QHBoxLayout* videoLayout = new QHBoxLayout;
   videoLayout->addWidget(mVideoWidget);
@@ -209,6 +216,7 @@ View::View(QWidget* parent)
 
   connect(mDeinterlaceCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit deinterlaceChecked(mDeinterlaceCheckBox->checkState() == Qt::Checked); });
   connect(mGpuEncodeCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit gpuEncodeChecked(mGpuEncodeCheckBox->checkState() == Qt::Checked); });
+  connect(mRandomizeCheckBox, &QCheckBox::checkStateChanged, this, [this]() { emit randomizeChanged(mRandomizeCheckBox->checkState() == Qt::Checked); });
 
   connect(mSpeedSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit speedChanged(value); });
   connect(mVolumeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit volumeChanged(value); });
@@ -271,6 +279,11 @@ void View::setCursorTimeout(int timeoutMs)
 void View::setVolume(float volume)
 {
   mVolumeSpinBox->setValue(static_cast<double>(volume));
+}
+
+void View::setRandomize(const bool isRandomized)
+{
+  mRandomizeCheckBox->setChecked(isRandomized);
 }
 
 void View::setCurrentVideo(const size_t idx)

@@ -99,6 +99,7 @@ void savePreferences(const MainWindow& iMainWindow)
   settings.setValue("audioMode", static_cast<quint32>(iMainWindow.getSettings().mAudioMode));
   settings.setValue("cursorTimeout", iMainWindow.getSettings().mCursorTimeout);
   settings.setValue("volume", iMainWindow.getSettings().mVolume);
+  settings.setValue("randomize", iMainWindow.getSettings().mRandomize);
   settings.endGroup();
 }
 
@@ -113,9 +114,11 @@ void loadPreferences(MainWindow& iMainWindow)
   iMainWindow.resize(wSize);
   iMainWindow.move(wPosition);
   iMainWindow.setSettings(Settings{ settings.value("autoPlay", false).toBool()
-                                                 , static_cast<Settings::AudioMode>(settings.value("audioMode", 0).toUInt())
-                                                 , settings.value("cursorTimeout", 500).toInt()
-                                                 , settings.value("volume", 0.0f).toFloat() });
+                                    , static_cast<Settings::AudioMode>(settings.value("audioMode", 0).toUInt())
+                                    , settings.value("cursorTimeout", 500).toInt()
+                                    , settings.value("volume", 0.0f).toFloat()
+                                    , settings.value("randomize", false).toBool()
+    });
   settings.endGroup();
 }
 

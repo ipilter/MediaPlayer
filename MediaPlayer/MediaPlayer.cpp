@@ -37,6 +37,8 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::seekRightButtonClicked, this, [this]() { seek(SeekDirection::Forward, SeekStep::Random); });
   connect(mView.get(), &View::deinterlaceChecked, this, [this](const bool state) { setDeinterlace(state); });
   connect(mView.get(), &View::gpuEncodeChecked, this, [this](const bool state) { setGpuEncode(state); });  
+  connect(mView.get(), &View::randomizeChanged, this, [this](const bool state) { mSettings.mRandomize = state; });
+
   connect(mView.get(), &View::onMouseClick, this, [this]() { stop();  });
   connect(mView.get(), &View::videoItemDoubleClicked, this, [this](const QUrl url) 
   {
@@ -99,7 +101,8 @@ void MediaPlayer::setPlaylist(const Playlist& playlist)
   }
 
   mPlaylist = playlist;
-  mPlaylist.setCurrentIndex(0);
+
+  mPlaylist.setCurrentIndex(mSettings.mRandomize ? utils::Random(0, static_cast<int>(mPlaylist.size() - 1)) : 0);
   mPlayer->setVideo(mPlaylist.current());
 
   mSequenceMap.clear();
@@ -130,6 +133,7 @@ void MediaPlayer::setSettings(const Settings& settings)
   mView->toggleAudio(mSettings.mAudioMode);
   mView->setCursorTimeout(mSettings.mCursorTimeout);
   mView->setVolume(mSettings.mVolume);
+  mView->setRandomize(mSettings.mRandomize);
 }
 
 const Settings& MediaPlayer::getSettings() const
@@ -180,7 +184,7 @@ void MediaPlayer::next()
   }
   else
   {
-    mPlaylist.next();
+    mPlaylist.next(mSettings.mRandomize);
 
     stop();
     mPlayer->setVideo(mPlaylist.current());
@@ -206,7 +210,7 @@ void MediaPlayer::previous()
   }
   else
   {
-    mPlaylist.previous();
+    mPlaylist.previous(mSettings.mRandomize);
 
     stop();
     mPlayer->setVideo(mPlaylist.current());

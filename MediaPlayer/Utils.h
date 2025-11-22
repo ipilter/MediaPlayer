@@ -31,14 +31,28 @@ inline QString uniqueFileName(const QString& fileName)
 }
 
 template <typename T>
-inline T Random(const T min, const T max)
+inline T Random(T min, T max)
 {
-  static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "T must be an integral or floating point type");
+  static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
+                "T must be an integral or floating point type");
 
-  static std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(min, max);
-  return static_cast<T>(dis(gen));
+  if (min > max) std::swap(min, max);
+
+  thread_local static std::random_device rd;
+  thread_local static std::mt19937 gen(rd());
+
+  using CT = typename std::common_type<T>::type;
+
+  if constexpr (std::is_integral<T>::value)
+  {
+    std::uniform_int_distribution<CT> dis(static_cast<CT>(min), static_cast<CT>(max));  // [a, b] TODO ai said
+    return static_cast<T>(dis(gen));
+  }
+  else
+  {
+    std::uniform_real_distribution<CT> dis(static_cast<CT>(min), static_cast<CT>(max)); // [a, b) TODO ai said
+    return static_cast<T>(dis(gen));
+  }
 }
 
 QColor inline lerp(const QColor& c1, const QColor& c2, double t)

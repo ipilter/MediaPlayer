@@ -1,4 +1,5 @@
 #include "Playlist.h"
+#include "Utils.h"
 
 #include <algorithm>
 
@@ -33,7 +34,7 @@ void Playlist::push_back(QUrl&& url)
 void Playlist::clear()
 {
   mUrls.clear();
-  mCurrentIndex = 0;
+  mCurrentIndex = npos;
 }
 
 const std::vector<QUrl>& Playlist::GetVideos() const
@@ -51,7 +52,7 @@ void Playlist::setCurrentIndex(std::size_t index)
 {
   if (mUrls.empty())
   {
-    mCurrentIndex = 0;
+    mCurrentIndex = npos;
     return;
   }
 
@@ -67,14 +68,18 @@ QUrl Playlist::current() const
   return mUrls[mCurrentIndex];
 }
 
-bool Playlist::next()
+bool Playlist::next(const bool randomize)
 {
   if (mUrls.empty() || mUrls.size() == 1)
   {
     return false;
   }
 
-  if (mCurrentIndex == mUrls.size() - 1)
+  if (randomize)
+  {
+    mCurrentIndex = utils::Random(0ull, mUrls.size() - 1ull);
+  }
+  else if (mCurrentIndex == mUrls.size() - 1)
   {
     mCurrentIndex = 0;
   }
@@ -85,14 +90,18 @@ bool Playlist::next()
   return true;
 }
 
-bool Playlist::previous()
+bool Playlist::previous(const bool randomize)
 {
   if (mUrls.empty() || mUrls.size() == 1)
   {
     return false;
   }
 
-  if (mCurrentIndex == 0)
+  if (randomize)
+  {
+    mCurrentIndex = utils::Random(0ull, mUrls.size() - 1ull);
+  }
+  else if (mCurrentIndex == 0)
   {
     mCurrentIndex = mUrls.size() - 1;
   }
