@@ -1,17 +1,14 @@
 #include "Playlist.h"
 
-namespace details
-{
+#include <algorithm>
 
 Playlist::Playlist(const std::vector<QUrl>& urls)
   : mUrls(urls)
-{
-}
+{}
 
 Playlist::Playlist(std::vector<QUrl>&& urls)
   : mUrls(std::move(urls))
-{
-}
+{}
 
 std::size_t Playlist::size() const
 {
@@ -36,27 +33,7 @@ void Playlist::push_back(QUrl&& url)
 void Playlist::clear()
 {
   mUrls.clear();
-}
-
-Playlist::iterator Playlist::begin() { return mUrls.begin(); }
-Playlist::iterator Playlist::end() { return mUrls.end(); }
-Playlist::const_iterator Playlist::begin() const { return mUrls.begin(); }
-Playlist::const_iterator Playlist::end() const { return mUrls.end(); }
-Playlist::const_iterator Playlist::cbegin() const { return mUrls.cbegin(); }
-Playlist::const_iterator Playlist::cend() const { return mUrls.cend(); }
-Playlist::reverse_iterator Playlist::rbegin() { return mUrls.rbegin(); }
-Playlist::reverse_iterator Playlist::rend() { return mUrls.rend(); }
-Playlist::const_reverse_iterator Playlist::rbegin() const { return mUrls.rbegin(); }
-Playlist::const_reverse_iterator Playlist::rend() const { return mUrls.rend(); }
-
-QUrl& Playlist::operator[](std::size_t index)
-{
-  return mUrls[index];
-}
-
-const QUrl& Playlist::operator[](std::size_t index) const
-{
-  return mUrls[index];
+  mCurrentIndex = 0;
 }
 
 const std::vector<QUrl>& Playlist::GetVideos() const
@@ -64,4 +41,64 @@ const std::vector<QUrl>& Playlist::GetVideos() const
   return mUrls;
 }
 
-} // namespace details
+
+std::size_t Playlist::currentIndex() const
+{
+  return mCurrentIndex;
+}
+
+void Playlist::setCurrentIndex(std::size_t index)
+{
+  if (mUrls.empty())
+  {
+    mCurrentIndex = 0;
+    return;
+  }
+
+  mCurrentIndex = std::min(index, mUrls.size() - 1);
+}
+
+QUrl Playlist::current() const
+{
+  if (mUrls.empty())
+  {
+    return QUrl();
+  }
+  return mUrls[mCurrentIndex];
+}
+
+bool Playlist::next()
+{
+  if (mUrls.empty() || mUrls.size() == 1)
+  {
+    return false;
+  }
+
+  if (mCurrentIndex == mUrls.size() - 1)
+  {
+    mCurrentIndex = 0;
+  }
+  else
+  {
+    ++mCurrentIndex;
+  }
+  return true;
+}
+
+bool Playlist::previous()
+{
+  if (mUrls.empty() || mUrls.size() == 1)
+  {
+    return false;
+  }
+
+  if (mCurrentIndex == 0)
+  {
+    mCurrentIndex = mUrls.size() - 1;
+  }
+  else
+  {
+    --mCurrentIndex;
+  }
+  return true;
+}

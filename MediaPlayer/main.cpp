@@ -11,14 +11,13 @@
 #include <QStringList> // for string list conversion
 
 #include <fstream>
-#include <random>
 #include <algorithm>
 
-std::pair<MainWindow::Playlist, QString> getInputPlaylist(const QString& wInputPath);
+std::pair<Playlist, QString> getInputPlaylist(const QString& wInputPath);
 void savePreferences(const MainWindow& iMainWindow);
 void loadPreferences(MainWindow& iMainWindow);
-MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath);
-MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath);
+Playlist readPlaylistFile(const QString& iFilePath);
+Playlist readDirectory(const QString& iDirectoryPath);
 QString readStyles(const QString& iFilePath);
 
 int main(int argc, char* argv[])
@@ -120,9 +119,9 @@ void loadPreferences(MainWindow& iMainWindow)
   settings.endGroup();
 }
 
-MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
+Playlist readPlaylistFile(const QString& iFilePath)
 {
-  MediaPlayer::Playlist wPlaylist;
+  Playlist wPlaylist;
   std::ifstream wFile(iFilePath.toStdString());
   if (wFile.is_open()) {
     std::string wLine;
@@ -137,24 +136,17 @@ MediaPlayer::Playlist readPlaylistFile(const QString& iFilePath)
     wFile.close();
   }
 
-  //std::random_device wRndDevice;
-  //std::mt19937 wRndGenerator(wRndDevice());
-  //std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
-
   return wPlaylist;
 }
 
-MediaPlayer::Playlist readDirectory(const QString& iDirectoryPath)
+Playlist readDirectory(const QString& iDirectoryPath)
 {
-  MainWindow::Playlist wPlaylist;
+  Playlist wPlaylist;
   for (const auto& wFile : QDir(iDirectoryPath).entryList(QDir::Files))
   {
     wPlaylist.push_back(QUrl::fromLocalFile(iDirectoryPath + "/" + wFile));
   }
 
-  //std::random_device wRndDevice;
-  //std::mt19937 wRndGenerator(wRndDevice());
-  //std::shuffle(wPlaylist.begin(), wPlaylist.end(), wRndGenerator);
   return wPlaylist;
 }
 
@@ -172,7 +164,7 @@ QString readStyles(const QString& iFilePath)
   return wStyleSheet;
 }
 
-std::pair<MainWindow::Playlist, QString> getInputPlaylist(const QString& wInputPath)
+std::pair<Playlist, QString> getInputPlaylist(const QString& wInputPath)
 {
   const QFileInfo wInputInfo(wInputPath);
   if (wInputInfo.suffix().toLower() == "mpl")
@@ -191,7 +183,7 @@ std::pair<MainWindow::Playlist, QString> getInputPlaylist(const QString& wInputP
   }
   else // TODO: validate if known file type...
   {
-    MainWindow::Playlist playlist;
+    Playlist playlist;
     playlist.push_back(QUrl::fromLocalFile(wInputPath));
     QString title = QString("Playing: %1").arg(wInputInfo.fileName());
     return { playlist, title };

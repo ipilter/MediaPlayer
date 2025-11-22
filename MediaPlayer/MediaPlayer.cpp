@@ -15,12 +15,8 @@
 
 #include <random>
 #include <fstream>
-#include <windows.h>
 #include <filesystem>
 #include <algorithm>
-
-#undef min
-#undef max
 
 MediaPlayer::MediaPlayer(QObject* parent)
   : QObject(parent)
@@ -48,8 +44,9 @@ MediaPlayer::MediaPlayer(QObject* parent)
     if (it != mPlaylist.GetVideos().end())
     {
       stop();
-      mCurrentVideo = std::distance(mPlaylist.GetVideos().begin(), it);
-      mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+      const auto idx = static_cast<std::size_t>(std::distance(mPlaylist.GetVideos().begin(), it));
+      mPlaylist.setCurrentIndex(idx);
+      mPlayer->setVideo(mPlaylist.current());
       play();
     }
     });
@@ -65,7 +62,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
   {
     qDebug() << "double clicked sequence" << wSequence->first.ms() << wSequence->second.ms();
-    QString wFileName = QFileInfo(mPlaylist[mCurrentVideo].toString()).fileName();
+    QString wFileName = QFileInfo(mPlaylist.current().toString()).fileName();
 
     auto wSequenceEntry = mSequenceMap.find(*wSequence);
     if (wSequenceEntry == mSequenceMap.end())
@@ -92,6 +89,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
 MediaPlayer::~MediaPlayer()
 {}
 
+// when setting playlist, set playlist current index to 0 and set video to playlist.current()
 void MediaPlayer::setPlaylist(const Playlist& playlist)
 {
   if (playlist.empty())
@@ -101,8 +99,8 @@ void MediaPlayer::setPlaylist(const Playlist& playlist)
   }
 
   mPlaylist = playlist;
-  mCurrentVideo = 0;
-  mPlayer->setVideo(mPlaylist[mCurrentVideo]);
+  mPlaylist.setCurrentIndex(0);
+  mPlayer->setVideo(mPlaylist.current());
 
   mSequenceMap.clear();
   emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
@@ -147,7 +145,7 @@ bool MediaPlayer::isPlaying() const
 void MediaPlayer::play()
 {
   mPlayer->play();
-  mView->onPlay(); // TODO: emit ??
+  mView->onPlay();
   mPlaying = true;
 
   SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
@@ -158,7 +156,7 @@ void MediaPlayer::pause()
   mPlayer->pause();
   mPlaying = false;
   
-  mView->onPause(); // TODO: emit ??
+  mView->onPause();
   
   SetThreadExecutionState(ES_CONTINUOUS);
 }
@@ -166,7 +164,7 @@ void MediaPlayer::pause()
 void MediaPlayer::stop()
 {
   mPlayer->stop();
-  mView->onStop(); // TODO: emit ??
+  mView->onStop();
   mPlaying = false;
 
   SetThreadExecutionState(ES_CONTINUOUS);
@@ -182,18 +180,11 @@ void MediaPlayer::next()
   }
   else
   {
-    if (mCurrentVideo == mPlaylist.size() - 1)
-    {
-      mCurrentVideo = 0;
-    }
-    else
-    {
-      ++mCurrentVideo;
-    }
+    mPlaylist.next();
 
     stop();
-    mPlayer->setVideo(mPlaylist[mCurrentVideo]);
-    mView->setCurrentVideo(mCurrentVideo);
+    mPlayer->setVideo(mPlaylist.current());
+    mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
     emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
@@ -215,18 +206,11 @@ void MediaPlayer::previous()
   }
   else
   {
-    if (mCurrentVideo == 0)
-    {
-      mCurrentVideo = mPlaylist.size() - 1;
-    }
-    else
-    {
-      --mCurrentVideo;
-    }
+    mPlaylist.previous();
 
     stop();
-    mPlayer->setVideo(mPlaylist[mCurrentVideo]);
-    mView->setCurrentVideo(mCurrentVideo);
+    mPlayer->setVideo(mPlaylist.current());
+    mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
     emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
@@ -469,13 +453,13 @@ void MediaPlayer::cut(const CutMethod cutMethod)
 
 void MediaPlayer::onVideoLoaded()
 { 
-  const QFileInfo fileInfo(mPlaylist[mCurrentVideo].toLocalFile());
+  const QFileInfo fileInfo(mPlaylist.current().toLocalFile());
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
 
   setPosition(VTime(0));
   
-  mView->setCurrentVideo(static_cast<int>(mCurrentVideo));
+  mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
   if (mSettings.mAutoPlay)
   {
     play();
@@ -492,7 +476,7 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
 {
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
-  const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
+  const QString& wVideoPath = mPlaylist.current().toLocalFile();
 
   const QString wCutFilePath = mOutputRootDirectory + utils::prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
@@ -581,7 +565,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
 {
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
-  const QString& wVideoPath = mPlaylist[mCurrentVideo].toLocalFile();
+  const QString& wVideoPath = mPlaylist.current().toLocalFile();
 
   const QString wCutFilePath = mOutputRootDirectory + utils::prettifyFileName(QFileInfo(wVideoPath).completeBaseName()) + "." + wStartTime.toString('.') + "." + QString::number((wEndTime - wStartTime).ms()) + ".mp4";
   sequenceEntry.second.mFilePath = wCutFilePath;
@@ -694,7 +678,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   const VTime wStartTime = sequenceEntry.first.first;
   const VTime wEndTime = sequenceEntry.first.second;
 
-  const QString wPrettyFileName = utils::prettifyFileName(QFileInfo(mPlaylist[mCurrentVideo].toLocalFile()).completeBaseName());
+  const QString wPrettyFileName = utils::prettifyFileName(QFileInfo(mPlaylist.current().toLocalFile()).completeBaseName());
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
   const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + ".loop.mp4";
@@ -954,14 +938,14 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
     {
       args = {
           "-ss", (wStartTime - wPreloadTime).toString(),
-          "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+          "-i", mPlaylist.current().toLocalFile(),
           "-ss", wPreloadTime.toString(),
       };
     }
     else
     {
       args = {
-          "-i", mPlaylist[mCurrentVideo].toLocalFile(),
+          "-i", mPlaylist.current().toLocalFile(),
           "-ss", wStartTime.toString(),
           "-t", (wEndTime - wStartTime).toString(),
       };

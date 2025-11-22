@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui_MainWindow.h"
+#include "Playlist.h"
 #include "MediaPlayer.h"
 
 #include <QtWidgets/QMainWindow>
@@ -13,8 +14,6 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  using Playlist = MediaPlayer::Playlist;
-
   MainWindow(QWidget* parent = nullptr);
   ~MainWindow();
 

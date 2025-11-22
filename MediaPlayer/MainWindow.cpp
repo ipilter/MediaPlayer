@@ -357,7 +357,7 @@ void MainWindow::dropEvent(QDropEvent* event)
   {
     QList<QUrl> urls = event->mimeData()->urls();
 
-    MediaPlayer::Playlist wPlaylist;
+    Playlist wPlaylist;
 
     for (const QUrl& url : urls)
     {

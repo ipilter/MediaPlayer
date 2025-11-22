@@ -26,7 +26,6 @@ public:
   enum class SeekDirection { Forward, Backward };
   enum class SnapPosition { Start, End };
 
-  using Playlist = details::Playlist;
   using Playlists = std::vector<Playlist>;
 
   MediaPlayer(QObject* parent = nullptr);
@@ -90,7 +89,6 @@ private:
 
   // video management
   Playlist mPlaylist;
-  size_t mCurrentVideo = 0;
 
   // sequence management
   SequenceMap mSequenceMap;
