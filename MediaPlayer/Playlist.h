@@ -18,7 +18,7 @@ public:
 
   std::vector<QUrl> GetVideos() const;
 
-  void setOrder(bool randomize);
+  void setOrder(const bool randomize, const bool keepCurrent = false);
   void setCurrentIndex(std::size_t index);
   std::size_t currentIndex() const;
   std::size_t indexOf(const QUrl& url) const;

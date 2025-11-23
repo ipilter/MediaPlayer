@@ -31,7 +31,7 @@ void Playlist::clear()
   mCurrentIndex = npos;
 }
 
-void Playlist::setOrder(bool randomize)
+void Playlist::setOrder(const bool randomize, const bool keepCurrent)
 {
   const auto currentUrl = current(); // store current URL to restore current video after shuffling
   mIndices.resize(mUrls.size());
@@ -41,7 +41,11 @@ void Playlist::setOrder(bool randomize)
     std::shuffle(mIndices.begin(), mIndices.end(), std::mt19937{ std::random_device{}() });
   }
   rebuildLookup();
-  setCurrentIndex(indexOf(currentUrl));
+ 
+  if (keepCurrent)
+  {
+    setCurrentIndex(indexOf(currentUrl));
+  }
 }
 
 std::vector<QUrl> Playlist::GetVideos() const

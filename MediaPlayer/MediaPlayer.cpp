@@ -39,7 +39,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::gpuEncodeChecked, this, [this](const bool state) { setGpuEncode(state); });  
   connect(mView.get(), &View::randomizeChanged, this, [this](const bool state) 
     {
-      mPlaylist.setOrder(state);
+      mPlaylist.setOrder(state, true);
       mSettings.mRandomize = state;
     });
   connect(mView.get(), &View::onMouseClick, this, [this]() { stop();  });
