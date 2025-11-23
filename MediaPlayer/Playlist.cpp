@@ -33,6 +33,7 @@ void Playlist::clear()
 
 void Playlist::setOrder(bool randomize)
 {
+  const auto currentUrl = current(); // store current URL to restore current video after shuffling
   mIndices.resize(mUrls.size());
   std::iota(mIndices.begin(), mIndices.end(), 0);
   if(randomize)
@@ -40,6 +41,7 @@ void Playlist::setOrder(bool randomize)
     std::shuffle(mIndices.begin(), mIndices.end(), std::mt19937{ std::random_device{}() });
   }
   rebuildLookup();
+  setCurrentIndex(indexOf(currentUrl));
 }
 
 std::vector<QUrl> Playlist::GetVideos() const
