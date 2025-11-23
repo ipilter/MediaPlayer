@@ -37,30 +37,36 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::seekRightButtonClicked, this, [this]() { seek(SeekDirection::Forward, SeekStep::Random); });
   connect(mView.get(), &View::deinterlaceChecked, this, [this](const bool state) { setDeinterlace(state); });
   connect(mView.get(), &View::gpuEncodeChecked, this, [this](const bool state) { setGpuEncode(state); });  
-  connect(mView.get(), &View::randomizeChanged, this, [this](const bool state) { mSettings.mRandomize = state; });
-
+  connect(mView.get(), &View::randomizeChanged, this, [this](const bool state) 
+    {
+      mPlaylist.setOrder(state);
+      mSettings.mRandomize = state;
+    });
   connect(mView.get(), &View::onMouseClick, this, [this]() { stop();  });
   connect(mView.get(), &View::videoItemDoubleClicked, this, [this](const QUrl url) 
   {
-    auto it = std::find(mPlaylist.GetVideos().begin(), mPlaylist.GetVideos().end(), url);
-    if (it != mPlaylist.GetVideos().end())
+    const auto videos = mPlaylist.GetVideos();
+    auto it = std::find(videos.begin(), videos.end(), url);
+    if (it == videos.end())
     {
-      stop();
-      const auto idx = static_cast<std::size_t>(std::distance(mPlaylist.GetVideos().begin(), it));
-      mPlaylist.setCurrentIndex(idx);
-      mPlayer->setVideo(mPlaylist.current());
-      play();
+      return;
     }
-    });
+    stop();
+
+    mPlaylist.setCurrentIndex(mPlaylist.indexOf(*it));
+    mPlayer->setVideo(mPlaylist.current());
+    mSequenceMap.clear();
+    mView->setSequences(mSequenceMap);
+
+    play();
+  });
   connect(mView.get(), &View::speedChanged, this, [this](double speed) { mPlayer->setPlaybackRate(speed); });
   connect(mView.get(), &View::volumeChanged, this, [this](double volume) { mPlayer->setVolume(static_cast<float>(volume)); mSettings.mVolume = static_cast<float>(volume); });
-
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
       : mView->setDurationLabel(wSequence->second - wSequence->first, true); // TODO solve the coloring of the label in a better way
     mSelectedSequence = wSequence; });
-
   connect(mView.get(), &View::sequenceDoubleClicked, this, [ this ](const Sequence* wSequence) 
   {
     qDebug() << "double clicked sequence" << wSequence->first.ms() << wSequence->second.ms();
@@ -81,9 +87,6 @@ MediaPlayer::MediaPlayer(QObject* parent)
     QProcess::startDetached("explorer.exe", { wSequenceEntry->second.mFilePath });
   });
 
-  connect(this, &MediaPlayer::sequencesChanged, mView.get(), &View::onSequencesChanged);
-  connect(this, &MediaPlayer::videoListChanged, mView.get(), &View::onVideoListChanged);
-
   mPlayer->setVolume(0.0f);
   mPlayer->setPlaybackRate(1.0);
 }
@@ -91,7 +94,6 @@ MediaPlayer::MediaPlayer(QObject* parent)
 MediaPlayer::~MediaPlayer()
 {}
 
-// when setting playlist, set playlist current index to 0 and set video to playlist.current()
 void MediaPlayer::setPlaylist(const Playlist& playlist)
 {
   if (playlist.empty())
@@ -101,13 +103,13 @@ void MediaPlayer::setPlaylist(const Playlist& playlist)
   }
 
   mPlaylist = playlist;
+  mPlaylist.setOrder(mSettings.mRandomize);
 
-  mPlaylist.setCurrentIndex(mSettings.mRandomize ? utils::Random(0, static_cast<int>(mPlaylist.size() - 1)) : 0);
   mPlayer->setVideo(mPlaylist.current());
 
   mSequenceMap.clear();
-  emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
-  emit videoListChanged(mPlaylist.GetVideos());
+  mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
+  mView->setVideoList(mPlaylist.GetVideos());
 }
 
 QLayout* MediaPlayer::getLayout() const
@@ -134,6 +136,7 @@ void MediaPlayer::setSettings(const Settings& settings)
   mView->setCursorTimeout(mSettings.mCursorTimeout);
   mView->setVolume(mSettings.mVolume);
   mView->setRandomize(mSettings.mRandomize);
+  mPlaylist.setOrder(mSettings.mRandomize);
 }
 
 const Settings& MediaPlayer::getSettings() const
@@ -184,14 +187,14 @@ void MediaPlayer::next()
   }
   else
   {
-    mPlaylist.next(mSettings.mRandomize);
+    mPlaylist.next();
 
     stop();
     mPlayer->setVideo(mPlaylist.current());
     mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
-    emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
+    mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, ...
   }
 
   if (isPlaying)
@@ -210,14 +213,14 @@ void MediaPlayer::previous()
   }
   else
   {
-    mPlaylist.previous(mSettings.mRandomize);
+    mPlaylist.previous();
 
     stop();
     mPlayer->setVideo(mPlaylist.current());
     mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
-    emit sequencesChanged(mSequenceMap);  // TODO: store the sequences associated to the video, ...
+    mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, ...
   }
 
   if (isPlaying)
@@ -393,7 +396,7 @@ void MediaPlayer::mark(const bool isCancel)
     mSequenceMap[mEditedSequence].mState = OperationState::Ready;
 
     mEditedSequence = Sequence{ VTime(0), VTime(0) };
-    emit sequencesChanged(mSequenceMap);
+    mView->setSequences(mSequenceMap);
   }
 }
 
@@ -460,10 +463,10 @@ void MediaPlayer::onVideoLoaded()
   const QFileInfo fileInfo(mPlaylist.current().toLocalFile());
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
+  mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
 
   setPosition(VTime(0));
   
-  mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
   if (mSettings.mAutoPlay)
   {
     play();
@@ -490,13 +493,13 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
 
   connect(wProcess, &QProcess::started, this, [ & ]() {
     sequenceEntry.second.mState = OperationState::Processing;
-    emit sequencesChanged(mSequenceMap);
+    mView->setSequences(mSequenceMap);
     logStatusMessage("Fast cut started");
   });
 
   connect(wProcess, &QProcess::finished, this, [ & ](int exitCode, QProcess::ExitStatus exitStatus) {
     sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
-    emit sequencesChanged(mSequenceMap);
+    mView->setSequences(mSequenceMap);
     logStatusMessage(QString("Fast cut ") + (exitCode == 0 ? "succeeded" : "failed"));
   });
 
@@ -520,7 +523,7 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
           {
             sequenceEntry.second.mProcessTimer = duration;
           }
-          emit sequencesChanged(mSequenceMap);
+          mView->setSequences(mSequenceMap);
         }
       }
     }
@@ -545,7 +548,7 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
             {
               sequenceEntry.second.mProcessTimer = duration;
             }
-            emit sequencesChanged(mSequenceMap);
+            mView->setSequences(mSequenceMap);
           }
       }
     }
@@ -613,13 +616,13 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
   QProcess* wProcess = mProcesses.back().get();
   connect(wProcess, &QProcess::started, this, [&]() {
     sequenceEntry.second.mState = OperationState::Processing;
-    emit sequencesChanged(mSequenceMap);
+    mView->setSequences(mSequenceMap);
     logStatusMessage(QString("Precise cut started on ") + (mGpuEncode ? "GPU" : "CPU") + (mDeinterlace ? " with deinterlacing" : ""));
     });
 
   connect(wProcess, &QProcess::finished, this, [&](int exitCode, QProcess::ExitStatus exitStatus) {
     sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
-    emit sequencesChanged(mSequenceMap);
+    mView->setSequences(mSequenceMap);
     logStatusMessage(QString("Precise cut ") + (exitCode == 0 ? "succeeded" : "failed"));
     });
 
@@ -643,7 +646,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
           {
             sequenceEntry.second.mProcessTimer = duration;
           }
-          emit sequencesChanged(mSequenceMap);
+          mView->setSequences(mSequenceMap);
         }
       }
     }
@@ -668,7 +671,7 @@ void MediaPlayer::PreciseCut(SequenceEntry& sequenceEntry)
           {
             sequenceEntry.second.mProcessTimer = duration;
           }
-          emit sequencesChanged(mSequenceMap);
+          mView->setSequences(mSequenceMap);
         }
       }
     }
@@ -698,7 +701,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   connect(wCutProcess, &QProcess::started, this, [&]() {
     sequenceEntry.second.mState = OperationState::Processing;
     sequenceEntry.second.mProcessTimer = VTime(0);
-    emit sequencesChanged(mSequenceMap);
+    mView->setSequences(mSequenceMap);
     logStatusMessage(QString("Loop cut started on ") + (mGpuEncode ? "GPU" : "CPU") + (mDeinterlace ? " with deinterlacing" : ""));
     });
 
@@ -707,7 +710,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
     if (exitCode != 0)
     {
       sequenceEntry.second.mState = OperationState::Failed;
-      emit sequencesChanged(mSequenceMap);
+      mView->setSequences(mSequenceMap);
       return;
     }
 
@@ -718,7 +721,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
     QProcess* wReverserProcess = mProcesses.back().get();
     connect(wReverserProcess, &QProcess::started, this, [&]() {
       sequenceEntry.second.mProcessTimer = VTime(0);
-      emit sequencesChanged(mSequenceMap);
+      mView->setSequences(mSequenceMap);
       logStatusMessage("Reverser started");
       });
 
@@ -727,7 +730,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       if (exitCode != 0)
       {
         sequenceEntry.second.mState = OperationState::Failed;
-        emit sequencesChanged(mSequenceMap);
+        mView->setSequences(mSequenceMap);
         return;
       }
 
@@ -748,13 +751,13 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
       QProcess* wMergerProcess = mProcesses.back().get();
       connect(wMergerProcess, &QProcess::started, this, [&]() {
         sequenceEntry.second.mProcessTimer = VTime(0);
-        emit sequencesChanged(mSequenceMap);
+        mView->setSequences(mSequenceMap);
         logStatusMessage("Merger started");
         });
 
       connect(wMergerProcess, &QProcess::finished, this, [&, wConcatFilePath, wCutFilePath, wReversedFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
         sequenceEntry.second.mState = exitCode == 0 ? OperationState::Succeeded : OperationState::Failed;
-        emit sequencesChanged(mSequenceMap);
+        mView->setSequences(mSequenceMap);
         logStatusMessage(QString("Loop cut ") + (exitCode == 0 ? "succeeded" : "failed"));
 
         QFile::remove(wConcatFilePath);
@@ -782,7 +785,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
               {
                 sequenceEntry.second.mProcessTimer = duration;
               }
-              emit sequencesChanged(mSequenceMap);
+              mView->setSequences(mSequenceMap);
             }
           }
         }
@@ -807,7 +810,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
               {
                 sequenceEntry.second.mProcessTimer = duration;
               }
-              emit sequencesChanged(mSequenceMap);
+              mView->setSequences(mSequenceMap);
             }
           }
         }
@@ -838,7 +841,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
             {
               sequenceEntry.second.mProcessTimer = duration;
             }
-            emit sequencesChanged(mSequenceMap);
+            mView->setSequences(mSequenceMap);
           }
         }
       }
@@ -864,7 +867,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
             {
               sequenceEntry.second.mProcessTimer = duration;
             }
-            emit sequencesChanged(mSequenceMap);
+            mView->setSequences(mSequenceMap);
           }
         }
       }
@@ -897,7 +900,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
           {
             sequenceEntry.second.mProcessTimer = duration;
           }
-          emit sequencesChanged(mSequenceMap);
+          mView->setSequences(mSequenceMap);
         }
       }
     }
@@ -922,7 +925,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
           {
             sequenceEntry.second.mProcessTimer = duration;
           }
-          emit sequencesChanged(mSequenceMap);
+          mView->setSequences(mSequenceMap);
         }
       }
     }
@@ -974,7 +977,7 @@ void MediaPlayer::resetSeqenceState()
   {
     wSequence.second.mState = OperationState::Ready;
   }
-  emit sequencesChanged(mSequenceMap);
+  mView->setSequences(mSequenceMap);
 }
 
 void MediaPlayer::deleteSequence()
@@ -1004,7 +1007,7 @@ void MediaPlayer::deleteSequence()
   }
 
   mSequenceMap.erase(*mSelectedSequence);
-  emit sequencesChanged(mSequenceMap);
+  mView->setSequences(mSequenceMap);
 }
 
 void MediaPlayer::burstCut()

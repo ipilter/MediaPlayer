@@ -367,12 +367,12 @@ void View::onStop()
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
 }
 
-void View::onSequencesChanged(const SequenceMap& sequences)
+void View::setSequences(const SequenceMap& sequences)
 {
   mSlider->setSequences(sequences);
 }
 
-void View::onVideoListChanged(const std::vector<QUrl>& videos)
+void View::setVideoList(const std::vector<QUrl>& videos)
 {
   mVideoList->clear();
   for (const auto& video : videos)

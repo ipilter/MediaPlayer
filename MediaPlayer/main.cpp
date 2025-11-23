@@ -1,6 +1,5 @@
 #include "MainWindow.h"
 #include "MediaPlayer.h"
-#include "Settings.h" // add this include
 
 #include <QtWidgets/QApplication>
 #include <QSettings>
@@ -8,10 +7,11 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QDir>
-#include <QStringList> // for string list conversion
+#include <QStringList>
 
 #include <fstream>
 #include <algorithm>
+#include <vector>
 
 std::pair<Playlist, QString> getInputPlaylist(const QString& wInputPath);
 void savePreferences(const MainWindow& iMainWindow);
@@ -124,7 +124,7 @@ void loadPreferences(MainWindow& iMainWindow)
 
 Playlist readPlaylistFile(const QString& iFilePath)
 {
-  Playlist wPlaylist;
+  std::vector<QUrl> urls;
   std::ifstream wFile(iFilePath.toStdString());
   if (wFile.is_open()) {
     std::string wLine;
@@ -133,24 +133,25 @@ Playlist readPlaylistFile(const QString& iFilePath)
         if (wLine.front() == '"' && wLine.back() == '"') {
           wLine = wLine.substr(1, wLine.size() - 2);
         }
-        wPlaylist.push_back(QUrl::fromLocalFile(QString::fromStdString(wLine)));
+        urls.push_back(QUrl::fromLocalFile(QString::fromStdString(wLine)));
       }
     }
     wFile.close();
   }
 
-  return wPlaylist;
+  return Playlist(std::move(urls));
 }
 
 Playlist readDirectory(const QString& iDirectoryPath)
 {
-  Playlist wPlaylist;
-  for (const auto& wFile : QDir(iDirectoryPath).entryList(QDir::Files))
+  std::vector<QUrl> urls;
+  QDir dir(iDirectoryPath);
+  for (const auto& wFile : dir.entryList(QDir::Files))
   {
-    wPlaylist.push_back(QUrl::fromLocalFile(iDirectoryPath + "/" + wFile));
+    urls.push_back(QUrl::fromLocalFile(iDirectoryPath + "/" + wFile));
   }
 
-  return wPlaylist;
+  return Playlist(std::move(urls));
 }
 
 QString readStyles(const QString& iFilePath)
@@ -184,11 +185,11 @@ std::pair<Playlist, QString> getInputPlaylist(const QString& wInputPath)
       wInputDir.isRoot() ? wInputPath : wInputInfo.completeBaseName());
     return { playlist, title };
   }
-  else // TODO: validate if known file type...
+  else // single file TODO: validate if known file type...
   {
-    Playlist playlist;
-    playlist.push_back(QUrl::fromLocalFile(wInputPath));
+    std::vector<QUrl> urls;
+    urls.push_back(QUrl::fromLocalFile(wInputPath));
     QString title = QString("Playing: %1").arg(wInputInfo.fileName());
-    return { playlist, title };
+    return { Playlist(std::move(urls)), title };
   }
 }

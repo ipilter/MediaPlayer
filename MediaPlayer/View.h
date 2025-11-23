@@ -43,6 +43,8 @@ public:
   void setCurrentVideo(const size_t idx);
   void setFullscreenView(const bool fullscreen);
   bool isFullscreenView() const;
+  void setVideoList(const std::vector<QUrl>& videos);
+  void setSequences(const SequenceMap& seqences);
 
 public slots:
   void setPosition(VTime position);
@@ -52,8 +54,6 @@ public slots:
   void onPlay();
   void onPause();
   void onStop();
-  void onSequencesChanged(const SequenceMap& seqences);
-  void onVideoListChanged(const std::vector<QUrl>& videos);
 
 signals:
   void sliderChanged(int position);

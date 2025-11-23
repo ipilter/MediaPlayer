@@ -357,8 +357,8 @@ void MainWindow::dropEvent(QDropEvent* event)
   {
     QList<QUrl> urls = event->mimeData()->urls();
 
-    Playlist wPlaylist;
-
+    
+    std::vector<QUrl> videoUrls;
     for (const QUrl& url : urls)
     {
       QString localPath = url.toLocalFile();
@@ -371,16 +371,16 @@ void MainWindow::dropEvent(QDropEvent* event)
           QFileInfoList fileList = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
           for (const QFileInfo& fileInfo : fileList)
           {
-            wPlaylist.push_back(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+            videoUrls.push_back(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
           }
         }
         else if (info.isFile())
         {
-          wPlaylist.push_back(QUrl::fromLocalFile(localPath));
+          videoUrls.push_back(QUrl::fromLocalFile(localPath));
         }
       }
     }
-
+    Playlist wPlaylist(std::move(videoUrls));
     const bool wPlaying = mMediaPlayer->isPlaying();
     mMediaPlayer->setPlaylist(wPlaylist);
     if (wPlaying)
