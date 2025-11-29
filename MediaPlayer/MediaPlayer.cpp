@@ -65,17 +65,21 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::FilterCommited, this, [this]() { 
     mView->focusPlayButton(); 
 
-    mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
-
-    if (isPlaying())
+    const bool wasPlaying = isPlaying();
+    if (wasPlaying)
     {
       stop();
-      mPlayer->setVideo(mPlaylist.current());
-      mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
-      play();
     }
 
-    });
+    const std::size_t viewIdx = mPlaylist.viewIndexOfCurrent();
+    mView->setCurrentVideo(static_cast<int>(viewIdx));
+    mPlayer->setVideo(mPlaylist.current());
+    
+    if (wasPlaying)
+    {
+      play();
+    }
+  });
   connect(mView.get(), &View::filterChanged, this, &MediaPlayer::onFilterTextChanged);
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
@@ -112,7 +116,9 @@ MediaPlayer::~MediaPlayer()
 void MediaPlayer::onFilterTextChanged(const QString& text)
 {
   if (mPlaylist.empty())
+  {
     return;
+  }
 
   if (text.isEmpty())
   {
@@ -218,7 +224,7 @@ void MediaPlayer::next()
 {
   const bool isPlaying = mPlaying;
 
-  if (mPlaylist.size() == 1)
+  if (mPlaylist.getVideos().size() == 1)
   {
     setPosition(VTime(0), !isPlaying);
   }
@@ -228,7 +234,7 @@ void MediaPlayer::next()
 
     stop();
     mPlayer->setVideo(mPlaylist.current());
-    mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
+    mView->setCurrentVideo(static_cast<int>(mPlaylist.viewIndexOfCurrent()));
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
     mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, ...
@@ -244,7 +250,7 @@ void MediaPlayer::previous()
 {
   const bool isPlaying = mPlayer->isPlaying();
 
-  if (mPlaylist.size() == 1)
+  if (mPlaylist.getVideos().size() == 1)
   {
     setPosition(VTime(0), !isPlaying);
   }
@@ -254,7 +260,9 @@ void MediaPlayer::previous()
 
     stop();
     mPlayer->setVideo(mPlaylist.current());
-    mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
+    const std::size_t viewIdx = mPlaylist.viewIndexOfCurrent();
+    if (viewIdx != static_cast<std::size_t>(-1))
+      mView->setCurrentVideo(static_cast<int>(viewIdx));
     mSequenceMap.clear();
     mSelectedSequence = nullptr;
     mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, ...
@@ -500,7 +508,7 @@ void MediaPlayer::onVideoLoaded()
   const QFileInfo fileInfo(mPlaylist.current().toLocalFile());
   const QString info(fileInfo.completeBaseName() + " - " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().width()) + " x " + QString::number(mPlayer->getMetadata().value(QMediaMetaData::Resolution).value<QSize>().height()));
   mView->setInfo(info);
-  mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
+  mView->setCurrentVideo(static_cast<int>(mPlaylist.viewIndexOfCurrent()));
 
   setPosition(VTime(0));
   
@@ -546,9 +554,11 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
     {
       QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
       QRegularExpressionMatchIterator i = re.globalMatch(output);
-      while (i.hasNext()) {
+      while (i.hasNext())
+      {
         QRegularExpressionMatch match = i.next();
-        if (match.hasMatch()) {
+        if (match.hasMatch())
+        {
           const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
           const VTime time = VTime(timeStr);
           const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;
@@ -571,9 +581,11 @@ void MediaPlayer::FastCut(SequenceEntry& sequenceEntry)
     {
         QRegularExpression re(R"(time.*?(\d{2}:\d{2}:\d{2}\.\d{2}))");
         QRegularExpressionMatchIterator i = re.globalMatch(error);
-        while (i.hasNext()) {
+        while (i.hasNext())
+        {
           QRegularExpressionMatch match = i.next();
-          if (match.hasMatch()) {
+          if (match.hasMatch())
+          {
             const QString timeStr = match.captured(1); // "hh:mm:ss.mm"
             const VTime time = VTime(timeStr);
             const VTime duration = sequenceEntry.first.second - sequenceEntry.first.first;

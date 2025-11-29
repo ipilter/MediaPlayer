@@ -17,7 +17,7 @@ public:
   bool empty() const;
   void clear();
 
-  std::vector<QUrl> getVideos() const;
+  std::vector<QUrl> getVideos() const; // filtered list with original ordering
 
   void setOrder(const bool randomize, const bool keepCurrent = false);
   void setCurrentIndex(std::size_t index);
@@ -28,6 +28,8 @@ public:
 
   bool next();
   bool previous();
+
+  std::size_t viewIndexOfCurrent() const;
 
   void setFilter(const QString& pattern);
 
