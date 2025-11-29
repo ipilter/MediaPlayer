@@ -290,6 +290,11 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     mMediaPlayer->startStop();
     break;
   }
+  case Qt::Key_Tab:
+  {
+    mMediaPlayer->filter();
+    break;
+  }
   default:
   {
     QMainWindow::keyPressEvent(event);

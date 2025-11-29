@@ -45,7 +45,7 @@ MediaPlayer::MediaPlayer(QObject* parent)
   connect(mView.get(), &View::onMouseClick, this, [this]() { stop();  });
   connect(mView.get(), &View::videoItemDoubleClicked, this, [this](const QUrl url) 
   {
-    const auto videos = mPlaylist.GetVideos();
+    const auto videos = mPlaylist.getVideos();
     auto it = std::find(videos.begin(), videos.end(), url);
     if (it == videos.end())
     {
@@ -62,6 +62,21 @@ MediaPlayer::MediaPlayer(QObject* parent)
   });
   connect(mView.get(), &View::speedChanged, this, [this](double speed) { mPlayer->setPlaybackRate(speed); });
   connect(mView.get(), &View::volumeChanged, this, [this](double volume) { mPlayer->setVolume(static_cast<float>(volume)); mSettings.mVolume = static_cast<float>(volume); });
+  connect(mView.get(), &View::FilterCommited, this, [this]() { 
+    mView->focusPlayButton(); 
+
+    mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
+
+    if (isPlaying())
+    {
+      stop();
+      mPlayer->setVideo(mPlaylist.current());
+      mView->setCurrentVideo(static_cast<int>(mPlaylist.currentIndex()));
+      play();
+    }
+
+    });
+  connect(mView.get(), &View::filterChanged, this, &MediaPlayer::onFilterTextChanged);
   connect(mView.get(), &View::sequenceSelected, this, [ this ](const Sequence* wSequence) { 
     wSequence == nullptr ? 
       mView->setDurationLabel(mPlayer->getDuration()) 
@@ -94,6 +109,27 @@ MediaPlayer::MediaPlayer(QObject* parent)
 MediaPlayer::~MediaPlayer()
 {}
 
+void MediaPlayer::onFilterTextChanged(const QString& text)
+{
+  if (mPlaylist.empty())
+    return;
+
+  if (text.isEmpty())
+  {
+    mPlaylist.setFilter(text);
+    mView->setVideoList(mPlaylist.getVideos());
+    return;
+  }
+
+  mPlaylist.setFilter(text);
+  mPlaylist.setOrder(mSettings.mRandomize);
+
+  mSequenceMap.clear();
+  mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
+
+  mView->setVideoList(mPlaylist.getVideos());
+}
+
 void MediaPlayer::setPlaylist(const Playlist& playlist)
 {
   if (playlist.empty())
@@ -109,7 +145,8 @@ void MediaPlayer::setPlaylist(const Playlist& playlist)
 
   mSequenceMap.clear();
   mView->setSequences(mSequenceMap);  // TODO: store the sequences associated to the video, not the player, so that we can have different sequences for each video in the playlist
-  mView->setVideoList(mPlaylist.GetVideos());
+
+  mView->setVideoList(mPlaylist.getVideos());
 }
 
 QLayout* MediaPlayer::getLayout() const
@@ -1022,4 +1059,9 @@ void MediaPlayer::burstCut()
     setPosition(getPosition() - wBacktrackTime, true);
   }
   cut(CutMethod::Precise);
+}
+
+void MediaPlayer::filter()
+{
+  mView->focusFilterEdit();
 }

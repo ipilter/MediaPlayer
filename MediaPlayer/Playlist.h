@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QUrl>
+#include <QString>
 #include <QHash>
 #include <vector>
 
@@ -16,7 +17,7 @@ public:
   bool empty() const;
   void clear();
 
-  std::vector<QUrl> GetVideos() const;
+  std::vector<QUrl> getVideos() const;
 
   void setOrder(const bool randomize, const bool keepCurrent = false);
   void setCurrentIndex(std::size_t index);
@@ -28,11 +29,18 @@ public:
   bool next();
   bool previous();
 
+  void setFilter(const QString& pattern);
+
 private:
   void rebuildLookup();
 
   std::vector<QUrl> mUrls;
   size_t mCurrentIndex = npos;
-  std::vector<size_t> mIndices;
+
+  std::vector<size_t> mIndices;          // the playback ordering layer (may be shuffled by setOrder).
+  std::vector<size_t> mFilteredIndices;  // the filtered view layer (always maintained in original order).
+
   QHash<QUrl, size_t> mLookup;
+
+  QString mFilterPattern;
 };

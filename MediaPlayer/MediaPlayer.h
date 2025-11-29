@@ -66,6 +66,7 @@ public:
 
   // TODO HACK !
   void burstCut();
+  void filter();
 
 signals:
   void sequencesChanged(const SequenceMap& sequences);
@@ -73,6 +74,7 @@ signals:
 private:
   void onVideoLoaded();
   void onVideoEnded();
+  void onFilterTextChanged(const QString& text);
 
   void FastCut(SequenceEntry& sequenceEntry);
   void PreciseCut(SequenceEntry& sequenceEntry);

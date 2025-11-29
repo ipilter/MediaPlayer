@@ -4,6 +4,7 @@
 #include "CursorHider.h"
 
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QTime>
@@ -19,6 +20,7 @@
 #include <QCheckBox>
 #include <QListWidget>
 #include <QFileInfo>
+#include <QLineEdit>
 
 View::View(QWidget* parent)
   : QWidget(parent)
@@ -39,10 +41,16 @@ View::View(QWidget* parent)
 
   mVideoList = new QListWidget(parent);
   mVideoList->setObjectName("videoList");
-  mVideoList->setFixedWidth(300);
+  mVideoList->setMaximumWidth(300);
   mVideoList->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   mVideoList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   mVideoList->setFocusPolicy(Qt::NoFocus);
+
+  mFilterEdit = new QLineEdit(parent);
+  mFilterEdit->setObjectName("filterEdit");
+  mFilterEdit->setFixedHeight(45);
+  mFilterEdit->setMaximumWidth(300);
+  mFilterEdit->setFocusPolicy(Qt::ClickFocus);
 
   mSlider = new Slider(Qt::Horizontal, parent);
   mSlider->setObjectName("videoSlider");
@@ -178,8 +186,13 @@ View::View(QWidget* parent)
   mButtonLayout->addWidget(mRandomizeCheckBox);
 
   QHBoxLayout* videoLayout = new QHBoxLayout;
+
+  QVBoxLayout* listLayout = new QVBoxLayout;
+  listLayout->addWidget(mVideoList);
+  listLayout->addWidget(mFilterEdit);
+
   videoLayout->addWidget(mVideoWidget);
-  videoLayout->addWidget(mVideoList);
+  videoLayout->addLayout(listLayout);
 
   QVBoxLayout* rootLayout = new QVBoxLayout(parent);
   rootLayout->addLayout(videoLayout);
@@ -220,6 +233,9 @@ View::View(QWidget* parent)
 
   connect(mSpeedSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit speedChanged(value); });
   connect(mVolumeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit volumeChanged(value); });
+
+  connect(mFilterEdit, &QLineEdit::textChanged, this, &View::onFilterEditChanged);
+  connect(mFilterEdit, &QLineEdit::returnPressed, this, [this]() { emit FilterCommited(); });
 
   mCursorHider.reset(new CursorHider(mVideoWidget));
 }
@@ -326,6 +342,7 @@ void View::setFullscreenView(const bool isFullscreen)
     mVideoList->hide();
     mSlider->hide();
     mInfoBar->hide();
+    mFilterEdit->hide();
     toggleLayoutWidgets(mButtonLayout, false);
   }
   else
@@ -333,6 +350,7 @@ void View::setFullscreenView(const bool isFullscreen)
     mVideoList->show();
     mSlider->show();
     mInfoBar->show();
+    mFilterEdit->show();
     toggleLayoutWidgets(mButtonLayout, true);
   }
 }
@@ -418,6 +436,21 @@ void View::setDurationLabel(VTime duration, const bool isSequenceDuration)
 void View::setInfo(const QString& info)
 {
   const QString wCurrentTimeStr = QTime::currentTime().toString("hh:mm:ss:zzz");
-   mInfoBar->appendPlainText(wCurrentTimeStr + " - " + info);
-   mInfoBar->verticalScrollBar()->setValue(mInfoBar->verticalScrollBar()->maximum()-1);
+  mInfoBar->appendPlainText(wCurrentTimeStr + " - " + info);
+  mInfoBar->verticalScrollBar()->setValue(mInfoBar->verticalScrollBar()->maximum()-1);
+ }
+
+void View::onFilterEditChanged()
+{
+  emit filterChanged(mFilterEdit->text());
+}
+
+void View::focusPlayButton()
+{
+  mPlayButton->setFocus(Qt::OtherFocusReason);
+}
+
+void View::focusFilterEdit()
+{
+  mFilterEdit->setFocus(Qt::OtherFocusReason);
 }

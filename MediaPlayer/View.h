@@ -21,6 +21,7 @@ class CursorHider;
 class QCheckBox;
 class QListWidget;
 class QHBoxLayout;
+class QLineEdit;
 
 class View : public QWidget
 {
@@ -46,6 +47,9 @@ public:
   void setVideoList(const std::vector<QUrl>& videos);
   void setSequences(const SequenceMap& seqences);
 
+  void focusPlayButton();
+  void focusFilterEdit();
+
 public slots:
   void setPosition(VTime position);
   void setDuration(VTime duration);
@@ -54,6 +58,7 @@ public slots:
   void onPlay();
   void onPause();
   void onStop();
+  void onFilterEditChanged();
 
 signals:
   void sliderChanged(int position);
@@ -71,6 +76,8 @@ signals:
   void speedChanged(double speed);
   void volumeChanged(double volume);
   void randomizeChanged(bool state);
+  void filterChanged(const QString& text);
+  void FilterCommited();
 
   void onMouseClick();
   void onMouseDoubleClick();
@@ -80,6 +87,7 @@ private:
 
   VideoWidget* mVideoWidget;
   QListWidget* mVideoList;
+  QLineEdit* mFilterEdit;
   Slider* mSlider;
 
   QHBoxLayout* mButtonLayout;
