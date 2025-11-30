@@ -120,13 +120,6 @@ void MediaPlayer::onFilterTextChanged(const QString& text)
     return;
   }
 
-  if (text.isEmpty())
-  {
-    mPlaylist.setFilter(text);
-    mView->setVideoList(mPlaylist.getVideos());
-    return;
-  }
-
   mPlaylist.setFilter(text);
   mPlaylist.setOrder(mSettings.mRandomize);
 

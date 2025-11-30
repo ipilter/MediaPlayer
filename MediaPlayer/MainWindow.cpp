@@ -39,6 +39,11 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
   {
   case Qt::Key_Escape:
   {
+    if (isMaximized())
+    {
+      showNormal();
+    }
+
     close();
     break;
   }
@@ -207,8 +212,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
         showFullScreen();
         showMaximized(); // used in key handler to detect maximized state !
       }
+
       lastSize = this->size();
-      lastPos = this->pos();
+      lastPos = this->pos() - QPoint(0, 31);
     }
     break;
   }
