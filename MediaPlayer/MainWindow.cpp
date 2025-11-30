@@ -188,17 +188,27 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     }
     else
     {
-      mMediaPlayer->setFullscreen(!isMaximized());
+      mMediaPlayer->setFullscreen(!mMediaPlayer->isFullscreen());
+
+      static QSize lastSize = this->size();
+      static QPoint lastPos = this->pos();
+
       if (isMaximized())
       {
-        setBorderlessFullscreen(false);
+        setWindowFlags(Qt::Window);
         showNormal();
+
+        resize(lastSize);
+        move(lastPos);
       }
       else
       {
-        showMaximized();
-        setBorderlessFullscreen(true);
+        setWindowFlags(Qt::SubWindow);
+        showFullScreen();
+        showMaximized(); // used in key handler to detect maximized state !
       }
+      lastSize = this->size();
+      lastPos = this->pos();
     }
     break;
   }
@@ -414,27 +424,4 @@ void MainWindow::dropEvent(QDropEvent* event)
       setWindowTitle(title);
     }
   }
-}
-
-void MainWindow::setBorderlessFullscreen(bool enable)
-{
-  static QSize lastSize = this->size();
-  static QPoint lastPos = this->pos();
-
-  if (enable)
-  {
-    setWindowFlags(Qt::SubWindow);
-    showFullScreen();
-    showMaximized(); // TODO rethink this as this is needed as checked in key handler code
-  }
-  else
-  {
-    showNormal();
-    setWindowFlags(Qt::Window);
-    resize(lastSize);
-    move(lastPos);
-  }
-
-  lastSize = this->size();
-  lastPos = this->pos();
 }
