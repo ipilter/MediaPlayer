@@ -113,6 +113,9 @@ private:
   QLayout* mLayout;
   bool mIsFullscreenView = false;
 
+  QWidget* mSidePanel = nullptr;
+  QWidget* mControlsPanel = nullptr;
+
   std::unique_ptr<CursorHider> mCursorHider;
 
   Settings::AudioMode mCurrentAudioMode = Settings::AudioMode::Muted;

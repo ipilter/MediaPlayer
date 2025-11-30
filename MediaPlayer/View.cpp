@@ -35,88 +35,89 @@ View::View(QWidget* parent)
   mPixmapTable.emplace("videoAudio", QPixmap(":/bitmaps/videoAudio.png"));
   mPixmapTable.emplace("musicAudio", QPixmap(":/bitmaps/musicAudio.png"));
 
-  mVideoWidget = new VideoWidget(parent);
+  mVideoWidget = new VideoWidget(this);
   mVideoWidget->setObjectName("videoWidget");
   mVideoWidget->setFocusPolicy(Qt::NoFocus);
+  mVideoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  mVideoList = new QListWidget(parent);
+  mVideoList = new QListWidget(this);
   mVideoList->setObjectName("videoList");
   mVideoList->setMaximumWidth(300);
   mVideoList->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   mVideoList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   mVideoList->setFocusPolicy(Qt::NoFocus);
 
-  mFilterEdit = new QLineEdit(parent);
+  mFilterEdit = new QLineEdit(this);
   mFilterEdit->setObjectName("filterEdit");
   mFilterEdit->setFixedHeight(45);
   mFilterEdit->setMaximumWidth(300);
   mFilterEdit->setFocusPolicy(Qt::ClickFocus);
 
-  mSlider = new Slider(Qt::Horizontal, parent);
+  mSlider = new Slider(Qt::Horizontal, this);
   mSlider->setObjectName("videoSlider");
   mSlider->setFocusPolicy(Qt::NoFocus);
 
-  mPreviousButton = new QPushButton(parent);
+  mPreviousButton = new QPushButton(this);
   mPreviousButton->setMinimumWidth(70);
   mPreviousButton->setIcon(QIcon(mPixmapTable["previous"]));
   mPreviousButton->setFocusPolicy(Qt::NoFocus);
 
-  mSeekLeft = new QPushButton(parent);
+  mSeekLeft = new QPushButton(this);
   mSeekLeft->setIcon(QIcon(mPixmapTable["seekLeft"]));
   mSeekLeft->setMinimumWidth(70);
   mSeekLeft->setObjectName("seekLeftButton");
   mSeekLeft->setFocusPolicy(Qt::NoFocus);
 
-  mPlayButton = new QPushButton(parent);
+  mPlayButton = new QPushButton(this);
   mPlayButton->setMinimumWidth(70);
   mPlayButton->setIcon(QIcon(mPixmapTable["play"]));
   mPlayButton->setFocusPolicy(Qt::StrongFocus);
 
-  mSeekRight = new QPushButton(parent);
+  mSeekRight = new QPushButton(this);
   mSeekRight->setMinimumWidth(70);
   mSeekRight->setIcon(QIcon(mPixmapTable["seekRight"]));
   mSeekRight->setObjectName("seekRightButton");
   mSeekRight->setFocusPolicy(Qt::NoFocus);
 
-  mNextButton = new QPushButton(parent);
+  mNextButton = new QPushButton(this);
   mNextButton->setMinimumWidth(70);
   mNextButton->setIcon(QIcon(mPixmapTable["next"]));
   mNextButton->setFocusPolicy(Qt::NoFocus);
 
-  mAudioButton = new QPushButton(parent);
+  mAudioButton = new QPushButton(this);
   mAudioButton->setMinimumWidth(70);
   mAudioButton->setIcon(QIcon(mPixmapTable["muted"]));
   mAudioButton->setFocusPolicy(Qt::NoFocus);
 
-  mDeinterlaceCheckBox = new QCheckBox(parent);
+  mDeinterlaceCheckBox = new QCheckBox(this);
   mDeinterlaceCheckBox->setText("Deinterlace");
   mDeinterlaceCheckBox->setChecked(false);
   mDeinterlaceCheckBox->setObjectName("myCheckBox");
   mDeinterlaceCheckBox->setFocusPolicy(Qt::NoFocus);
 
-  mGpuEncodeCheckBox = new QCheckBox(parent);
+  mGpuEncodeCheckBox = new QCheckBox(this);
   mGpuEncodeCheckBox->setText("GPU Encode");
   mGpuEncodeCheckBox->setChecked(false);
   mGpuEncodeCheckBox->setObjectName("gpuEncodeCheckBox");
   mGpuEncodeCheckBox->setFocusPolicy(Qt::NoFocus);
 
-  mRandomizeCheckBox = new QCheckBox(parent);
+  mRandomizeCheckBox = new QCheckBox(this);
   mRandomizeCheckBox->setText("Randomize");
   mRandomizeCheckBox->setChecked(false);
   mRandomizeCheckBox->setObjectName("randomizeCheckBox");
   mRandomizeCheckBox->setFocusPolicy(Qt::NoFocus);
 
-  mPositionLabel = new QLabel("00:00:00:000", parent);
+  mPositionLabel = new QLabel("00:00:00:000", this);
   mPositionLabel->setObjectName("positionLabel");
   mPositionLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
   mPositionLabel->setFocusPolicy(Qt::NoFocus);
 
-  mDurationLabel = new QLabel("00:00:00:000", parent);
+  mDurationLabel = new QLabel("00:00:00:000", this);
   mDurationLabel->setObjectName("durationLabel");
   mDurationLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
   mDurationLabel->setFocusPolicy(Qt::NoFocus);
 
-  mLoopCountSpinBox = new QSpinBox(parent);
+  mLoopCountSpinBox = new QSpinBox(this);
   mLoopCountSpinBox->setObjectName("loopCountSpinBox");
   mLoopCountSpinBox->setRange(1, 999);
   mLoopCountSpinBox->setValue(4);
@@ -127,7 +128,7 @@ View::View(QWidget* parent)
   mLoopCountSpinBox->setMinimumWidth(110);
   mLoopCountSpinBox->setFocusPolicy(Qt::NoFocus);
 
-  mBurstLengthSpinBox = new QDoubleSpinBox(parent);
+  mBurstLengthSpinBox = new QDoubleSpinBox(this);
   mBurstLengthSpinBox->setObjectName("burstLengthSpinBox");
   mBurstLengthSpinBox->setRange(0.0, 20.0);
   mBurstLengthSpinBox->setValue(2.0);
@@ -138,7 +139,7 @@ View::View(QWidget* parent)
   mBurstLengthSpinBox->setMinimumWidth(170);
   mBurstLengthSpinBox->setFocusPolicy(Qt::NoFocus);
 
-  mSpeedSpinBox = new QDoubleSpinBox(parent);
+  mSpeedSpinBox = new QDoubleSpinBox(this);
   mSpeedSpinBox->setObjectName("speedSpinBox");
   mSpeedSpinBox->setRange(0.1, 10.0);
   mSpeedSpinBox->setValue(1.0);
@@ -149,7 +150,7 @@ View::View(QWidget* parent)
   mSpeedSpinBox->setMinimumWidth(130);
   mSpeedSpinBox->setFocusPolicy(Qt::NoFocus);
 
-  mVolumeSpinBox = new QDoubleSpinBox(parent);
+  mVolumeSpinBox = new QDoubleSpinBox(this);
   mVolumeSpinBox->setObjectName("volumeSpinBox");
   mVolumeSpinBox->setRange(0.0, 1.0);
   mVolumeSpinBox->setValue(0.0);
@@ -160,7 +161,7 @@ View::View(QWidget* parent)
   mVolumeSpinBox->setMinimumWidth(130);
   mVolumeSpinBox->setFocusPolicy(Qt::NoFocus);
 
-  mInfoBar = new QPlainTextEdit(parent);
+  mInfoBar = new QPlainTextEdit(this);
   mInfoBar->setObjectName("infoBar");
   mInfoBar->setReadOnly(true);
   mInfoBar->setFixedHeight(32);
@@ -185,21 +186,39 @@ View::View(QWidget* parent)
   mButtonLayout->addWidget(mGpuEncodeCheckBox);
   mButtonLayout->addWidget(mRandomizeCheckBox);
 
-  QHBoxLayout* videoLayout = new QHBoxLayout;
-
-  QVBoxLayout* listLayout = new QVBoxLayout;
+  mSidePanel = new QWidget(this);
+  QVBoxLayout* listLayout = new QVBoxLayout(mSidePanel);
+  listLayout->setContentsMargins(0,0,0,0);
+  listLayout->setSpacing(0);
   listLayout->addWidget(mVideoList);
   listLayout->addWidget(mFilterEdit);
 
-  videoLayout->addWidget(mVideoWidget);
-  videoLayout->addLayout(listLayout);
+  QHBoxLayout* videoLayout = new QHBoxLayout;
+  videoLayout->setContentsMargins(0,0,0,0);
+  videoLayout->setSpacing(0);
+  videoLayout->addWidget(mVideoWidget, 1);
+  videoLayout->addWidget(mSidePanel, 0);
 
-  QVBoxLayout* rootLayout = new QVBoxLayout(parent);
+  mControlsPanel = new QWidget(this);
+  QVBoxLayout* controlsLayout = new QVBoxLayout(mControlsPanel);
+  controlsLayout->setContentsMargins(0,0,0,0);
+  controlsLayout->setSpacing(0);
+ 
+  QWidget* buttonWidget = new QWidget(this);
+  buttonWidget->setLayout(mButtonLayout);
+  controlsLayout->addWidget(mSlider);
+  controlsLayout->addWidget(buttonWidget);
+  controlsLayout->addWidget(mInfoBar);
+
+  QVBoxLayout* rootLayout = new QVBoxLayout(this);
+  rootLayout->setContentsMargins(0,0,0,0);
+  rootLayout->setSpacing(0);
   rootLayout->addLayout(videoLayout);
-  rootLayout->addWidget(mSlider);
-  rootLayout->addLayout(static_cast<QLayout*>(mButtonLayout));
-  rootLayout->addWidget(mInfoBar);
+  rootLayout->addWidget(mControlsPanel, 0);
+  rootLayout->setStretch(0, 1);
+  rootLayout->setStretch(1, 0);
   mLayout = rootLayout;
+  setLayout(rootLayout);
 
   connect(mVideoList, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem* item) {
     if (!item)
@@ -239,15 +258,15 @@ View::View(QWidget* parent)
   connect(mVolumeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) { emit volumeChanged(value); });
 
   connect(mFilterEdit, &QLineEdit::textChanged, this, &View::onFilterEditChanged);
-  connect(mFilterEdit, &QLineEdit::returnPressed, this, [this]() { emit FilterCommited(); });
+  connect(mFilterEdit, &QLineEdit::editingFinished, this, [this]() { emit FilterCommited(); });
 
   mCursorHider.reset(new CursorHider(mVideoWidget));
 }
 
 View::~View()
 {
-  mCursorHider.release();
-  delete mVideoWidget;
+  // Properly destroy CursorHider (unique_ptr will delete the object).
+  mCursorHider.reset();
 }
 
 VideoWidget* View::getVideoWidget() const
@@ -314,74 +333,26 @@ void View::setCurrentVideo(const size_t idx)
 void View::setFullscreenView(const bool isFullscreen)
 {
   mIsFullscreenView = isFullscreen;
-
-  auto toggleLayoutWidgets = [this](QLayout* layout, bool visible) {
-    if (!layout)
-    {
-      return;
-    }
-
-    for (int i = 0; i < layout->count(); ++i)
-    {
-      QLayoutItem* item = layout->itemAt(i);
-      if (!item)
-      {
-        continue;
-      }
-
-      if (QWidget* w = item->widget())
-      {
-        if (visible)
-        {
-          w->show();
-        }
-        else
-        {
-          w->hide();
-        }
-      }
-      else if (QLayout* subLayout = item->layout())
-      {
-        for (int j = 0; j < subLayout->count(); ++j)
-        {
-          QLayoutItem* subItem = subLayout->itemAt(j);
-          if (!subItem) 
-          {
-            continue;
-          }
-
-          if (QWidget* sw = subItem->widget())
-          {
-            if (visible)
-            {
-              sw->show();
-            }
-            else
-            {
-              sw->hide();
-            }
-          }
-        }
-      }
-    }
-  };
-
-  if (mIsFullscreenView)
+  if (mSidePanel)
   {
-    mVideoList->hide();
-    mSlider->hide();
-    mInfoBar->hide();
-    mFilterEdit->hide();
-    toggleLayoutWidgets(mButtonLayout, false);
+    mSidePanel->setVisible(!mIsFullscreenView);
   }
-  else
+  if (mControlsPanel)
   {
-    mVideoList->show();
-    mSlider->show();
-    mInfoBar->show();
-    mFilterEdit->show();
-    toggleLayoutWidgets(mButtonLayout, true);
+    mControlsPanel->setVisible(!mIsFullscreenView);
   }
+
+  if (mLayout)
+  {
+    mLayout->activate();
+  }
+  if (mVideoWidget)
+  {
+    mVideoWidget->raise();
+    mVideoWidget->update();
+  }
+  this->updateGeometry();
+  this->update();
 }
 
 bool View::isFullscreenView() const
