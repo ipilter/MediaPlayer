@@ -21,6 +21,7 @@
 #include <QListWidget>
 #include <QFileInfo>
 #include <QLineEdit>
+#include <QStyle>
 
 View::View(QWidget* parent)
   : QWidget(parent)
@@ -442,7 +443,15 @@ void View::setInfo(const QString& info)
 
 void View::onFilterEditChanged()
 {
-  emit filterChanged(mFilterEdit->text());
+  const bool hasText = !mFilterEdit->text().isEmpty();
+  mFilterEdit->setProperty("hasText", hasText);
+
+  QStyle* s = mFilterEdit->style();
+  s->unpolish(mFilterEdit);
+  s->polish(mFilterEdit);
+  mFilterEdit->update();
+
+  filterChanged(mFilterEdit->text());
 }
 
 void View::focusPlayButton()

@@ -191,11 +191,13 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
       mMediaPlayer->setFullscreen(!isMaximized());
       if (isMaximized())
       {
+        setBorderlessFullscreen(false);
         showNormal();
       }
       else
       {
         showMaximized();
+        setBorderlessFullscreen(true);
       }
     }
     break;
@@ -412,4 +414,23 @@ void MainWindow::dropEvent(QDropEvent* event)
       setWindowTitle(title);
     }
   }
+}
+
+void MainWindow::setBorderlessFullscreen(bool enable)
+{
+  static QSize size = this->size();
+  static QPoint pos = this->pos();
+  if (enable)
+    {
+      setWindowFlags(Qt::FramelessWindowHint);
+      showFullScreen();
+    }
+    else
+    {
+
+      setWindowFlags(Qt::Window);
+      showNormal();
+      resize(size);
+      move(pos);
+    }
 }

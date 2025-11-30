@@ -32,6 +32,9 @@ protected:
   void dropEvent(QDropEvent* event) override;
 
 private:
+  void setBorderlessFullscreen(bool enable);
+
+private:
   Ui::MainWindowClass ui;
 
   std::shared_ptr<MediaPlayer> mMediaPlayer;
