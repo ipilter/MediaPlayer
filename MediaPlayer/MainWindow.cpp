@@ -418,19 +418,23 @@ void MainWindow::dropEvent(QDropEvent* event)
 
 void MainWindow::setBorderlessFullscreen(bool enable)
 {
-  static QSize size = this->size();
-  static QPoint pos = this->pos();
-  if (enable)
-    {
-      setWindowFlags(Qt::FramelessWindowHint);
-      showFullScreen();
-    }
-    else
-    {
+  static QSize lastSize = this->size();
+  static QPoint lastPos = this->pos();
 
-      setWindowFlags(Qt::Window);
-      showNormal();
-      resize(size);
-      move(pos);
-    }
+  if (enable)
+  {
+    setWindowFlags(Qt::SubWindow);
+    showFullScreen();
+    showMaximized(); // TODO rethink this as this is needed as checked in key handler code
+  }
+  else
+  {
+    showNormal();
+    setWindowFlags(Qt::Window);
+    resize(lastSize);
+    move(lastPos);
+  }
+
+  lastSize = this->size();
+  lastPos = this->pos();
 }
