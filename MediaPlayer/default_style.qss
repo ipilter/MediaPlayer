@@ -70,3 +70,9 @@ QListWidget#videoList::item:selected {
     background-color: #191919;
     color: #FFFFFF;
 }
+
+/* QLineEdit: only change appearance when focused; unfocused state inherits the global defaults above */
+QLineEdit:focus {
+    background-color: #547464;
+    color: #FFFFFF;
+}
