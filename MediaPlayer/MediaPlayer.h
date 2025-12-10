@@ -7,6 +7,7 @@
 #include "Filter.h"
 
 #include <QObject>
+#include <QSize>
 
 #include <memory>
 
@@ -51,6 +52,8 @@ public:
 
   void setPosition(const VTime& position, const bool updateNeeded = false);
   VTime getPosition() const;
+  QSize getVideoDimensions() const;
+
   void seek(SeekDirection direction, SeekStep step);
   void snapToSelection(SnapPosition position);
   void startStop();

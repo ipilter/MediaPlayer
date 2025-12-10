@@ -6,6 +6,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QUrl>
+#include <qvideosink.h> 
 
 #include <random>
 
@@ -133,6 +134,11 @@ float VideoPlayer::volume() const
 bool VideoPlayer::isMuted() const
 {
   return mAudioOutput->isMuted();
+}
+
+QSize VideoPlayer::videoDimensions() const
+{
+  return mVideoPlayer->videoSink()->videoSize();
 }
 
 void VideoPlayer::setPosition(VTime position, const bool updateNeeded)

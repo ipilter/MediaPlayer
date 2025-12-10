@@ -317,6 +317,11 @@ VTime MediaPlayer::getPosition() const
   return mPlayer->getPosition();
 }
 
+QSize MediaPlayer::getVideoDimensions() const
+{
+  return mPlayer->videoDimensions();
+}
+
 void MediaPlayer::seek(MediaPlayer::SeekDirection direction, MediaPlayer::SeekStep step)
 {
   VTime wStepSize;

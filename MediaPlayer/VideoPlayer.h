@@ -37,6 +37,7 @@ public:
 
   float volume() const;
   bool isMuted() const;
+  QSize videoDimensions() const;
 
   QMediaMetaData getMetadata() const;
 
