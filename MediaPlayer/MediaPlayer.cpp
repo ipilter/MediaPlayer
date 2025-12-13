@@ -735,7 +735,7 @@ void MediaPlayer::LoopCut(SequenceEntry& sequenceEntry)
   const QString wPrettyFileName = utils::prettifyFileName(QFileInfo(mPlaylist.current().toLocalFile()).completeBaseName());
   const QString wLengthStr = QString::number((wEndTime - wStartTime).ms());
   const QString wStartStr = wStartTime.toString('.');
-  const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + ".loop.mp4";
+  const QString wLoopFilePath = mOutputRootDirectory + wPrettyFileName + "." + wStartStr + "." + wLengthStr + ".loop.mp4";
   const unsigned loopCount = mView->getLoopCount();
   sequenceEntry.second.mFilePath = wLoopFilePath;
 
